@@ -1,34 +1,84 @@
 
 import { cn } from "@/lib/utils";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
+import { useState } from "react";
 
 const categories = [
-  { name: "Tecnologia", color: "tech" },
-  { name: "Esportes", color: "sports" },
-  { name: "Política", color: "politics" },
-  { name: "Economia", color: "economy" },
-  { name: "Entretenimento", color: "entertainment" },
+  { name: "Tecnologia", color: "tech", subcategories: ["Inteligência Artificial", "Startups", "Gadgets", "Internet"] },
+  { name: "Esportes", color: "sports", subcategories: ["Futebol", "Basquete", "Vôlei", "Olimpíadas"] },
+  { name: "Política", color: "politics", subcategories: ["Nacional", "Internacional", "Eleições", "Congresso"] },
+  { name: "Economia", color: "economy", subcategories: ["Mercado", "Finanças", "Negócios", "Investimentos"] },
+  { name: "Entretenimento", color: "entertainment", subcategories: ["Cinema", "Música", "Televisão", "Celebridades"] },
+  { name: "Ciência", color: "science", subcategories: ["Pesquisas", "Espaço", "Arqueologia", "Descobertas"] },
+  { name: "Saúde", color: "health", subcategories: ["Medicina", "Bem-estar", "Nutrição", "Pandemia"] },
+  { name: "Meio Ambiente", color: "environment", subcategories: ["Clima", "Sustentabilidade", "Conservação", "Energia"] },
 ];
 
 export default function Navigation() {
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+
   return (
-    <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container">
-        <ul className="flex items-center gap-6 overflow-x-auto py-4">
-          {categories.map((category) => (
-            <li key={category.name}>
-              <a
-                href={`#${category.name.toLowerCase()}`}
-                className={cn(
-                  "text-sm font-medium transition-colors hover:text-category-" + category.color,
-                  "border-b-2 border-transparent pb-1 hover:border-category-" + category.color
-                )}
-                style={{ color: `var(--category-${category.color})` }}
-              >
-                {category.name}
-              </a>
-            </li>
-          ))}
-        </ul>
+    <nav className="border-b sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container overflow-x-auto">
+        <NavigationMenu className="max-w-none justify-start py-2">
+          <NavigationMenuList className="flex space-x-2 px-1">
+            {categories.map((category) => (
+              <NavigationMenuItem key={category.name}>
+                <NavigationMenuTrigger 
+                  className="text-sm font-medium"
+                  style={{ 
+                    color: activeCategory === category.name 
+                      ? `var(--category-${category.color})` 
+                      : undefined 
+                  }}
+                  onClick={() => setActiveCategory(category.name)}
+                >
+                  {category.name}
+                </NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <ul className="grid w-[200px] gap-2 p-4">
+                    {category.subcategories.map((subcategory) => (
+                      <li key={subcategory}>
+                        <NavigationMenuLink asChild>
+                          <a
+                            href={`#${category.name.toLowerCase()}-${subcategory.toLowerCase()}`}
+                            className={cn(
+                              "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+                              "hover:bg-opacity-80"
+                            )}
+                            style={{ 
+                              color: `var(--category-${category.color})`,
+                              borderLeft: `3px solid var(--category-${category.color})`
+                            }}
+                          >
+                            <div className="text-sm font-medium leading-none">{subcategory}</div>
+                          </a>
+                        </NavigationMenuLink>
+                      </li>
+                    ))}
+                    <li>
+                      <NavigationMenuLink asChild>
+                        <a
+                          href={`/category/${category.name.toLowerCase()}`}
+                          className="block select-none rounded-md bg-accent/50 p-3 text-center text-sm font-medium leading-none no-underline outline-none transition-colors hover:bg-accent"
+                        >
+                          Ver todas
+                        </a>
+                      </NavigationMenuLink>
+                    </li>
+                  </ul>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+            ))}
+          </NavigationMenuList>
+        </NavigationMenu>
       </div>
     </nav>
   );

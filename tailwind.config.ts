@@ -51,11 +51,22 @@ export default {
           foreground: "hsl(var(--card-foreground))",
         },
         category: {
-          tech: "#6366f1",
-          sports: "#22c55e",
-          politics: "#ef4444",
-          economy: "#f59e0b",
-          entertainment: "#ec4899",
+          tech: "#6366f1", // indigo
+          "tech-light": "#e0e7ff",
+          sports: "#22c55e", // green
+          "sports-light": "#dcfce7",
+          politics: "#ef4444", // red
+          "politics-light": "#fee2e2",
+          economy: "#f59e0b", // amber
+          "economy-light": "#fef3c7",
+          entertainment: "#ec4899", // pink
+          "entertainment-light": "#fce7f3",
+          science: "#8b5cf6", // violet
+          "science-light": "#ede9fe",
+          health: "#06b6d4", // cyan
+          "health-light": "#cffafe",
+          environment: "#10b981", // emerald
+          "environment-light": "#d1fae5",
         },
       },
       borderRadius: {
@@ -72,10 +83,19 @@ export default {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        "tickerFade": {
+          "0%": { opacity: "0", transform: "translateY(10px)" },
+          "10%": { opacity: "1", transform: "translateY(0)" },
+          "90%": { opacity: "1", transform: "translateY(0)" },
+          "100%": { opacity: "0", transform: "translateY(-10px)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+      },
+      gridTemplateRows: {
+        'auto-1fr': 'auto 1fr',
       },
     },
   },

@@ -27,6 +27,24 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 221.2 83.2% 53.3%;
     --radius: 1rem;
+    
+    /* Category colors */
+    --category-tech: #6366f1;
+    --category-tech-light: #e0e7ff;
+    --category-sports: #22c55e;
+    --category-sports-light: #dcfce7;
+    --category-politics: #ef4444;
+    --category-politics-light: #fee2e2;
+    --category-economy: #f59e0b;
+    --category-economy-light: #fef3c7;
+    --category-entertainment: #ec4899;
+    --category-entertainment-light: #fce7f3;
+    --category-science: #8b5cf6;
+    --category-science-light: #ede9fe;
+    --category-health: #06b6d4;
+    --category-health-light: #cffafe;
+    --category-environment: #10b981;
+    --category-environment-light: #d1fae5;
   }
 
   .dark {
@@ -49,6 +67,24 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 224.3 76.3% 48%;
+    
+    /* Category colors for dark mode - brighter versions */
+    --category-tech: #818cf8;
+    --category-tech-light: rgba(129, 140, 248, 0.2);
+    --category-sports: #4ade80;
+    --category-sports-light: rgba(74, 222, 128, 0.2);
+    --category-politics: #f87171;
+    --category-politics-light: rgba(248, 113, 113, 0.2);
+    --category-economy: #fbbf24;
+    --category-economy-light: rgba(251, 191, 36, 0.2);
+    --category-entertainment: #f472b6;
+    --category-entertainment-light: rgba(244, 114, 182, 0.2);
+    --category-science: #a78bfa;
+    --category-science-light: rgba(167, 139, 250, 0.2);
+    --category-health: #22d3ee;
+    --category-health-light: rgba(34, 211, 238, 0.2);
+    --category-environment: #34d399;
+    --category-environment-light: rgba(52, 211, 153, 0.2);
   }
 
   * {
@@ -65,5 +101,21 @@
     90% { opacity: 1; transform: translateY(0); }
     100% { opacity: 0; transform: translateY(-10px); }
   }
+}
+
+.prose {
+  @apply text-foreground max-w-none;
+}
+
+.prose p {
+  @apply leading-7;
+}
+
+.prose .lead {
+  @apply text-xl font-normal text-muted-foreground;
+}
+
+.text-balance {
+  text-wrap: balance;
 }
 
