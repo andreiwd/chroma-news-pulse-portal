@@ -15,9 +15,14 @@ export default function NewsCard({ news, variant = "default" }: NewsCardProps) {
     <Card className="overflow-hidden hover:shadow-lg transition-shadow">
       <div className="relative">
         <img
-          src={news.image}
+          src={news.image || `https://placehold.co/600x400/${news.category === 'tech' ? '6366f1' : news.category === 'sports' ? '22c55e' : news.category === 'politics' ? 'ef4444' : news.category === 'economy' ? 'f59e0b' : news.category === 'entertainment' ? 'ec4899' : news.category === 'science' ? '8b5cf6' : news.category === 'health' ? '06b6d4' : '10b981'}/white?text=${news.category}`}
           alt={news.title}
           className={`w-full object-cover ${variant === "compact" ? "h-32" : "h-48"}`}
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.onerror = null;
+            target.src = `https://placehold.co/600x400/${news.category === 'tech' ? '6366f1' : news.category === 'sports' ? '22c55e' : news.category === 'politics' ? 'ef4444' : news.category === 'economy' ? 'f59e0b' : news.category === 'entertainment' ? 'ec4899' : news.category === 'science' ? '8b5cf6' : news.category === 'health' ? '06b6d4' : '10b981'}/white?text=${news.category}`;
+          }}
         />
         {news.isBreaking && (
           <Badge 

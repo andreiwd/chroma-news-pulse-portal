@@ -1,9 +1,12 @@
+
 import NewsTicker from "@/components/NewsTicker";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
 import FeaturedNewsCarousel from "@/components/FeaturedNewsCarousel";
 import NewsCard from "@/components/NewsCard";
 import newsData from "@/data/newsData";
+import { Slider } from "@/components/ui/slider";
+import { Separator } from "@/components/ui/separator";
 
 // Group news by category
 const getNewsByCategory = () => {
@@ -72,6 +75,7 @@ export default function Index() {
       <Navigation />
       
       <main className="flex-1">
+        {/* Featured Section with Carousel and Ads */}
         <section className="py-6 bg-gradient-to-b from-background to-muted/20">
           <div className="container">
             <h2 className="sr-only">Destaques</h2>
@@ -79,36 +83,53 @@ export default function Index() {
           </div>
         </section>
 
+        {/* Main Content with Categories and Sidebar */}
         <div className="container py-6">
           <div className="flex flex-col lg:flex-row gap-6">
             {/* Main content */}
-            {Object.entries(newsByCategory).map(([category, news]) => (
-              <section key={category} className="mb-12" id={category}>
-                <div className="flex justify-between items-center mb-4">
-                  <h2 
-                    className={`text-xl font-bold ${getCategoryColor(category)}`}
-                    style={{ color: `var(--category-${category})` }}
-                  >
-                    {category.charAt(0).toUpperCase() + category.slice(1)}
-                  </h2>
-                  <a 
-                    href={`/category/${category}`} 
-                    className="text-sm hover:underline"
-                    style={{ color: `var(--category-${category})` }}
-                  >
-                    Ver mais
-                  </a>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {news.map((item) => (
-                    <NewsCard key={item.id} news={item} />
-                  ))}
-                </div>
-              </section>
-            ))}
+            <div className="lg:flex-1 space-y-12">
+              {Object.entries(newsByCategory).map(([category, news]) => (
+                <section key={category} id={category}>
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 
+                      className="text-xl font-bold"
+                      style={{ color: `var(--category-${category})` }}
+                    >
+                      {category.charAt(0).toUpperCase() + category.slice(1)}
+                    </h2>
+                    <a 
+                      href={`/category/${category}`} 
+                      className="text-sm hover:underline"
+                      style={{ color: `var(--category-${category})` }}
+                    >
+                      Ver mais
+                    </a>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {news.map((item) => (
+                      <NewsCard key={item.id} news={item} />
+                    ))}
+                  </div>
+                  
+                  {/* Ad banner between categories */}
+                  {category === Object.keys(newsByCategory)[1] && (
+                    <div className="my-8">
+                      <div className="bg-muted/30 rounded-lg p-4 h-[120px] flex items-center justify-center border-2 border-dashed border-muted">
+                        <div className="text-center text-muted-foreground">
+                          <p className="font-medium">Banner Anúncio</p>
+                          <p className="text-sm">970 x 120</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  <Separator className="mt-8" />
+                </section>
+              ))}
+            </div>
             
-            {/* Sidebar - Most viewed news */}
+            {/* Sidebar - Most viewed news and ads */}
             <div className="lg:w-80 space-y-6">
               <div className="bg-muted/30 p-4 rounded-lg">
                 <h3 className="text-lg font-bold mb-4 border-b pb-2">Mais Lidas</h3>
@@ -135,7 +156,15 @@ export default function Index() {
                 </div>
               </div>
               
-              {/* Ad space or newsletter signup could go here */}
+              {/* Ad space */}
+              <div className="bg-muted/30 rounded-lg p-4 h-[250px] flex items-center justify-center border-2 border-dashed border-muted">
+                <div className="text-center text-muted-foreground">
+                  <p className="font-medium">Anúncio Lateral</p>
+                  <p className="text-sm">300 x 250</p>
+                </div>
+              </div>
+              
+              {/* Newsletter signup */}
               <div className="bg-muted p-4 rounded-lg text-center">
                 <h3 className="font-medium mb-2">Assine nossa newsletter</h3>
                 <p className="text-sm text-muted-foreground mb-4">
@@ -154,6 +183,14 @@ export default function Index() {
                     Assinar
                   </button>
                 </form>
+              </div>
+              
+              {/* Second ad space */}
+              <div className="bg-muted/30 rounded-lg p-4 h-[600px] flex items-center justify-center border-2 border-dashed border-muted">
+                <div className="text-center text-muted-foreground">
+                  <p className="font-medium">Anúncio Vertical</p>
+                  <p className="text-sm">300 x 600</p>
+                </div>
               </div>
             </div>
           </div>

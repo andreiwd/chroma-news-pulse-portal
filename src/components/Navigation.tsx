@@ -32,11 +32,12 @@ export default function Navigation() {
             {categories.map((category) => (
               <NavigationMenuItem key={category.name}>
                 <NavigationMenuTrigger 
-                  className="text-sm font-medium"
+                  className="text-sm font-bold hover:bg-transparent"
                   style={{ 
-                    color: activeCategory === category.name 
-                      ? `var(--category-${category.color})` 
-                      : undefined 
+                    color: `var(--category-${category.color})`,
+                    borderBottom: activeCategory === category.name 
+                      ? `3px solid var(--category-${category.color})` 
+                      : 'none' 
                   }}
                   onClick={() => setActiveCategory(category.name)}
                 >
@@ -67,7 +68,11 @@ export default function Navigation() {
                       <NavigationMenuLink asChild>
                         <a
                           href={`/category/${category.name.toLowerCase()}`}
-                          className="block select-none rounded-md bg-accent/50 p-3 text-center text-sm font-medium leading-none no-underline outline-none transition-colors hover:bg-accent"
+                          className="block select-none rounded-md p-3 text-center text-sm font-medium leading-none no-underline outline-none transition-colors"
+                          style={{ 
+                            backgroundColor: `var(--category-${category.color}-light)`,
+                            color: `var(--category-${category.color})`
+                          }}
                         >
                           Ver todas
                         </a>
