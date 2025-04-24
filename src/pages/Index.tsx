@@ -1,4 +1,3 @@
-
 import NewsTicker from "@/components/NewsTicker";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
@@ -73,41 +72,41 @@ export default function Index() {
       <Navigation />
       
       <main className="flex-1">
-        <section className="container py-6">
-          <h2 className="text-2xl font-bold mb-4">Destaques</h2>
-          <FeaturedNewsCarousel highlightedNews={highlightedNews} />
+        <section className="py-6 bg-gradient-to-b from-background to-muted/20">
+          <div className="container">
+            <h2 className="sr-only">Destaques</h2>
+            <FeaturedNewsCarousel highlightedNews={highlightedNews} />
+          </div>
         </section>
-        
+
         <div className="container py-6">
           <div className="flex flex-col lg:flex-row gap-6">
             {/* Main content */}
-            <div className="flex-1">
-              {Object.entries(newsByCategory).map(([category, news]) => (
-                <section key={category} className="mb-12" id={category}>
-                  <div className="flex justify-between items-center mb-4">
-                    <h2 
-                      className={`text-xl font-bold ${getCategoryColor(category)}`}
-                      style={{ color: `var(--category-${category})` }}
-                    >
-                      {category.charAt(0).toUpperCase() + category.slice(1)}
-                    </h2>
-                    <a 
-                      href={`/category/${category}`} 
-                      className="text-sm hover:underline"
-                      style={{ color: `var(--category-${category})` }}
-                    >
-                      Ver mais
-                    </a>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {news.map((item) => (
-                      <NewsCard key={item.id} news={item} />
-                    ))}
-                  </div>
-                </section>
-              ))}
-            </div>
+            {Object.entries(newsByCategory).map(([category, news]) => (
+              <section key={category} className="mb-12" id={category}>
+                <div className="flex justify-between items-center mb-4">
+                  <h2 
+                    className={`text-xl font-bold ${getCategoryColor(category)}`}
+                    style={{ color: `var(--category-${category})` }}
+                  >
+                    {category.charAt(0).toUpperCase() + category.slice(1)}
+                  </h2>
+                  <a 
+                    href={`/category/${category}`} 
+                    className="text-sm hover:underline"
+                    style={{ color: `var(--category-${category})` }}
+                  >
+                    Ver mais
+                  </a>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {news.map((item) => (
+                    <NewsCard key={item.id} news={item} />
+                  ))}
+                </div>
+              </section>
+            ))}
             
             {/* Sidebar - Most viewed news */}
             <div className="lg:w-80 space-y-6">
