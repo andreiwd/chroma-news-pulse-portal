@@ -1,5 +1,5 @@
 
-import { Facebook, Instagram, Search, TiktokIcon } from "lucide-react";
+import { Facebook, Instagram, Search } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -39,7 +39,24 @@ export default function Header() {
               </Button>
               <Button variant="ghost" size="icon" asChild>
                 <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer">
-                  <TiktokIcon className="h-5 w-5" />
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="20" 
+                    height="20" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    className="h-5 w-5"
+                  >
+                    <path d="M9 12a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/>
+                    <path d="M16 8v8"/>
+                    <path d="M12 16v-8"/>
+                    <path d="M20 12V8a4 4 0 0 0-4-4h-1"/>
+                    <path d="M13 5.1v0"/>
+                  </svg>
                 </a>
               </Button>
             </div>
