@@ -1,4 +1,3 @@
-
 import NewsTicker from "@/components/NewsTicker";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
@@ -74,7 +73,7 @@ export default function Index() {
       <Header />
       <Navigation />
       
-      <main className="flex-1 overflow-x-hidden">
+      <main className="flex-1 overflow-hidden">
         {/* Featured Section with Carousel */}
         <section className="py-6 bg-gradient-to-b from-background to-muted/20">
           <div className="container">
@@ -85,18 +84,18 @@ export default function Index() {
 
         {/* Main Content with Categories and Sidebar */}
         <div className="container py-6">
-          <div className="flex flex-col lg:flex-row gap-6">
-            {/* Left sidebar with ad and minimal news */}
-            <div className="lg:w-64 space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Left sidebar */}
+            <div className="lg:col-span-2">
               {/* Ad space */}
-              <div className="ad-placeholder rounded-lg p-4 h-[600px]">
+              <div className="ad-placeholder rounded-lg p-4 h-[600px] sticky top-24">
                 <div className="text-center">
                   <p className="font-medium">Anúncio</p>
                   <p className="text-sm">160 x 600</p>
                 </div>
               </div>
               
-              <div className="bg-muted/30 p-4 rounded-lg">
+              <div className="bg-muted/30 p-4 rounded-lg mt-6">
                 <h3 className="text-lg font-bold mb-4 border-b pb-2">Últimas Notícias</h3>
                 <div className="space-y-3">
                   {latestNews.slice(0, 5).map((news) => (
@@ -122,7 +121,7 @@ export default function Index() {
             </div>
             
             {/* Main content - featured articles and category sections */}
-            <div className="flex-1 space-y-8">
+            <div className="lg:col-span-7 space-y-8">
               {/* Featured Articles in 2-column grid */}
               <section>
                 <h2 className="text-2xl font-bold mb-4">Principais Notícias</h2>
@@ -189,9 +188,9 @@ export default function Index() {
             </div>
 
             {/* Right sidebar - Most viewed news and ads */}
-            <div className="lg:w-80 space-y-6">
+            <div className="lg:col-span-3 space-y-6">
               {/* Most viewed news */}
-              <div className="bg-muted/30 p-4 rounded-lg">
+              <div className="bg-muted/30 p-4 rounded-lg sticky top-24">
                 <h3 className="text-lg font-bold mb-4 border-b pb-2">Mais Lidas</h3>
                 <div className="space-y-4">
                   {mostViewedNews.map((news, index) => (
@@ -216,7 +215,7 @@ export default function Index() {
                 </div>
               </div>
               
-              {/* Ad space */}
+              {/* Ad spaces */}
               <div className="ad-placeholder rounded-lg p-4 h-[250px]">
                 <div className="text-center">
                   <p className="font-medium">Anúncio</p>
