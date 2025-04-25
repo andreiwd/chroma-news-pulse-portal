@@ -4,9 +4,10 @@ import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
 import FeaturedNewsCarousel from "@/components/FeaturedNewsCarousel";
 import NewsCard from "@/components/NewsCard";
+import CategoryNewsCarousel from "@/components/CategoryNewsCarousel";
 import newsData from "@/data/newsData";
-import { Slider } from "@/components/ui/slider";
 import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 // Group news by category
 const getNewsByCategory = () => {
@@ -23,7 +24,7 @@ const getNewsByCategory = () => {
         }
         return 0;
       })
-      .slice(0, 4); // Limit to 4 news items per category
+      .slice(0, 8); // Get more news per category for carousels
   });
   
   return newsByCategory;
@@ -49,23 +50,22 @@ const getMostViewedNews = () => {
     .slice(0, 5);
 };
 
-const getCategoryColor = (category: string) => {
-  const colors = {
-    tech: "text-category-tech",
-    sports: "text-category-sports",
-    politics: "text-category-politics",
-    economy: "text-category-economy",
-    entertainment: "text-category-entertainment",
-    science: "text-category-science",
-    health: "text-category-health",
-    environment: "text-category-environment",
-  };
-  return colors[category as keyof typeof colors] || "text-primary";
+// Get latest news
+const getLatestNews = () => {
+  return [...newsData]
+    .sort((a, b) => {
+      if (a.publishedAt && b.publishedAt) {
+        return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
+      }
+      return 0;
+    })
+    .slice(0, 12);
 };
 
 export default function Index() {
   const highlightedNews = getHighlightedNews();
   const mostViewedNews = getMostViewedNews();
+  const latestNews = getLatestNews();
   const newsByCategory = getNewsByCategory();
   
   return (
@@ -74,8 +74,8 @@ export default function Index() {
       <Header />
       <Navigation />
       
-      <main className="flex-1">
-        {/* Featured Section with Carousel and Ads */}
+      <main className="flex-1 overflow-x-hidden">
+        {/* Featured Section with Carousel */}
         <section className="py-6 bg-gradient-to-b from-background to-muted/20">
           <div className="container">
             <h2 className="sr-only">Destaques</h2>
@@ -86,51 +86,111 @@ export default function Index() {
         {/* Main Content with Categories and Sidebar */}
         <div className="container py-6">
           <div className="flex flex-col lg:flex-row gap-6">
-            {/* Main content */}
-            <div className="lg:flex-1 space-y-12">
-              {Object.entries(newsByCategory).map(([category, news]) => (
-                <section key={category} id={category}>
-                  <div className="flex justify-between items-center mb-4">
-                    <h2 
-                      className="text-xl font-bold"
-                      style={{ color: `var(--category-${category})` }}
+            {/* Left sidebar with ad and minimal news */}
+            <div className="lg:w-64 space-y-6">
+              {/* Ad space */}
+              <div className="ad-placeholder rounded-lg p-4 h-[600px]">
+                <div className="text-center">
+                  <p className="font-medium">Anúncio</p>
+                  <p className="text-sm">160 x 600</p>
+                </div>
+              </div>
+              
+              <div className="bg-muted/30 p-4 rounded-lg">
+                <h3 className="text-lg font-bold mb-4 border-b pb-2">Últimas Notícias</h3>
+                <div className="space-y-3">
+                  {latestNews.slice(0, 5).map((news) => (
+                    <div 
+                      key={news.id} 
+                      className="border-l-2 pl-2 py-1 hover:bg-muted/50 transition-colors"
+                      style={{ borderLeftColor: `var(--category-${news.category})` }}
                     >
-                      {category.charAt(0).toUpperCase() + category.slice(1)}
-                    </h2>
-                    <a 
-                      href={`/category/${category}`} 
-                      className="text-sm hover:underline"
-                      style={{ color: `var(--category-${category})` }}
-                    >
-                      Ver mais
-                    </a>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {news.map((item) => (
-                      <NewsCard key={item.id} news={item} />
-                    ))}
-                  </div>
-                  
-                  {/* Ad banner between categories */}
-                  {category === Object.keys(newsByCategory)[1] && (
-                    <div className="my-8">
-                      <div className="bg-muted/30 rounded-lg p-4 h-[120px] flex items-center justify-center border-2 border-dashed border-muted">
-                        <div className="text-center text-muted-foreground">
-                          <p className="font-medium">Banner Anúncio</p>
-                          <p className="text-sm">970 x 120</p>
-                        </div>
+                      <a 
+                        href={`/news/${news.id}`}
+                        className="text-sm font-medium hover:underline line-clamp-2"
+                        style={{ color: `var(--category-${news.category})` }}
+                      >
+                        {news.title}
+                      </a>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {news.publishedAt && new Date(news.publishedAt).toLocaleDateString('pt-BR')}
                       </div>
                     </div>
-                  )}
-                  
-                  <Separator className="mt-8" />
-                </section>
-              ))}
+                  ))}
+                </div>
+              </div>
             </div>
             
-            {/* Sidebar - Most viewed news and ads */}
+            {/* Main content - featured articles and category sections */}
+            <div className="flex-1 space-y-8">
+              {/* Featured Articles in 2-column grid */}
+              <section>
+                <h2 className="text-2xl font-bold mb-4">Principais Notícias</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {latestNews.slice(0, 4).map((article, index) => (
+                    <div 
+                      key={article.id}
+                      className={`animate-fadeInUp`} 
+                      style={{ animationDelay: `${index * 0.1}s` }}
+                    >
+                      <NewsCard 
+                        news={article} 
+                        variant={index < 2 ? "default" : "compact"}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </section>
+              
+              {/* Center ad banner */}
+              <div className="ad-placeholder rounded-lg p-4 h-[120px]">
+                <div className="text-center">
+                  <p className="font-medium">Banner Anúncio</p>
+                  <p className="text-sm">970 x 120</p>
+                </div>
+              </div>
+
+              {/* Category Carousel - Full Width */}
+              {Object.entries(newsByCategory).slice(0, 1).map(([category, news]) => (
+                <CategoryNewsCarousel key={category} category={category} news={news} />
+              ))}
+              
+              {/* Mixed layout section */}
+              <section>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Featured Article */}
+                  <div className="md:col-span-2">
+                    <NewsCard news={latestNews[5]} />
+                  </div>
+                  
+                  {/* Side articles in minimal view */}
+                  <div className="space-y-4">
+                    {latestNews.slice(6, 9).map(news => (
+                      <NewsCard key={news.id} news={news} variant="minimal" />
+                    ))}
+                  </div>
+                </div>
+              </section>
+
+              {/* Category Carousel - Another Category */}
+              {Object.entries(newsByCategory).slice(1, 2).map(([category, news]) => (
+                <CategoryNewsCarousel key={category} category={category} news={news} />
+              ))}
+              
+              {/* Horizontal Articles */}
+              <section>
+                <h2 className="text-xl font-bold mb-4">Reportagens Especiais</h2>
+                <div className="space-y-4">
+                  {latestNews.slice(9, 12).map(news => (
+                    <NewsCard key={news.id} news={news} variant="horizontal" />
+                  ))}
+                </div>
+              </section>
+            </div>
+
+            {/* Right sidebar - Most viewed news and ads */}
             <div className="lg:w-80 space-y-6">
+              {/* Most viewed news */}
               <div className="bg-muted/30 p-4 rounded-lg">
                 <h3 className="text-lg font-bold mb-4 border-b pb-2">Mais Lidas</h3>
                 <div className="space-y-4">
@@ -157,9 +217,9 @@ export default function Index() {
               </div>
               
               {/* Ad space */}
-              <div className="bg-muted/30 rounded-lg p-4 h-[250px] flex items-center justify-center border-2 border-dashed border-muted">
-                <div className="text-center text-muted-foreground">
-                  <p className="font-medium">Anúncio Lateral</p>
+              <div className="ad-placeholder rounded-lg p-4 h-[250px]">
+                <div className="text-center">
+                  <p className="font-medium">Anúncio</p>
                   <p className="text-sm">300 x 250</p>
                 </div>
               </div>
@@ -186,11 +246,28 @@ export default function Index() {
               </div>
               
               {/* Second ad space */}
-              <div className="bg-muted/30 rounded-lg p-4 h-[600px] flex items-center justify-center border-2 border-dashed border-muted">
-                <div className="text-center text-muted-foreground">
-                  <p className="font-medium">Anúncio Vertical</p>
+              <div className="ad-placeholder rounded-lg p-4 h-[600px]">
+                <div className="text-center">
+                  <p className="font-medium">Anúncio</p>
                   <p className="text-sm">300 x 600</p>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Full-width category carousels at the bottom */}
+          <div className="mt-8 space-y-8">
+            <Separator />
+            
+            {Object.entries(newsByCategory).slice(2, 4).map(([category, news]) => (
+              <CategoryNewsCarousel key={category} category={category} news={news} />
+            ))}
+            
+            {/* Final ad banner */}
+            <div className="ad-placeholder rounded-lg p-4 h-[250px]">
+              <div className="text-center">
+                <p className="font-medium">Banner Anúncio</p>
+                <p className="text-sm">970 x 250</p>
               </div>
             </div>
           </div>

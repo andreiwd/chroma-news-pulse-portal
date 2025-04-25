@@ -25,65 +25,67 @@ export default function Navigation() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
   return (
-    <nav className="border-b sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container overflow-x-auto">
-        <NavigationMenu className="max-w-none justify-start py-2">
-          <NavigationMenuList className="flex space-x-2 px-1">
-            {categories.map((category) => (
-              <NavigationMenuItem key={category.name}>
-                <NavigationMenuTrigger 
-                  className="text-sm font-bold hover:bg-transparent"
-                  style={{ 
-                    color: `var(--category-${category.color})`,
-                    borderBottom: activeCategory === category.name 
-                      ? `3px solid var(--category-${category.color})` 
-                      : 'none' 
-                  }}
-                  onClick={() => setActiveCategory(category.name)}
-                >
-                  {category.name}
-                </NavigationMenuTrigger>
-                <NavigationMenuContent>
-                  <ul className="grid w-[200px] gap-2 p-4">
-                    {category.subcategories.map((subcategory) => (
-                      <li key={subcategory}>
+    <nav className="border-b sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 w-full">
+      <div className="container">
+        <div className="overflow-x-auto no-scrollbar">
+          <NavigationMenu className="max-w-none justify-start py-2">
+            <NavigationMenuList className="flex space-x-2 px-1">
+              {categories.map((category) => (
+                <NavigationMenuItem key={category.name}>
+                  <NavigationMenuTrigger 
+                    className="text-sm font-bold hover:bg-transparent whitespace-nowrap"
+                    style={{ 
+                      color: `var(--category-${category.color})`,
+                      borderBottom: activeCategory === category.name 
+                        ? `3px solid var(--category-${category.color})` 
+                        : 'none' 
+                    }}
+                    onClick={() => setActiveCategory(category.name)}
+                  >
+                    {category.name}
+                  </NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <ul className="grid w-[200px] gap-2 p-4">
+                      {category.subcategories.map((subcategory) => (
+                        <li key={subcategory}>
+                          <NavigationMenuLink asChild>
+                            <a
+                              href={`#${category.name.toLowerCase()}-${subcategory.toLowerCase()}`}
+                              className={cn(
+                                "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+                                "hover:bg-opacity-80"
+                              )}
+                              style={{ 
+                                color: `var(--category-${category.color})`,
+                                borderLeft: `3px solid var(--category-${category.color})`
+                              }}
+                            >
+                              <div className="text-sm font-medium leading-none">{subcategory}</div>
+                            </a>
+                          </NavigationMenuLink>
+                        </li>
+                      ))}
+                      <li>
                         <NavigationMenuLink asChild>
                           <a
-                            href={`#${category.name.toLowerCase()}-${subcategory.toLowerCase()}`}
-                            className={cn(
-                              "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
-                              "hover:bg-opacity-80"
-                            )}
+                            href={`/category/${category.name.toLowerCase()}`}
+                            className="block select-none rounded-md p-3 text-center text-sm font-medium leading-none no-underline outline-none transition-colors"
                             style={{ 
-                              color: `var(--category-${category.color})`,
-                              borderLeft: `3px solid var(--category-${category.color})`
+                              backgroundColor: `var(--category-${category.color}-light)`,
+                              color: `var(--category-${category.color})`
                             }}
                           >
-                            <div className="text-sm font-medium leading-none">{subcategory}</div>
+                            Ver todas
                           </a>
                         </NavigationMenuLink>
                       </li>
-                    ))}
-                    <li>
-                      <NavigationMenuLink asChild>
-                        <a
-                          href={`/category/${category.name.toLowerCase()}`}
-                          className="block select-none rounded-md p-3 text-center text-sm font-medium leading-none no-underline outline-none transition-colors"
-                          style={{ 
-                            backgroundColor: `var(--category-${category.color}-light)`,
-                            color: `var(--category-${category.color})`
-                          }}
-                        >
-                          Ver todas
-                        </a>
-                      </NavigationMenuLink>
-                    </li>
-                  </ul>
-                </NavigationMenuContent>
-              </NavigationMenuItem>
-            ))}
-          </NavigationMenuList>
-        </NavigationMenu>
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+              ))}
+            </NavigationMenuList>
+          </NavigationMenu>
+        </div>
       </div>
     </nav>
   );

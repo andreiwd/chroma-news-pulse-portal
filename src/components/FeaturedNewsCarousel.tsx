@@ -159,40 +159,6 @@ export default function FeaturedNewsCarousel({ highlightedNews }: FeaturedNewsCa
           </div>
         </div>
       </div>
-
-      {/* Ad Spaces */}
-      <div className="container mx-auto mt-8">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-          {/* Side Ad Space */}
-          <div className="hidden lg:block md:col-span-3">
-            <div className="bg-muted/30 rounded-lg p-4 h-[600px] flex items-center justify-center border-2 border-dashed border-muted">
-              <div className="text-center text-muted-foreground">
-                <p className="font-medium">Anúncio</p>
-                <p className="text-sm">300 x 600</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Main Content Area */}
-          <div className="md:col-span-9">
-            {/* Top Banner Ad */}
-            <div className="bg-muted/30 rounded-lg p-4 mb-6 h-[90px] flex items-center justify-center border-2 border-dashed border-muted">
-              <div className="text-center text-muted-foreground">
-                <p className="font-medium">Banner Anúncio</p>
-                <p className="text-sm">728 x 90</p>
-              </div>
-            </div>
-
-            {/* In-feed Ad */}
-            <div className="bg-muted/30 rounded-lg p-4 h-[250px] flex items-center justify-center border-2 border-dashed border-muted mt-6">
-              <div className="text-center text-muted-foreground">
-                <p className="font-medium">Anúncio In-feed</p>
-                <p className="text-sm">728 x 250</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

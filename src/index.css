@@ -119,3 +119,43 @@
   text-wrap: balance;
 }
 
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Ad placeholders */
+.ad-placeholder {
+  @apply border-2 border-dashed border-muted flex items-center justify-center bg-muted/30 text-muted-foreground;
+}
+
+/* Hover effects for cards */
+.card-hover-effect {
+  @apply transition-all duration-300;
+}
+.card-hover-effect:hover {
+  @apply shadow-lg -translate-y-1;
+}
+
+/* Animation for news items */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeInUp {
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+
