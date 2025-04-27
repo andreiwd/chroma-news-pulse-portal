@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { queries } from "@/lib/api";
 import type { Article, Category, PaginatedResponse } from "@/types/api";
@@ -36,6 +35,10 @@ export function useLatestNews() {
     queryFn: queries.getLatestNews,
     staleTime: 1 * 60 * 1000, // 1 minuto
     gcTime: 5 * 60 * 1000, // 5 minutos
+    select: (data) => {
+      // The API returns the news items directly as an array, not in a data property
+      return data || [];
+    }
   });
 }
 

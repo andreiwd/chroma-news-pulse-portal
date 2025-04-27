@@ -7,14 +7,15 @@ export default function NewsTicker() {
   const [currentNewsIndex, setCurrentNewsIndex] = useState(0);
   
   useEffect(() => {
-    if (!latestNews?.data?.length) return;
+    // Check if we have news items directly in the array
+    if (!latestNews?.length) return;
     
     const timer = setInterval(() => {
-      setCurrentNewsIndex((prev) => (prev + 1) % latestNews.data.length);
+      setCurrentNewsIndex((prev) => (prev + 1) % latestNews.length);
     }, 4000);
 
     return () => clearInterval(timer);
-  }, [latestNews?.data?.length]);
+  }, [latestNews?.length]);
 
   return (
     <div className="bg-gradient-to-r from-primary/90 to-primary py-2 text-white">
@@ -23,12 +24,12 @@ export default function NewsTicker() {
         <div className="overflow-hidden h-6">
           {isLoading ? (
             <p className="animate-pulse">Carregando notícias...</p>
-          ) : latestNews?.data?.length ? (
+          ) : latestNews?.length ? (
             <p
               key={currentNewsIndex}
               className="animate-[tickerFade_4s_ease-in-out_infinite]"
             >
-              {latestNews.data[currentNewsIndex]?.title}
+              {latestNews[currentNewsIndex]?.title}
             </p>
           ) : (
             <p>Nenhuma notícia encontrada</p>
