@@ -1,34 +1,48 @@
 
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
 import NewsTicker from "@/components/NewsTicker";
 import Breadcrumbs from "@/components/Breadcrumbs";
-import newsData from "@/data/newsData";
 import { Badge } from "@/components/ui/badge";
 import { Share } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import RelatedNews from "@/components/RelatedNews";
-import { useMemo } from "react";
+import { useNewsDetail, useNews } from "@/hooks/useNews";
+import { Skeleton } from "@/components/ui/skeleton";
+import { formatDistanceToNow } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 export default function NewsDetail() {
   const { id } = useParams();
-  const article = newsData.find(news => news.id === Number(id));
+  const { data: article, isLoading, error } = useNewsDetail(id || "");
+  const { data: relatedNewsData } = useNews(1, article?.category?.slug || "", "");
   
-  const relatedArticles = useMemo(() => {
-    if (!article) return [];
-    
-    // Find articles with the same category or tags
-    return newsData
-      .filter(news => 
-        news.id !== article.id && 
-        (news.category === article.category || 
-         (article.tags && news.tags && news.tags.some(tag => article.tags?.includes(tag))))
-      )
-      .slice(0, 4);
-  }, [article]);
+  const relatedArticles = relatedNewsData?.data?.filter(item => item.id !== article?.id)?.slice(0, 4) || [];
 
-  if (!article) {
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <NewsTicker />
+        <Header />
+        <Navigation />
+        <main className="container py-6">
+          <div className="max-w-4xl mx-auto mt-4">
+            <Skeleton className="h-10 w-3/4 mb-4" />
+            <Skeleton className="h-6 w-1/2 mb-8" />
+            <Skeleton className="h-[400px] w-full mb-8" />
+            <div className="space-y-4">
+              <Skeleton className="h-6 w-full" />
+              <Skeleton className="h-6 w-full" />
+              <Skeleton className="h-6 w-3/4" />
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (error || !article) {
     return (
       <div className="min-h-screen flex flex-col">
         <NewsTicker />
@@ -38,21 +52,18 @@ export default function NewsDetail() {
           <h1 className="text-2xl font-bold">Notícia não encontrada</h1>
           <p className="mt-4">A notícia que você está procurando não existe ou foi removida.</p>
           <Button className="mt-6" asChild>
-            <a href="/">Voltar para a página inicial</a>
+            <Link to="/">Voltar para a página inicial</Link>
           </Button>
         </main>
       </div>
     );
   }
 
-  const publishedDate = article.publishedAt ? 
-    new Date(article.publishedAt).toLocaleDateString('pt-BR', { 
-      day: '2-digit', 
-      month: 'long', 
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }) : null;
+  const publishedDate = article.published_at ? 
+    new Date(article.published_at) : null;
+
+  const formattedDate = publishedDate ? 
+    formatDistanceToNow(publishedDate, { addSuffix: true, locale: ptBR }) : null;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -63,40 +74,54 @@ export default function NewsDetail() {
       <main className="container py-6">
         <Breadcrumbs 
           items={[
-            { label: article.category.charAt(0).toUpperCase() + article.category.slice(1), href: `/category/${article.category}` },
+            { label: article.category?.name || "Categorias", href: `/category/${article.category?.slug}` },
             { label: article.title }
           ]}
         />
         
         <article className="max-w-4xl mx-auto mt-4">
           <header className="mb-6">
-            {article.isBreaking && (
-              <Badge variant="destructive" className="mb-4 animate-pulse">
-                ÚLTIMA HORA
-              </Badge>
-            )}
+            <span 
+              className="inline-block text-xs font-medium px-3 py-1 rounded-full mb-3"
+              style={{ 
+                backgroundColor: `${article.category?.color}20` || `var(--category-${article.category?.slug}-light)`,
+                color: article.category?.color || `var(--category-${article.category?.slug})`
+              }}
+            >
+              {article.category?.name}
+            </span>
             
             <h1 
               className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4"
-              style={{ color: `var(--category-${article.category})` }}
+              style={{ color: article.category?.color || `var(--category-${article.category?.slug})` }}
             >
               {article.title}
             </h1>
             
             <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-4">
-              {article.author && <span>Por <strong>{article.author}</strong></span>}
-              {publishedDate && <span>{publishedDate}</span>}
-              {article.views && <span>{article.views.toLocaleString()} visualizações</span>}
+              {formattedDate && <span>{formattedDate}</span>}
             </div>
             
             <div className="flex items-center justify-between">
               <div className="flex gap-2">
                 {article.tags?.map(tag => (
-                  <Badge key={tag} variant="outline">{tag}</Badge>
+                  <Badge key={tag.id} variant="outline">{tag.name}</Badge>
                 ))}
               </div>
               
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" 
+                onClick={() => {
+                  if (navigator.share) {
+                    navigator.share({
+                      title: article.title,
+                      url: window.location.href
+                    });
+                  } else {
+                    navigator.clipboard.writeText(window.location.href);
+                    // Would add a toast notification here
+                  }
+                }}
+              >
                 <Share className="h-4 w-4 mr-2" /> Compartilhar
               </Button>
             </div>
@@ -104,21 +129,21 @@ export default function NewsDetail() {
           
           <figure className="mb-8 rounded-lg overflow-hidden">
             <img 
-              src={article.image} 
+              src={article.featured_image} 
               alt={article.title} 
               className="w-full h-auto max-h-[500px] object-cover"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.onerror = null;
+                target.src = "https://placehold.co/800x450/333/white?text=News";
+              }}
             />
-            <figcaption className="text-sm text-muted-foreground p-2 bg-muted/20">
-              {article.title}
-            </figcaption>
           </figure>
           
           <div className="prose prose-lg max-w-none">
             <p className="lead text-xl mb-6">{article.excerpt}</p>
             
-            {article.content?.split('\n\n').map((paragraph, index) => (
-              <p key={index} className="mb-4">{paragraph}</p>
-            ))}
+            <div dangerouslySetInnerHTML={{ __html: article.content }} />
           </div>
         </article>
         

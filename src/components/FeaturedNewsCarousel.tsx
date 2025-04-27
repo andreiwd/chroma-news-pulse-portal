@@ -1,25 +1,24 @@
 
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "./ui/card";
-import { NewsArticle } from "@/data/newsData";
 import { Badge } from "./ui/badge";
 import { ArrowRight } from "lucide-react";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
+import { useNews } from "@/hooks/useNews";
+import { Skeleton } from "./ui/skeleton";
+import { Article } from "@/types/api";
 
-interface FeaturedNewsCarouselProps {
-  highlightedNews: NewsArticle[];
-}
-
-export default function FeaturedNewsCarousel({ highlightedNews }: FeaturedNewsCarouselProps) {
+export default function FeaturedNewsCarousel() {
+  const { data: newsData, isLoading } = useNews(1, "", "");
   const [activeIndex, setActiveIndex] = useState(0);
   const [isAutoplay, setIsAutoplay] = useState(true);
   
-  // Limit to 4 news articles
-  const featuredNews = highlightedNews.slice(0, 4);
+  // Get featured news (first 4 articles)
+  const featuredNews: Article[] = newsData?.data?.slice(0, 4) || [];
 
   useEffect(() => {
-    if (!isAutoplay) return;
+    if (!featuredNews.length || !isAutoplay) return;
     
     const interval = setInterval(() => {
       setActiveIndex((current) => 
@@ -29,6 +28,31 @@ export default function FeaturedNewsCarousel({ highlightedNews }: FeaturedNewsCa
 
     return () => clearInterval(interval);
   }, [featuredNews.length, isAutoplay]);
+
+  if (isLoading) {
+    return (
+      <div className="w-full mb-6 relative overflow-hidden rounded-xl bg-gradient-to-br from-gray-900 to-gray-800 p-6 shadow-2xl">
+        <div className="container mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <Skeleton className="h-[400px] w-full" />
+            </div>
+            <div className="lg:col-span-1">
+              <div className="grid grid-cols-1 gap-4 h-full">
+                {[...Array(4)].map((_, i) => (
+                  <Skeleton key={i} className="h-20 w-full" />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!featuredNews.length) {
+    return null;
+  }
 
   return (
     <div className="w-full">
@@ -40,8 +64,8 @@ export default function FeaturedNewsCarousel({ highlightedNews }: FeaturedNewsCa
               <Card className="overflow-hidden border-0 bg-transparent shadow-none">
                 <div className="relative h-[400px]"> {/* Fixed height */}
                   <img
-                    src={featuredNews[activeIndex].image || "https://placehold.co/800x450/333/white?text=Featured+News"}
-                    alt={featuredNews[activeIndex].title}
+                    src={featuredNews[activeIndex]?.featured_image || "https://placehold.co/800x450/333/white?text=Featured+News"}
+                    alt={featuredNews[activeIndex]?.title}
                     className="w-full h-full object-cover rounded-lg"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
@@ -49,35 +73,25 @@ export default function FeaturedNewsCarousel({ highlightedNews }: FeaturedNewsCa
                       target.src = "https://placehold.co/800x450/333/white?text=Featured+News";
                     }}
                   />
-                  {featuredNews[activeIndex].isBreaking && (
-                    <Badge 
-                      variant="destructive" 
-                      className="absolute top-4 left-4 animate-pulse"
-                    >
-                      Última hora
-                    </Badge>
-                  )}
                 </div>
                 <CardContent className="p-4">
                   <span 
                     className="inline-block text-xs font-medium px-3 py-1 rounded-full mb-3"
                     style={{ 
-                      backgroundColor: `var(--category-${featuredNews[activeIndex].category}-light)`,
-                      color: `var(--category-${featuredNews[activeIndex].category})`
+                      backgroundColor: `${featuredNews[activeIndex]?.category?.color}20` || `var(--category-${featuredNews[activeIndex]?.category?.slug}-light)`,
+                      color: featuredNews[activeIndex]?.category?.color || `var(--category-${featuredNews[activeIndex]?.category?.slug})`
                     }}
                   >
-                    {featuredNews[activeIndex].category}
+                    {featuredNews[activeIndex]?.category?.name}
                   </span>
-                  <h2 
-                    className="text-2xl md:text-3xl font-bold mb-4 text-white"
-                  >
-                    {featuredNews[activeIndex].title}
+                  <h2 className="text-2xl md:text-3xl font-bold mb-4 text-white">
+                    {featuredNews[activeIndex]?.title}
                   </h2>
                   <p className="text-gray-300 mb-4 line-clamp-2">
-                    {featuredNews[activeIndex].excerpt}
+                    {featuredNews[activeIndex]?.excerpt}
                   </p>
                   <Button variant="secondary" size="sm" className="text-primary" asChild>
-                    <a href={`/news/${featuredNews[activeIndex].id}`}>
+                    <a href={`/news/${featuredNews[activeIndex]?.slug}`}>
                       Leia mais <ArrowRight className="h-3 w-3 ml-1" />
                     </a>
                   </Button>
@@ -102,7 +116,7 @@ export default function FeaturedNewsCarousel({ highlightedNews }: FeaturedNewsCa
                   >
                     <div className="flex gap-3 items-center w-full">
                       <img
-                        src={article.image || "https://placehold.co/100x100/333/white?text=News"}
+                        src={article.featured_image || "https://placehold.co/100x100/333/white?text=News"}
                         alt={article.title}
                         className="w-20 h-20 object-cover rounded"
                         onError={(e) => {
@@ -115,11 +129,11 @@ export default function FeaturedNewsCarousel({ highlightedNews }: FeaturedNewsCa
                         <span 
                           className="text-xs font-medium px-2 py-1 rounded-full inline-block mb-2"
                           style={{ 
-                            backgroundColor: `var(--category-${article.category}-light)`,
-                            color: `var(--category-${article.category})`
+                            backgroundColor: `${article.category?.color}20` || `var(--category-${article.category?.slug}-light)`,
+                            color: article.category?.color || `var(--category-${article.category?.slug})`
                           }}
                         >
-                          {article.category}
+                          {article.category?.name}
                         </span>
                         <h3 className="text-sm font-medium text-white line-clamp-2">
                           {article.title}

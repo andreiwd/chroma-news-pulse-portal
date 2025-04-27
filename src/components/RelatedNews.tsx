@@ -1,40 +1,60 @@
 
-import { NewsArticle } from "@/data/newsData";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Article } from "@/types/api";
+import { formatDistanceToNow } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 interface RelatedNewsProps {
-  articles: NewsArticle[];
+  articles: Article[];
 }
 
 export default function RelatedNews({ articles }: RelatedNewsProps) {
+  if (!articles.length) return null;
+
   return (
-    <div className="bg-muted/30 rounded-lg p-4">
-      <h3 className="text-lg font-bold mb-4">Notícias Relacionadas</h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {articles.map((article) => (
-          <Card key={article.id} className="hover:shadow-md transition-shadow">
-            <div className="flex">
-              <div className="w-1/3">
-                <img src={article.image} alt={article.title} className="h-full w-full object-cover rounded-l-lg" />
-              </div>
-              <div className="w-2/3">
-                <CardHeader className="p-3">
-                  <CardTitle className="text-sm font-medium line-clamp-2" style={{ color: `var(--category-${article.category})` }}>
-                    {article.title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-3 pt-0">
-                  <a 
-                    href={`/news/${article.id}`}
-                    className="text-xs text-primary hover:underline"
+    <div>
+      <h2 className="text-2xl font-bold mb-6">Notícias Relacionadas</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
+        {articles.map((article) => {
+          const publishedDate = new Date(article.published_at);
+          const timeAgo = formatDistanceToNow(publishedDate, { locale: ptBR, addSuffix: true });
+          
+          return (
+            <a key={article.id} href={`/news/${article.slug}`} className="block">
+              <Card className="h-full flex flex-col hover:shadow-md transition-shadow">
+                <div className="relative h-48 overflow-hidden">
+                  <img
+                    src={article.featured_image || "https://placehold.co/600x400/333/white?text=News"}
+                    alt={article.title}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.onerror = null;
+                      target.src = "https://placehold.co/600x400/333/white?text=News";
+                    }}
+                  />
+                  <div 
+                    className="absolute bottom-0 left-0 p-2 text-xs font-medium text-white rounded-tr-md"
+                    style={{ 
+                      backgroundColor: article.category?.color || `var(--category-${article.category?.slug})` 
+                    }}
                   >
-                    Leia mais
-                  </a>
+                    {article.category?.name}
+                  </div>
+                </div>
+                
+                <CardContent className="py-4 flex-1">
+                  <h3 className="font-bold line-clamp-2 text-lg mb-2">{article.title}</h3>
+                  <p className="text-muted-foreground line-clamp-2 text-sm">{article.excerpt}</p>
                 </CardContent>
-              </div>
-            </div>
-          </Card>
-        ))}
+                
+                <CardFooter className="pt-0 text-xs text-muted-foreground">
+                  {timeAgo}
+                </CardFooter>
+              </Card>
+            </a>
+          );
+        })}
       </div>
     </div>
   );
