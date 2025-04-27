@@ -62,11 +62,6 @@ const getLatestNews = () => {
 };
 
 export default function Index() {
-  const highlightedNews = getHighlightedNews();
-  const mostViewedNews = getMostViewedNews();
-  const latestNews = getLatestNews();
-  const newsByCategory = getNewsByCategory();
-  
   return (
     <div className="min-h-screen flex flex-col">
       <NewsTicker />
@@ -78,7 +73,7 @@ export default function Index() {
         <section className="py-6 bg-gradient-to-b from-background to-muted/20">
           <div className="container">
             <h2 className="sr-only">Destaques</h2>
-            <FeaturedNewsCarousel highlightedNews={highlightedNews} />
+            <FeaturedNewsCarousel />
           </div>
         </section>
 

@@ -62,7 +62,7 @@ export default function FeaturedNewsCarousel() {
             {/* Featured Article */}
             <div className="lg:col-span-2">
               <Card className="overflow-hidden border-0 bg-transparent shadow-none">
-                <div className="relative h-[400px]"> {/* Fixed height */}
+                <div className="relative h-[400px]">
                   <img
                     src={featuredNews[activeIndex]?.featured_image || "https://placehold.co/800x450/333/white?text=Featured+News"}
                     alt={featuredNews[activeIndex]?.title}
@@ -78,8 +78,8 @@ export default function FeaturedNewsCarousel() {
                   <span 
                     className="inline-block text-xs font-medium px-3 py-1 rounded-full mb-3"
                     style={{ 
-                      backgroundColor: `${featuredNews[activeIndex]?.category?.color}20` || `var(--category-${featuredNews[activeIndex]?.category?.slug}-light)`,
-                      color: featuredNews[activeIndex]?.category?.color || `var(--category-${featuredNews[activeIndex]?.category?.slug})`
+                      backgroundColor: featuredNews[activeIndex]?.category?.color || '#333',
+                      color: featuredNews[activeIndex]?.category?.text_color || '#fff'
                     }}
                   >
                     {featuredNews[activeIndex]?.category?.name}
@@ -91,15 +91,15 @@ export default function FeaturedNewsCarousel() {
                     {featuredNews[activeIndex]?.excerpt}
                   </p>
                   <Button variant="secondary" size="sm" className="text-primary" asChild>
-                    <a href={`/news/${featuredNews[activeIndex]?.slug}`}>
+                    <Link to={`/news/${featuredNews[activeIndex]?.slug}`}>
                       Leia mais <ArrowRight className="h-3 w-3 ml-1" />
-                    </a>
+                    </Link>
                   </Button>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Thumbnails - Redesigned layout */}
+            {/* Thumbnails */}
             <div className="lg:col-span-1">
               <div className="grid grid-cols-1 gap-4 h-full">
                 {featuredNews.map((article, index) => (
@@ -125,12 +125,12 @@ export default function FeaturedNewsCarousel() {
                           target.src = "https://placehold.co/100x100/333/white?text=News";
                         }}
                       />
-                      <div className="flex-1 min-w-0"> {/* Added min-w-0 to prevent text overflow */}
+                      <div className="flex-1 min-w-0">
                         <span 
                           className="text-xs font-medium px-2 py-1 rounded-full inline-block mb-2"
                           style={{ 
-                            backgroundColor: `${article.category?.color}20` || `var(--category-${article.category?.slug}-light)`,
-                            color: article.category?.color || `var(--category-${article.category?.slug})`
+                            backgroundColor: article.category?.color || '#333',
+                            color: article.category?.text_color || '#fff'
                           }}
                         >
                           {article.category?.name}
