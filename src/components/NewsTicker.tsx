@@ -1,4 +1,5 @@
 
+import React, { useState, useEffect } from 'react';
 import { useLatestNews } from "@/hooks/useNews";
 
 export default function NewsTicker() {
