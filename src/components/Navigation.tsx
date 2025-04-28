@@ -12,13 +12,14 @@ import { useState } from "react";
 import { useCategories } from "@/hooks/useNews";
 import { Skeleton } from "./ui/skeleton";
 import { Link } from "react-router-dom";
+import { Category } from "@/types/api";
 
 export default function Navigation() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const { data: categories, isLoading } = useCategories();
 
   // Ensure categories is always an array
-  const safeCategories = Array.isArray(categories) ? categories : [];
+  const safeCategories: Category[] = Array.isArray(categories) ? categories : [];
 
   return (
     <nav className="border-b sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 w-full">

@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import NewsTicker from "@/components/NewsTicker";
 import Header from "@/components/Header";
@@ -19,7 +20,7 @@ export default function Index() {
   const { data: latestNewsData, isLoading: isLatestNewsLoading } = useLatestNews();
   
   const allNews: Article[] = newsData?.data || [];
-  const latestNewsItems = latestNewsData || [];
+  const latestNewsItems: Article[] = Array.isArray(latestNewsData) ? latestNewsData : [];
   
   const getNewsByCategory = () => {
     if (!allNews.length) return {};
@@ -48,6 +49,7 @@ export default function Index() {
   const mostViewedNews = getMostViewedNews();
   const mainLatestNews = allNews.slice(0, 12);
 
+  // Convert object to array of [key, value] pairs for safe rendering
   const categoryEntries = Object.entries(newsByCategory || {});
 
   return (
@@ -125,8 +127,8 @@ export default function Index() {
                 className="bg-muted/10"
               />
 
-              {categoryEntries.slice(0, 1).map(([category, news]) => (
-                <CategoryNewsCarousel key={category} category={category} news={news} />
+              {categoryEntries.slice(0, 1).map(([category, news], index) => (
+                <CategoryNewsCarousel key={`cat-carousel-${category}-${index}`} category={category} news={news} />
               ))}
               
               <section>
@@ -149,8 +151,8 @@ export default function Index() {
                 className="bg-muted/10"
               />
 
-              {categoryEntries.slice(1, 2).map(([category, news]) => (
-                <CategoryNewsCarousel key={category} category={category} news={news} />
+              {categoryEntries.slice(1, 2).map(([category, news], index) => (
+                <CategoryNewsCarousel key={`cat-carousel-${category}-${index}`} category={category} news={news} />
               ))}
               
               <AdPlaceholder size="banner" id="ad-main-banner-2" />
@@ -220,8 +222,8 @@ export default function Index() {
           <div className="mt-8 space-y-8">
             <Separator />
             
-            {categoryEntries.slice(2, 4).map(([category, news]) => (
-              <CategoryNewsCarousel key={category} category={category} news={news} />
+            {categoryEntries.slice(2, 4).map(([category, news], index) => (
+              <CategoryNewsCarousel key={`cat-footer-${category}-${index}`} category={category} news={news} />
             ))}
             
             <AdPlaceholder size="banner" id="ad-footer-banner-1" />

@@ -2,12 +2,13 @@
 import { useState, useEffect } from 'react';
 import { useLatestNews } from "@/hooks/useNews";
 import { Link } from "react-router-dom";
+import { Article } from "@/types/api";
 
 export default function NewsTicker() {
   const { data: latestNewsData, isLoading } = useLatestNews();
   const [currentNewsIndex, setCurrentNewsIndex] = useState(0);
   
-  const latestNews = latestNewsData || [];
+  const latestNews: Article[] = Array.isArray(latestNewsData) ? latestNewsData : [];
   
   useEffect(() => {
     if (!latestNews?.length) return;

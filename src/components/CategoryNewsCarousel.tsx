@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Article } from "@/types/api";
+import { Article, Category } from "@/types/api";
 import { Card, CardContent } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
