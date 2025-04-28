@@ -18,6 +18,7 @@ export default function Index() {
   
   // Get news articles from API response
   const allNews: Article[] = newsData?.data || [];
+  const latestNews = latestNewsData || [];
   
   // Group news by category
   const getNewsByCategory = () => {
@@ -47,7 +48,7 @@ export default function Index() {
   // Create necessary variables from the data
   const newsByCategory = getNewsByCategory();
   const mostViewedNews = getMostViewedNews();
-  const latestNews = allNews.slice(0, 12);
+  const mainLatestNews = allNews.slice(0, 12);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -108,7 +109,7 @@ export default function Index() {
               <section>
                 <h2 className="text-2xl font-bold mb-4">Principais Notícias</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {latestNews.slice(0, 4).map((article, index) => (
+                  {mainLatestNews.slice(0, 4).map((article, index) => (
                     <div 
                       key={article.id}
                       className={`animate-fadeInUp`} 
@@ -141,12 +142,12 @@ export default function Index() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {/* Featured Article */}
                   <div className="md:col-span-2">
-                    {latestNews.length > 5 && <NewsCard news={latestNews[5]} />}
+                    {mainLatestNews.length > 5 && <NewsCard news={mainLatestNews[5]} />}
                   </div>
                   
                   {/* Side articles in minimal view */}
                   <div className="space-y-4">
-                    {latestNews.slice(6, 9).map(news => (
+                    {mainLatestNews.slice(6, 9).map(news => (
                       <NewsCard key={news.id} news={news} variant="minimal" />
                     ))}
                   </div>
@@ -162,7 +163,7 @@ export default function Index() {
               <section>
                 <h2 className="text-xl font-bold mb-4">Reportagens Especiais</h2>
                 <div className="space-y-4">
-                  {latestNews.slice(9, 12).map(news => (
+                  {mainLatestNews.slice(9, 12).map(news => (
                     <NewsCard key={news.id} news={news} variant="horizontal" />
                   ))}
                 </div>

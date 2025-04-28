@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "./ui/card";
-import { Badge } from "./ui/badge";
 import { ArrowRight } from "lucide-react";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
@@ -76,15 +75,17 @@ export default function FeaturedNewsCarousel() {
                   />
                 </div>
                 <CardContent className="p-4">
-                  <span 
-                    className="inline-block text-xs font-medium px-3 py-1 rounded-full mb-3"
-                    style={{ 
-                      backgroundColor: featuredNews[activeIndex]?.category?.color || '#333',
-                      color: featuredNews[activeIndex]?.category?.text_color || '#fff'
-                    }}
-                  >
-                    {featuredNews[activeIndex]?.category?.name}
-                  </span>
+                  {featuredNews[activeIndex]?.category && (
+                    <span 
+                      className="inline-block text-xs font-medium px-3 py-1 rounded-full mb-3"
+                      style={{ 
+                        backgroundColor: featuredNews[activeIndex]?.category?.color || '#333',
+                        color: featuredNews[activeIndex]?.category?.text_color || '#fff'
+                      }}
+                    >
+                      {featuredNews[activeIndex]?.category?.name}
+                    </span>
+                  )}
                   <h2 className="text-2xl md:text-3xl font-bold mb-4 text-white">
                     {featuredNews[activeIndex]?.title}
                   </h2>
@@ -127,15 +128,17 @@ export default function FeaturedNewsCarousel() {
                         }}
                       />
                       <div className="flex-1 min-w-0">
-                        <span 
-                          className="text-xs font-medium px-2 py-1 rounded-full inline-block mb-2"
-                          style={{ 
-                            backgroundColor: article.category?.color || '#333',
-                            color: article.category?.text_color || '#fff'
-                          }}
-                        >
-                          {article.category?.name}
-                        </span>
+                        {article.category && (
+                          <span 
+                            className="text-xs font-medium px-2 py-1 rounded-full inline-block mb-2"
+                            style={{ 
+                              backgroundColor: article.category?.color || '#333',
+                              color: article.category?.text_color || '#fff'
+                            }}
+                          >
+                            {article.category?.name}
+                          </span>
+                        )}
                         <h3 className="text-sm font-medium text-white line-clamp-2">
                           {article.title}
                         </h3>

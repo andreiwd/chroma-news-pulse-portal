@@ -1,11 +1,13 @@
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useLatestNews } from "@/hooks/useNews";
 import { Link } from "react-router-dom";
 
 export default function NewsTicker() {
-  const { data: latestNews, isLoading } = useLatestNews();
+  const { data: latestNewsData, isLoading } = useLatestNews();
   const [currentNewsIndex, setCurrentNewsIndex] = useState(0);
+  
+  const latestNews = latestNewsData || [];
   
   useEffect(() => {
     if (!latestNews?.length) return;
@@ -24,13 +26,13 @@ export default function NewsTicker() {
         <div className="overflow-hidden h-6">
           {isLoading ? (
             <p className="animate-pulse">Carregando notícias...</p>
-          ) : latestNews?.length ? (
+          ) : latestNews?.length > 0 && latestNews[currentNewsIndex] ? (
             <Link
-              to={`/news/${latestNews[currentNewsIndex]?.slug}`}
-              key={latestNews[currentNewsIndex]?.slug}
+              to={`/news/${latestNews[currentNewsIndex].slug}`}
+              key={latestNews[currentNewsIndex].id}
               className="block animate-[tickerFade_4s_ease-in-out_infinite] hover:underline"
             >
-              {latestNews[currentNewsIndex]?.title}
+              {latestNews[currentNewsIndex].title}
             </Link>
           ) : (
             <p>Nenhuma notícia encontrada</p>

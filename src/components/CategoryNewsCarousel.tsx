@@ -1,38 +1,28 @@
 
 import { useState } from "react";
-import { NewsArticle } from "@/data/newsData";
+import { Article } from "@/types/api";
 import { Card, CardContent } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "./ui/button";
 import { ScrollArea } from "./ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { Link } from "react-router-dom";
 
 interface CategoryNewsCarouselProps {
   category: string;
-  news: NewsArticle[];
+  news: Article[];
 }
 
 export default function CategoryNewsCarousel({ category, news }: CategoryNewsCarouselProps) {
   const [scrollPosition, setScrollPosition] = useState(0);
 
-  // Get category color based on category name
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case "tech": return "tech";
-      case "sports": return "sports";
-      case "politics": return "politics";
-      case "economy": return "economy";
-      case "entertainment": return "entertainment";
-      case "science": return "science";
-      case "health": return "health";
-      case "environment": return "environment";
-      default: return "tech";
-    }
-  };
-
-  const color = getCategoryColor(category);
-  const categoryDisplay = category.charAt(0).toUpperCase() + category.slice(1);
+  // Get category details from the first news item
+  const categoryData = news[0]?.category;
+  const categorySlug = categoryData?.slug || category;
+  const categoryName = categoryData?.name || (category.charAt(0).toUpperCase() + category.slice(1));
+  const categoryColor = categoryData?.color || '#333';
+  const categoryTextColor = categoryData?.text_color || '#fff';
 
   const scroll = (direction: "left" | "right") => {
     const container = document.getElementById(`scroll-${category}`);
@@ -56,9 +46,9 @@ export default function CategoryNewsCarousel({ category, news }: CategoryNewsCar
       <div className="flex justify-between items-center mb-4">
         <h2 
           className="text-xl font-bold"
-          style={{ color: `var(--category-${color})` }}
+          style={{ color: categoryColor }}
         >
-          {categoryDisplay}
+          {categoryName}
         </h2>
         <div className="flex space-x-2">
           <Button
@@ -82,10 +72,10 @@ export default function CategoryNewsCarousel({ category, news }: CategoryNewsCar
           <Button 
             variant="link"
             className="text-sm"
-            style={{ color: `var(--category-${color})` }}
+            style={{ color: categoryColor }}
             asChild
           >
-            <a href={`/category/${category}`}>Ver mais</a>
+            <Link to={`/category/${categorySlug}`}>Ver mais</Link>
           </Button>
         </div>
       </div>
@@ -97,54 +87,46 @@ export default function CategoryNewsCarousel({ category, news }: CategoryNewsCar
           onScroll={(e) => setScrollPosition((e.target as HTMLDivElement).scrollLeft)}
         >
           <div className="flex space-x-4 pb-4 pl-1 pr-10">
-            {news.map((item) => (
+            {news.map((article) => (
               <Card 
-                key={item.id} 
+                key={article.id} 
                 className="flex-shrink-0 w-[280px] overflow-hidden hover:shadow-lg transition-shadow" 
-                style={{ borderTop: `3px solid var(--category-${color})` }}
+                style={{ borderTop: `3px solid ${categoryColor}` }}
               >
                 <div className="relative h-32">
                   <img
-                    src={item.image || `https://placehold.co/600x400/${color === 'tech' ? '6366f1' : color === 'sports' ? '22c55e' : color === 'politics' ? 'ef4444' : color === 'economy' ? 'f59e0b' : color === 'entertainment' ? 'ec4899' : color === 'science' ? '8b5cf6' : color === 'health' ? '06b6d4' : '10b981'}/white?text=${category}`}
-                    alt={item.title}
+                    src={article.featured_image || `https://placehold.co/600x400/333/white?text=${categoryName}`}
+                    alt={article.title}
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
                       target.onerror = null;
-                      target.src = `https://placehold.co/600x400/${color === 'tech' ? '6366f1' : color === 'sports' ? '22c55e' : color === 'politics' ? 'ef4444' : color === 'economy' ? 'f59e0b' : color === 'entertainment' ? 'ec4899' : color === 'science' ? '8b5cf6' : color === 'health' ? '06b6d4' : '10b981'}/white?text=${category}`;
+                      target.src = `https://placehold.co/600x400/333/white?text=${categoryName}`;
                     }}
                   />
-                  {item.isBreaking && (
-                    <Badge 
-                      variant="destructive" 
-                      className="absolute top-2 left-2 animate-pulse"
-                    >
-                      Última hora
-                    </Badge>
-                  )}
                 </div>
                 <CardContent className="p-4">
                   <h3 
                     className="font-bold mb-2 line-clamp-2"
-                    style={{ color: `var(--category-${color})` }}
+                    style={{ color: categoryColor }}
                   >
-                    <a href={`/news/${item.id}`} className="hover:underline">
-                      {item.title}
-                    </a>
+                    <Link to={`/news/${article.slug}`} className="hover:underline">
+                      {article.title}
+                    </Link>
                   </h3>
                   <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                    {item.excerpt}
+                    {article.excerpt}
                   </p>
                   <Button 
                     variant="link" 
                     size="sm" 
                     className="p-0 h-auto"
-                    style={{ color: `var(--category-${color})` }}
+                    style={{ color: categoryColor }}
                     asChild
                   >
-                    <a href={`/news/${item.id}`}>
+                    <Link to={`/news/${article.slug}`}>
                       Leia mais <ArrowRight className="h-3 w-3 ml-1" />
-                    </a>
+                    </Link>
                   </Button>
                 </CardContent>
               </Card>
