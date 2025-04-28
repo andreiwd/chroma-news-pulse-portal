@@ -18,7 +18,7 @@ export default function Index() {
   
   // Get news articles from API response
   const allNews: Article[] = newsData?.data || [];
-  const latestNews = latestNewsData || [];
+  const latestNewsItems = latestNewsData || [];
   
   // Group news by category
   const getNewsByCategory = () => {
@@ -81,7 +81,7 @@ export default function Index() {
               <div className="bg-muted/30 p-4 rounded-lg mt-6">
                 <h3 className="text-lg font-bold mb-4 border-b pb-2">Últimas Notícias</h3>
                 <div className="space-y-3">
-                  {latestNews.slice(0, 5).map((news) => (
+                  {latestNewsItems.slice(0, 5).map((news) => (
                     <div 
                       key={news.id} 
                       className="border-l-2 pl-2 py-1 hover:bg-muted/50 transition-colors"

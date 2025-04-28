@@ -1,52 +1,43 @@
 
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
+import { useCategoryNews } from "@/hooks/useNews";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
 import NewsTicker from "@/components/NewsTicker";
-import Breadcrumbs from "@/components/Breadcrumbs";
-import newsData from "@/data/newsData";
 import NewsCard from "@/components/NewsCard";
-import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { useMemo, useState } from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useState } from "react";
+import { Article } from "@/types/api";
 
 export default function CategoryPage() {
-  const { category } = useParams();
-  const [sortBy, setSortBy] = useState<"recent" | "popular">("recent");
+  const { category } = useParams<{ category: string }>();
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 9;
   
-  const filteredNews = useMemo(() => {
-    if (!category) return [];
-    
-    const filtered = newsData.filter(
-      news => news.category.toLowerCase() === category.toLowerCase()
-    );
-    
-    return filtered.sort((a, b) => {
-      if (sortBy === "recent" && a.publishedAt && b.publishedAt) {
-        return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
-      } else if (sortBy === "popular") {
-        return (b.views || 0) - (a.views || 0);
-      }
-      return 0;
-    });
-    
-  }, [category, sortBy]);
-  
-  const paginatedNews = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    return filteredNews.slice(startIndex, startIndex + itemsPerPage);
-  }, [filteredNews, currentPage]);
-  
-  const totalPages = Math.ceil(filteredNews.length / itemsPerPage);
-  
+  const {
+    data: newsData,
+    isLoading,
+    error,
+    isPreviousData,
+  } = useCategoryNews(category || "", currentPage);
+
+  // Extract news articles and pagination data
+  const news = newsData?.data || [];
+  const totalPages = newsData?.last_page || 1;
+
+  // Get category details from the first news item for styling
+  const categoryDetails = news[0]?.category;
+  const categoryName = categoryDetails?.name || (category ? category.charAt(0).toUpperCase() + category?.slice(1) : "");
+  const categoryColor = categoryDetails?.color || "#333";
+  const categoryDescription = categoryDetails?.description || "";
+
+  // Handle page change
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  if (!category) {
+  if (error) {
     return (
       <div className="min-h-screen flex flex-col">
         <NewsTicker />
@@ -54,12 +45,14 @@ export default function CategoryPage() {
         <Navigation />
         <main className="container py-10 text-center">
           <h1 className="text-2xl font-bold">Categoria não encontrada</h1>
+          <p className="mt-4">A categoria que você está procurando não existe.</p>
+          <Button className="mt-6" asChild>
+            <Link to="/">Voltar para a página inicial</Link>
+          </Button>
         </main>
       </div>
     );
   }
-
-  const categoryTitle = category.charAt(0).toUpperCase() + category.slice(1);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -68,97 +61,115 @@ export default function CategoryPage() {
       <Navigation />
       
       <main className="container py-6">
-        <Breadcrumbs 
-          items={[
-            { label: categoryTitle }
-          ]}
-        />
-        
-        <header className="mb-8">
+        {/* Category Header */}
+        <div 
+          className="mb-8 pb-4 border-b"
+          style={{ borderColor: `${categoryColor}40` }}
+        >
           <h1 
             className="text-3xl font-bold mb-2"
-            style={{ color: `var(--category-${category})` }}
+            style={{ color: categoryColor }}
           >
-            {categoryTitle}
+            {isLoading ? (
+              <Skeleton className="h-10 w-48" />
+            ) : (
+              categoryName
+            )}
           </h1>
-          <p className="text-muted-foreground">
-            {filteredNews.length} artigos nesta categoria
-          </p>
-        </header>
-        
-        <div className="flex justify-end mb-6">
-          <Select 
-            defaultValue="recent"
-            onValueChange={(value) => setSortBy(value as "recent" | "popular")}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Ordenar por" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="recent">Mais recentes</SelectItem>
-              <SelectItem value="popular">Mais populares</SelectItem>
-            </SelectContent>
-          </Select>
+          
+          {categoryDescription && (
+            <p className="text-muted-foreground">
+              {categoryDescription}
+            </p>
+          )}
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {paginatedNews.map((news) => (
-            <NewsCard key={news.id} news={news} />
-          ))}
-        </div>
-        
-        {totalPages > 1 && (
-          <Pagination className="mt-8">
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious 
-                  onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
-                  className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+        {/* News Grid */}
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, index) => (
+              <div key={index} className="space-y-3">
+                <Skeleton className="h-48 w-full" />
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-2/3" />
+              </div>
+            ))}
+          </div>
+        ) : news.length > 0 ? (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {news.map((article: Article) => (
+                <NewsCard 
+                  key={article.id} 
+                  news={article} 
+                  variant="compact" 
                 />
-              </PaginationItem>
-              
-              {Array.from({ length: totalPages }).map((_, index) => {
-                const pageNumber = index + 1;
-                
-                // Show first page, current page, last page and one page before and after current
-                if (
-                  pageNumber === 1 ||
-                  pageNumber === totalPages ||
-                  pageNumber === currentPage ||
-                  pageNumber === currentPage - 1 ||
-                  pageNumber === currentPage + 1
-                ) {
-                  return (
-                    <PaginationItem key={pageNumber}>
-                      <PaginationLink
-                        isActive={currentPage === pageNumber}
-                        onClick={() => handlePageChange(pageNumber)}
-                      >
-                        {pageNumber}
-                      </PaginationLink>
-                    </PaginationItem>
-                  );
-                }
-                
-                // Show ellipsis for gaps
-                if (
-                  (pageNumber === 2 && currentPage > 3) ||
-                  (pageNumber === totalPages - 1 && currentPage < totalPages - 2)
-                ) {
-                  return <PaginationEllipsis key={`ellipsis-${pageNumber}`} />;
-                }
-                
-                return null;
-              })}
-              
-              <PaginationItem>
-                <PaginationNext 
-                  onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
-                  className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
+              ))}
+            </div>
+            
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex justify-center mt-10">
+                <div className="flex space-x-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1 || isPreviousData}
+                  >
+                    Anterior
+                  </Button>
+                  
+                  {[...Array(totalPages)].map((_, index) => {
+                    const pageNumber = index + 1;
+                    // Show limited page numbers to avoid cluttering
+                    if (
+                      pageNumber === 1 ||
+                      pageNumber === totalPages ||
+                      (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
+                    ) {
+                      return (
+                        <Button
+                          key={pageNumber}
+                          variant={currentPage === pageNumber ? "default" : "outline"}
+                          onClick={() => handlePageChange(pageNumber)}
+                          disabled={isPreviousData}
+                          style={
+                            currentPage === pageNumber
+                              ? { backgroundColor: categoryColor }
+                              : {}
+                          }
+                        >
+                          {pageNumber}
+                        </Button>
+                      );
+                    } else if (
+                      (pageNumber === currentPage - 2 && currentPage > 3) ||
+                      (pageNumber === currentPage + 2 && currentPage < totalPages - 2)
+                    ) {
+                      return <span key={pageNumber} className="flex items-center">...</span>;
+                    }
+                    return null;
+                  })}
+                  
+                  <Button
+                    variant="outline"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages || isPreviousData}
+                  >
+                    Próximo
+                  </Button>
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="text-center py-10">
+            <p className="text-xl">Nenhuma notícia encontrada nesta categoria.</p>
+            <Button className="mt-4" asChild>
+              <Link to="/">Voltar para a página inicial</Link>
+            </Button>
+          </div>
         )}
       </main>
     </div>
