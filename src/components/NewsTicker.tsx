@@ -20,7 +20,7 @@ export default function NewsTicker() {
     return () => clearInterval(timer);
   }, [latestNews?.length]);
 
-  // Evitar renderizar nada se não houver dados ainda
+  // Avoid rendering until data is loaded
   if (isLoading) {
     return (
       <div className="bg-gradient-to-r from-primary/90 to-primary py-2 text-white">

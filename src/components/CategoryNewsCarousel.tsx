@@ -17,8 +17,8 @@ interface CategoryNewsCarouselProps {
 export default function CategoryNewsCarousel({ category, news }: CategoryNewsCarouselProps) {
   const [scrollPosition, setScrollPosition] = useState(0);
 
-  // Get category details from the first news item
-  const categoryData = news[0]?.category;
+  // Get category details from the first news item, with safety checks
+  const categoryData = news?.[0]?.category;
   const categorySlug = categoryData?.slug || category;
   const categoryName = categoryData?.name || (category.charAt(0).toUpperCase() + category.slice(1));
   const categoryColor = categoryData?.color || '#333';

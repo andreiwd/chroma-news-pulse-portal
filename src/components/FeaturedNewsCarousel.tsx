@@ -15,6 +15,8 @@ export default function FeaturedNewsCarousel() {
   const [isAutoplay, setIsAutoplay] = useState(true);
   
   const featuredNews: Article[] = newsData?.data?.slice(0, 4) || [];
+  
+  console.log("Featured news data:", featuredNews);
 
   useEffect(() => {
     if (!featuredNews.length || !isAutoplay) return;
@@ -53,7 +55,7 @@ export default function FeaturedNewsCarousel() {
     return null;
   }
 
-  // Verificar se temos o índice ativo válido
+  // Check if we have a valid active index
   const safeActiveIndex = activeIndex < featuredNews.length ? activeIndex : 0;
   const activeArticle = featuredNews[safeActiveIndex];
 

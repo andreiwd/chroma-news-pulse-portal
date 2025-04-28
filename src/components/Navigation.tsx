@@ -16,10 +16,12 @@ import { Category } from "@/types/api";
 
 export default function Navigation() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
-  const { data: categories, isLoading } = useCategories();
+  const { data: categoriesData, isLoading } = useCategories();
 
   // Ensure categories is always an array
-  const safeCategories: Category[] = Array.isArray(categories) ? categories : [];
+  const categories: Category[] = Array.isArray(categoriesData) ? categoriesData : [];
+
+  console.log("Navigation categories:", categories);
 
   return (
     <nav className="border-b sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 w-full">
@@ -40,7 +42,7 @@ export default function Navigation() {
                 </>
               ) : (
                 // Render actual categories when loaded
-                safeCategories.map((category) => (
+                categories.map((category) => (
                   <NavigationMenuItem key={category.id}>
                     <NavigationMenuTrigger 
                       className="text-sm font-bold hover:bg-transparent whitespace-nowrap"
