@@ -14,7 +14,6 @@ export default function FeaturedNewsCarousel() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isAutoplay, setIsAutoplay] = useState(true);
   
-  // Get featured news (first 4 articles)
   const featuredNews: Article[] = newsData?.data?.slice(0, 4) || [];
 
   useEffect(() => {
@@ -31,7 +30,7 @@ export default function FeaturedNewsCarousel() {
 
   if (isLoading) {
     return (
-      <div className="w-full mb-6 relative overflow-hidden rounded-xl bg-gradient-to-br from-gray-900 to-gray-800 p-6 shadow-2xl">
+      <div className="w-full mb-6 relative overflow-hidden rounded-xl bg-white p-6 shadow">
         <div className="container mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
@@ -56,12 +55,12 @@ export default function FeaturedNewsCarousel() {
 
   return (
     <div className="w-full">
-      <div className="mb-6 relative overflow-hidden rounded-xl bg-gradient-to-br from-gray-900 to-gray-800 p-6 shadow-2xl">
+      <div className="mb-6 relative overflow-hidden rounded-xl bg-white p-6 shadow">
         <div className="container mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Featured Article */}
             <div className="lg:col-span-2">
-              <Card className="overflow-hidden border-0 bg-transparent shadow-none">
+              <Card className="overflow-hidden border-0 shadow-none">
                 <div className="relative h-[400px]">
                   <img
                     src={featuredNews[activeIndex]?.featured_image || "https://placehold.co/800x450/333/white?text=Featured+News"}
@@ -86,13 +85,19 @@ export default function FeaturedNewsCarousel() {
                       {featuredNews[activeIndex]?.category?.name}
                     </span>
                   )}
-                  <h2 className="text-2xl md:text-3xl font-bold mb-4 text-white">
-                    {featuredNews[activeIndex]?.title}
+                  <h2 className="text-2xl md:text-3xl font-bold mb-4">
+                    <Link 
+                      to={`/news/${featuredNews[activeIndex]?.slug}`}
+                      className="hover:underline"
+                      style={{ color: featuredNews[activeIndex]?.category?.color || 'inherit' }}
+                    >
+                      {featuredNews[activeIndex]?.title}
+                    </Link>
                   </h2>
-                  <p className="text-gray-300 mb-4 line-clamp-2">
+                  <p className="text-muted-foreground mb-4 line-clamp-2">
                     {featuredNews[activeIndex]?.excerpt}
                   </p>
-                  <Button variant="secondary" size="sm" className="text-primary" asChild>
+                  <Button variant="secondary" size="sm" asChild>
                     <Link to={`/news/${featuredNews[activeIndex]?.slug}`}>
                       Leia mais <ArrowRight className="h-3 w-3 ml-1" />
                     </Link>
@@ -112,8 +117,8 @@ export default function FeaturedNewsCarousel() {
                       setIsAutoplay(false);
                     }}
                     className={cn(
-                      "w-full text-left transition-all duration-300 hover:bg-white/10 rounded-lg p-2 flex items-center",
-                      activeIndex === index ? "bg-white/10" : "opacity-70"
+                      "w-full text-left transition-all duration-300 hover:bg-muted rounded-lg p-2 flex items-center",
+                      activeIndex === index ? "bg-muted" : "opacity-70"
                     )}
                   >
                     <div className="flex gap-3 items-center w-full">
@@ -139,7 +144,10 @@ export default function FeaturedNewsCarousel() {
                             {article.category?.name}
                           </span>
                         )}
-                        <h3 className="text-sm font-medium text-white line-clamp-2">
+                        <h3 
+                          className="text-sm font-medium line-clamp-2"
+                          style={{ color: article.category?.color || 'inherit' }}
+                        >
                           {article.title}
                         </h3>
                       </div>

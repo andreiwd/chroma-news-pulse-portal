@@ -10,6 +10,7 @@ import NewsDetail from "./pages/NewsDetail";
 import CategoryPage from "./pages/CategoryPage";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/admin/Dashboard";
+import WeatherConfig from "./pages/admin/WeatherConfig";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,7 @@ const App = () => (
           
           {/* Rotas administrativas */}
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/weather" element={<WeatherConfig />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

@@ -2,13 +2,11 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { 
-  LayoutDashboard, 
-  Newspaper, 
-  Tag, 
+  LayoutDashboard,
   Image, 
-  FileCode, 
+  FileCode,
   Settings,
-  Users
+  Sun
 } from "lucide-react";
 
 interface NavItemProps {
@@ -46,29 +44,19 @@ export default function AdminSidebar() {
       label: "Dashboard",
     },
     {
-      to: "/admin/news",
-      icon: <Newspaper size={18} />,
-      label: "Notícias",
-    },
-    {
-      to: "/admin/categories",
-      icon: <Tag size={18} />,
-      label: "Categorias",
-    },
-    {
       to: "/admin/ads",
       icon: <Image size={18} />,
       label: "Anúncios",
     },
     {
+      to: "/admin/weather",
+      icon: <Sun size={18} />,
+      label: "Previsão do Tempo",
+    },
+    {
       to: "/admin/blocks",
       icon: <FileCode size={18} />,
       label: "Blocos HTML",
-    },
-    {
-      to: "/admin/users",
-      icon: <Users size={18} />,
-      label: "Usuários",
     },
     {
       to: "/admin/settings",
