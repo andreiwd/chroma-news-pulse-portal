@@ -11,6 +11,7 @@ import {
 import { useState } from "react";
 import { useCategories } from "@/hooks/useNews";
 import { Skeleton } from "./ui/skeleton";
+import { Link } from "react-router-dom";
 
 export default function Navigation() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
@@ -54,8 +55,8 @@ export default function Navigation() {
                         {/* If we had subcategories, we'd map them here */}
                         <li>
                           <NavigationMenuLink asChild>
-                            <a
-                              href={`/category/${category.slug}`}
+                            <Link
+                              to={`/category/${category.slug}`}
                               className={cn(
                                 "block select-none rounded-md p-3 text-center text-sm font-medium leading-none no-underline outline-none transition-colors",
                                 "hover:bg-opacity-80"
@@ -66,7 +67,7 @@ export default function Navigation() {
                               }}
                             >
                               Ver todas as notícias
-                            </a>
+                            </Link>
                           </NavigationMenuLink>
                         </li>
                       </ul>
