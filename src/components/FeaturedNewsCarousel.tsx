@@ -53,6 +53,14 @@ export default function FeaturedNewsCarousel() {
     return null;
   }
 
+  // Verificar se temos o índice ativo válido
+  const safeActiveIndex = activeIndex < featuredNews.length ? activeIndex : 0;
+  const activeArticle = featuredNews[safeActiveIndex];
+
+  if (!activeArticle) {
+    return null;
+  }
+
   return (
     <div className="w-full">
       <div className="mb-6 relative overflow-hidden rounded-xl bg-white p-6 shadow">
@@ -63,8 +71,8 @@ export default function FeaturedNewsCarousel() {
               <Card className="overflow-hidden border-0 shadow-none">
                 <div className="relative h-[400px]">
                   <img
-                    src={featuredNews[activeIndex]?.featured_image || "https://placehold.co/800x450/333/white?text=Featured+News"}
-                    alt={featuredNews[activeIndex]?.title}
+                    src={activeArticle?.featured_image || "https://placehold.co/800x450/333/white?text=Featured+News"}
+                    alt={activeArticle?.title || "Featured news"}
                     className="w-full h-full object-cover rounded-lg"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
@@ -74,31 +82,31 @@ export default function FeaturedNewsCarousel() {
                   />
                 </div>
                 <CardContent className="p-4">
-                  {featuredNews[activeIndex]?.category && (
+                  {activeArticle?.category && (
                     <span 
                       className="inline-block text-xs font-medium px-3 py-1 rounded-full mb-3"
                       style={{ 
-                        backgroundColor: featuredNews[activeIndex]?.category?.color || '#333',
-                        color: featuredNews[activeIndex]?.category?.text_color || '#fff'
+                        backgroundColor: activeArticle?.category?.color || '#333',
+                        color: activeArticle?.category?.text_color || '#fff'
                       }}
                     >
-                      {featuredNews[activeIndex]?.category?.name}
+                      {activeArticle?.category?.name || "Sem categoria"}
                     </span>
                   )}
                   <h2 className="text-2xl md:text-3xl font-bold mb-4">
                     <Link 
-                      to={`/news/${featuredNews[activeIndex]?.slug}`}
+                      to={`/news/${activeArticle?.slug}`}
                       className="hover:underline"
-                      style={{ color: featuredNews[activeIndex]?.category?.color || 'inherit' }}
+                      style={{ color: activeArticle?.category?.color || 'inherit' }}
                     >
-                      {featuredNews[activeIndex]?.title}
+                      {activeArticle?.title || "Notícia sem título"}
                     </Link>
                   </h2>
                   <p className="text-muted-foreground mb-4 line-clamp-2">
-                    {featuredNews[activeIndex]?.excerpt}
+                    {activeArticle?.excerpt || "Sem descrição disponível"}
                   </p>
                   <Button variant="secondary" size="sm" asChild>
-                    <Link to={`/news/${featuredNews[activeIndex]?.slug}`}>
+                    <Link to={`/news/${activeArticle?.slug}`}>
                       Leia mais <ArrowRight className="h-3 w-3 ml-1" />
                     </Link>
                   </Button>
@@ -111,7 +119,7 @@ export default function FeaturedNewsCarousel() {
               <div className="grid grid-cols-1 gap-4 h-full">
                 {featuredNews.map((article, index) => (
                   <button
-                    key={article.id}
+                    key={article.id || index}
                     onClick={() => {
                       setActiveIndex(index);
                       setIsAutoplay(false);
@@ -124,7 +132,7 @@ export default function FeaturedNewsCarousel() {
                     <div className="flex gap-3 items-center w-full">
                       <img
                         src={article.featured_image || "https://placehold.co/100x100/333/white?text=News"}
-                        alt={article.title}
+                        alt={article.title || "News image"}
                         className="w-20 h-20 object-cover rounded"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
@@ -141,14 +149,14 @@ export default function FeaturedNewsCarousel() {
                               color: article.category?.text_color || '#fff'
                             }}
                           >
-                            {article.category?.name}
+                            {article.category?.name || "Sem categoria"}
                           </span>
                         )}
                         <h3 
                           className="text-sm font-medium line-clamp-2"
                           style={{ color: article.category?.color || 'inherit' }}
                         >
-                          {article.title}
+                          {article.title || "Notícia sem título"}
                         </h3>
                       </div>
                     </div>

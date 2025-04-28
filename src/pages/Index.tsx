@@ -59,7 +59,7 @@ export default function Index() {
       <Navigation />
       
       <main className="flex-1 overflow-hidden">
-        <section className="py-6 bg-gradient-to-b from-background to-muted/20">
+        <section className="py-6">
           <div className="container">
             <h2 className="sr-only">Destaques</h2>
             <FeaturedNewsCarousel />
@@ -89,7 +89,7 @@ export default function Index() {
                         className="text-sm font-medium hover:underline line-clamp-2"
                         style={{ color: news.category?.color || '#333' }}
                       >
-                        {news.title}
+                        {news.title || "Notícia sem título"}
                       </Link>
                       <div className="text-xs text-muted-foreground mt-1">
                         {news.published_at && new Date(news.published_at).toLocaleDateString('pt-BR')}
@@ -182,7 +182,7 @@ export default function Index() {
                           className="font-medium hover:underline line-clamp-2"
                           style={{ color: news.category?.color || '#333' }}
                         >
-                          {news.title}
+                          {news.title || "Notícia sem título"}
                         </Link>
                         <div className="text-xs text-muted-foreground mt-1">
                           Views

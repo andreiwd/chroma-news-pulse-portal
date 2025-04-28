@@ -116,11 +116,11 @@ export default function CategoryNewsCarousel({ category, news }: CategoryNewsCar
                     style={{ color: categoryColor }}
                   >
                     <Link to={`/news/${article.slug}`} className="hover:underline">
-                      {article.title}
+                      {article.title || 'Notícia sem título'}
                     </Link>
                   </h3>
                   <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                    {article.excerpt}
+                    {article.excerpt || 'Sem descrição disponível'}
                   </p>
                   <Button 
                     variant="link" 

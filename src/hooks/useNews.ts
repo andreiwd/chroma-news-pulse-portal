@@ -41,7 +41,7 @@ export function useLatestNews() {
     staleTime: 1 * 60 * 1000, // 1 minuto
     gcTime: 5 * 60 * 1000, // 5 minutos
     select: (data) => {
-      // The API returns the news items directly as an array, not in a data property
+      // Garantir que os dados retornados sejam um array
       return Array.isArray(data) ? data : [];
     }
   });
