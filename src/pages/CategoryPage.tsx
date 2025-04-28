@@ -18,7 +18,7 @@ export default function CategoryPage() {
     data: newsData,
     isLoading,
     error,
-    isPreviousData,
+    isFetching,
   } = useCategoryNews(category || "", currentPage);
 
   // Extract news articles and pagination data
@@ -115,7 +115,7 @@ export default function CategoryPage() {
                   <Button
                     variant="outline"
                     onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1 || isPreviousData}
+                    disabled={currentPage === 1 || isFetching}
                   >
                     Anterior
                   </Button>
@@ -133,7 +133,7 @@ export default function CategoryPage() {
                           key={pageNumber}
                           variant={currentPage === pageNumber ? "default" : "outline"}
                           onClick={() => handlePageChange(pageNumber)}
-                          disabled={isPreviousData}
+                          disabled={isFetching}
                           style={
                             currentPage === pageNumber
                               ? { backgroundColor: categoryColor }
@@ -155,7 +155,7 @@ export default function CategoryPage() {
                   <Button
                     variant="outline"
                     onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages || isPreviousData}
+                    disabled={currentPage === totalPages || isFetching}
                   >
                     Próximo
                   </Button>
