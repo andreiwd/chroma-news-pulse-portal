@@ -1,11 +1,13 @@
-
 import { useEffect } from "react";
 import NewsTicker from "@/components/NewsTicker";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
 import FeaturedNewsCarousel from "@/components/FeaturedNewsCarousel";
 import NewsCard from "@/components/NewsCard";
 import CategoryNewsCarousel from "@/components/CategoryNewsCarousel";
+import AdPlaceholder from "@/components/AdPlaceholder";
+import CustomHtmlBlock from "@/components/CustomHtmlBlock";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNews, useLatestNews } from "@/hooks/useNews";
@@ -16,11 +18,9 @@ export default function Index() {
   const { data: newsData, isLoading: isNewsLoading } = useNews(1, "", "");
   const { data: latestNewsData, isLoading: isLatestNewsLoading } = useLatestNews();
   
-  // Get news articles from API response
   const allNews: Article[] = newsData?.data || [];
   const latestNewsItems = latestNewsData || [];
   
-  // Group news by category
   const getNewsByCategory = () => {
     if (!allNews.length) return {};
     
@@ -40,17 +40,14 @@ export default function Index() {
     return categoryMap;
   };
   
-  // Get most viewed news (sort by ID for now as the API might not have a views field)
   const getMostViewedNews = () => {
     return [...allNews].slice(0, 5);
   };
   
-  // Create necessary variables from the data
   const newsByCategory = getNewsByCategory();
   const mostViewedNews = getMostViewedNews();
   const mainLatestNews = allNews.slice(0, 12);
 
-  // Safely get entries from newsByCategory
   const categoryEntries = Object.entries(newsByCategory || {});
 
   return (
@@ -60,7 +57,6 @@ export default function Index() {
       <Navigation />
       
       <main className="flex-1 overflow-hidden">
-        {/* Featured Section with Carousel */}
         <section className="py-6 bg-gradient-to-b from-background to-muted/20">
           <div className="container">
             <h2 className="sr-only">Destaques</h2>
@@ -68,18 +64,14 @@ export default function Index() {
           </div>
         </section>
 
-        {/* Main Content with Categories and Sidebar */}
         <div className="container py-6">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Left sidebar */}
             <div className="lg:col-span-2">
-              {/* Ad space */}
-              <div className="ad-placeholder rounded-lg p-4 h-[600px] sticky top-24">
-                <div className="text-center">
-                  <p className="font-medium">Anúncio</p>
-                  <p className="text-sm">160 x 600</p>
-                </div>
-              </div>
+              <AdPlaceholder 
+                size="sidebar" 
+                id="ad-left-sidebar-1" 
+                className="sticky top-24"
+              />
               
               <div className="bg-muted/30 p-4 rounded-lg mt-6">
                 <h3 className="text-lg font-bold mb-4 border-b pb-2">Últimas Notícias</h3>
@@ -106,9 +98,7 @@ export default function Index() {
               </div>
             </div>
             
-            {/* Main content - featured articles and category sections */}
             <div className="lg:col-span-7 space-y-8">
-              {/* Featured Articles in 2-column grid */}
               <section>
                 <h2 className="text-2xl font-bold mb-4">Principais Notícias</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -127,28 +117,24 @@ export default function Index() {
                 </div>
               </section>
               
-              {/* Center ad banner */}
-              <div className="ad-placeholder rounded-lg p-4 h-[120px]">
-                <div className="text-center">
-                  <p className="font-medium">Banner Anúncio</p>
-                  <p className="text-sm">970 x 120</p>
-                </div>
-              </div>
+              <AdPlaceholder size="banner" id="ad-main-banner-1" />
 
-              {/* Category Carousel - Full Width */}
+              <CustomHtmlBlock
+                id="block-weather"
+                title="Previsão do Tempo"
+                className="bg-muted/10"
+              />
+
               {categoryEntries.slice(0, 1).map(([category, news]) => (
                 <CategoryNewsCarousel key={category} category={category} news={news} />
               ))}
               
-              {/* Mixed layout section */}
               <section>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {/* Featured Article */}
                   <div className="md:col-span-2">
                     {mainLatestNews.length > 5 && <NewsCard news={mainLatestNews[5]} />}
                   </div>
                   
-                  {/* Side articles in minimal view */}
                   <div className="space-y-4">
                     {mainLatestNews.slice(6, 9).map(news => (
                       <NewsCard key={news.id} news={news} variant="minimal" />
@@ -157,12 +143,18 @@ export default function Index() {
                 </div>
               </section>
 
-              {/* Category Carousel - Another Category */}
+              <CustomHtmlBlock
+                id="block-horoscope"
+                title="Horóscopo"
+                className="bg-muted/10"
+              />
+
               {categoryEntries.slice(1, 2).map(([category, news]) => (
                 <CategoryNewsCarousel key={category} category={category} news={news} />
               ))}
               
-              {/* Horizontal Articles */}
+              <AdPlaceholder size="banner" id="ad-main-banner-2" />
+              
               <section>
                 <h2 className="text-xl font-bold mb-4">Reportagens Especiais</h2>
                 <div className="space-y-4">
@@ -173,9 +165,7 @@ export default function Index() {
               </section>
             </div>
 
-            {/* Right sidebar - Most viewed news and ads */}
             <div className="lg:col-span-3 space-y-6">
-              {/* Most viewed news */}
               <div className="bg-muted/30 p-4 rounded-lg sticky top-24">
                 <h3 className="text-lg font-bold mb-4 border-b pb-2">Mais Lidas</h3>
                 <div className="space-y-4">
@@ -201,15 +191,8 @@ export default function Index() {
                 </div>
               </div>
               
-              {/* Ad spaces */}
-              <div className="ad-placeholder rounded-lg p-4 h-[250px]">
-                <div className="text-center">
-                  <p className="font-medium">Anúncio</p>
-                  <p className="text-sm">300 x 250</p>
-                </div>
-              </div>
+              <AdPlaceholder size="rectangle" id="ad-sidebar-rect-1" />
               
-              {/* Newsletter signup */}
               <div className="bg-muted p-4 rounded-lg text-center">
                 <h3 className="font-medium mb-2">Assine nossa newsletter</h3>
                 <p className="text-sm text-muted-foreground mb-4">
@@ -230,17 +213,10 @@ export default function Index() {
                 </form>
               </div>
               
-              {/* Second ad space */}
-              <div className="ad-placeholder rounded-lg p-4 h-[600px]">
-                <div className="text-center">
-                  <p className="font-medium">Anúncio</p>
-                  <p className="text-sm">300 x 600</p>
-                </div>
-              </div>
+              <AdPlaceholder size="sidebar" id="ad-sidebar-tall-1" />
             </div>
           </div>
 
-          {/* Full-width category carousels at the bottom */}
           <div className="mt-8 space-y-8">
             <Separator />
             
@@ -248,16 +224,12 @@ export default function Index() {
               <CategoryNewsCarousel key={category} category={category} news={news} />
             ))}
             
-            {/* Final ad banner */}
-            <div className="ad-placeholder rounded-lg p-4 h-[250px]">
-              <div className="text-center">
-                <p className="font-medium">Banner Anúncio</p>
-                <p className="text-sm">970 x 250</p>
-              </div>
-            </div>
+            <AdPlaceholder size="banner" id="ad-footer-banner-1" />
           </div>
         </div>
       </main>
+
+      <Footer />
     </div>
   );
 }

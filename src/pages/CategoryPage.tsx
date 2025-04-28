@@ -4,6 +4,8 @@ import { useCategoryNews } from "@/hooks/useNews";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
 import NewsTicker from "@/components/NewsTicker";
+import Footer from "@/components/Footer";
+import AdPlaceholder from "@/components/AdPlaceholder";
 import NewsCard from "@/components/NewsCard";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -50,6 +52,7 @@ export default function CategoryPage() {
             <Link to="/">Voltar para a página inicial</Link>
           </Button>
         </main>
+        <Footer />
       </div>
     );
   }
@@ -83,6 +86,13 @@ export default function CategoryPage() {
             </p>
           )}
         </div>
+
+        {/* Ad banner at top */}
+        <AdPlaceholder 
+          size="banner"
+          id="ad-category-top"
+          className="mb-8"
+        />
         
         {/* News Grid */}
         {isLoading ? (
@@ -99,14 +109,30 @@ export default function CategoryPage() {
         ) : news.length > 0 ? (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {news.map((article: Article) => (
-                <NewsCard 
-                  key={article.id} 
-                  news={article} 
-                  variant="compact" 
-                />
+              {news.map((article: Article, index) => (
+                <div key={article.id}>
+                  {/* Insert ad after every 6 articles */}
+                  {index > 0 && index % 6 === 0 && (
+                    <AdPlaceholder 
+                      size="rectangle"
+                      id={`ad-category-inline-${Math.floor(index/6)}`}
+                      className="mb-6"
+                    />
+                  )}
+                  <NewsCard 
+                    news={article} 
+                    variant="compact" 
+                  />
+                </div>
               ))}
             </div>
+            
+            {/* Ad banner before pagination */}
+            <AdPlaceholder 
+              size="banner"
+              id="ad-category-bottom"
+              className="my-8"
+            />
             
             {/* Pagination */}
             {totalPages > 1 && (
@@ -172,6 +198,8 @@ export default function CategoryPage() {
           </div>
         )}
       </main>
+
+      <Footer />
     </div>
   );
 }

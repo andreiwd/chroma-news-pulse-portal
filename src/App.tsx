@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import NewsDetail from "./pages/NewsDetail";
 import CategoryPage from "./pages/CategoryPage";
+import AdminLogin from "./pages/AdminLogin";
 
 const queryClient = new QueryClient();
 
@@ -21,6 +22,8 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/news/:id" element={<NewsDetail />} />
           <Route path="/category/:category" element={<CategoryPage />} />
+          <Route path="/painel" element={<AdminLogin />} />
+          <Route path="/admin/dashboard" element={<NotFound />} /> {/* This will be replaced with actual admin dashboard later */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
