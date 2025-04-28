@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { useNews } from "@/hooks/useNews";
 import { Skeleton } from "./ui/skeleton";
 import { Article } from "@/types/api";
+import { Link } from "react-router-dom";
 
 export default function FeaturedNewsCarousel() {
   const { data: newsData, isLoading } = useNews(1, "", "");

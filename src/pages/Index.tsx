@@ -1,67 +1,54 @@
+
+import { useEffect } from "react";
 import NewsTicker from "@/components/NewsTicker";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
 import FeaturedNewsCarousel from "@/components/FeaturedNewsCarousel";
 import NewsCard from "@/components/NewsCard";
 import CategoryNewsCarousel from "@/components/CategoryNewsCarousel";
-import newsData from "@/data/newsData";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
-// Group news by category
-const getNewsByCategory = () => {
-  const categories = [...new Set(newsData.map(item => item.category))];
-  const newsByCategory: Record<string, typeof newsData> = {};
-  
-  categories.forEach(category => {
-    newsByCategory[category] = newsData
-      .filter(news => news.category === category)
-      .sort((a, b) => {
-        // Sort by date if available
-        if (a.publishedAt && b.publishedAt) {
-          return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
-        }
-        return 0;
-      })
-      .slice(0, 8); // Get more news per category for carousels
-  });
-  
-  return newsByCategory;
-};
-
-// Get breaking news or highlighted news
-const getHighlightedNews = () => {
-  return newsData
-    .filter(item => item.isBreaking || item.isHighlight)
-    .sort((a, b) => {
-      // Prioritize breaking news
-      if (a.isBreaking && !b.isBreaking) return -1;
-      if (!a.isBreaking && b.isBreaking) return 1;
-      return 0;
-    })
-    .slice(0, 6);
-};
-
-// Get most viewed news
-const getMostViewedNews = () => {
-  return [...newsData]
-    .sort((a, b) => (b.views || 0) - (a.views || 0))
-    .slice(0, 5);
-};
-
-// Get latest news
-const getLatestNews = () => {
-  return [...newsData]
-    .sort((a, b) => {
-      if (a.publishedAt && b.publishedAt) {
-        return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
-      }
-      return 0;
-    })
-    .slice(0, 12);
-};
+import { useNews, useLatestNews } from "@/hooks/useNews";
+import { Link } from "react-router-dom";
+import { Article } from "@/types/api";
 
 export default function Index() {
+  const { data: newsData, isLoading: isNewsLoading } = useNews(1, "", "");
+  const { data: latestNewsData, isLoading: isLatestNewsLoading } = useLatestNews();
+  
+  // Get news articles from API response
+  const allNews: Article[] = newsData?.data || [];
+  
+  // Group news by category
+  const getNewsByCategory = () => {
+    if (!allNews.length) return {};
+    
+    const categoryMap: Record<string, Article[]> = {};
+    
+    allNews.forEach(article => {
+      const categorySlug = article.category?.slug;
+      if (!categorySlug) return;
+      
+      if (!categoryMap[categorySlug]) {
+        categoryMap[categorySlug] = [];
+      }
+      
+      categoryMap[categorySlug].push(article);
+    });
+    
+    return categoryMap;
+  };
+  
+  // Get most viewed news (sort by ID for now as the API might not have a views field)
+  const getMostViewedNews = () => {
+    return [...allNews].slice(0, 5);
+  };
+  
+  // Create necessary variables from the data
+  const newsByCategory = getNewsByCategory();
+  const mostViewedNews = getMostViewedNews();
+  const latestNews = allNews.slice(0, 12);
+
   return (
     <div className="min-h-screen flex flex-col">
       <NewsTicker />
@@ -97,17 +84,17 @@ export default function Index() {
                     <div 
                       key={news.id} 
                       className="border-l-2 pl-2 py-1 hover:bg-muted/50 transition-colors"
-                      style={{ borderLeftColor: `var(--category-${news.category})` }}
+                      style={{ borderLeftColor: news.category?.color || '#333' }}
                     >
-                      <a 
-                        href={`/news/${news.id}`}
+                      <Link 
+                        to={`/news/${news.slug}`}
                         className="text-sm font-medium hover:underline line-clamp-2"
-                        style={{ color: `var(--category-${news.category})` }}
+                        style={{ color: news.category?.color || '#333' }}
                       >
                         {news.title}
-                      </a>
+                      </Link>
                       <div className="text-xs text-muted-foreground mt-1">
-                        {news.publishedAt && new Date(news.publishedAt).toLocaleDateString('pt-BR')}
+                        {news.published_at && new Date(news.published_at).toLocaleDateString('pt-BR')}
                       </div>
                     </div>
                   ))}
@@ -154,7 +141,7 @@ export default function Index() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {/* Featured Article */}
                   <div className="md:col-span-2">
-                    <NewsCard news={latestNews[5]} />
+                    {latestNews.length > 5 && <NewsCard news={latestNews[5]} />}
                   </div>
                   
                   {/* Side articles in minimal view */}
@@ -194,15 +181,15 @@ export default function Index() {
                         {index + 1}
                       </div>
                       <div>
-                        <a 
-                          href={`/news/${news.id}`}
+                        <Link 
+                          to={`/news/${news.slug}`}
                           className="font-medium hover:underline line-clamp-2"
-                          style={{ color: `var(--category-${news.category})` }}
+                          style={{ color: news.category?.color || '#333' }}
                         >
                           {news.title}
-                        </a>
+                        </Link>
                         <div className="text-xs text-muted-foreground mt-1">
-                          {news.views?.toLocaleString()} visualizações
+                          Views
                         </div>
                       </div>
                     </div>
