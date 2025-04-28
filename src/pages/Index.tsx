@@ -50,6 +50,9 @@ export default function Index() {
   const mostViewedNews = getMostViewedNews();
   const mainLatestNews = allNews.slice(0, 12);
 
+  // Safely get entries from newsByCategory
+  const categoryEntries = Object.entries(newsByCategory || {});
+
   return (
     <div className="min-h-screen flex flex-col">
       <NewsTicker />
@@ -133,7 +136,7 @@ export default function Index() {
               </div>
 
               {/* Category Carousel - Full Width */}
-              {Object.entries(newsByCategory).slice(0, 1).map(([category, news]) => (
+              {categoryEntries.slice(0, 1).map(([category, news]) => (
                 <CategoryNewsCarousel key={category} category={category} news={news} />
               ))}
               
@@ -155,7 +158,7 @@ export default function Index() {
               </section>
 
               {/* Category Carousel - Another Category */}
-              {Object.entries(newsByCategory).slice(1, 2).map(([category, news]) => (
+              {categoryEntries.slice(1, 2).map(([category, news]) => (
                 <CategoryNewsCarousel key={category} category={category} news={news} />
               ))}
               
@@ -241,7 +244,7 @@ export default function Index() {
           <div className="mt-8 space-y-8">
             <Separator />
             
-            {Object.entries(newsByCategory).slice(2, 4).map(([category, news]) => (
+            {categoryEntries.slice(2, 4).map(([category, news]) => (
               <CategoryNewsCarousel key={category} category={category} news={news} />
             ))}
             

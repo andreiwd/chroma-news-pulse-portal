@@ -41,6 +41,11 @@ export default function CategoryNewsCarousel({ category, news }: CategoryNewsCar
     setScrollPosition(newPosition);
   };
 
+  // If no news items, don't render anything
+  if (!news || news.length === 0) {
+    return null;
+  }
+
   return (
     <div className="mb-8">
       <div className="flex justify-between items-center mb-4">
