@@ -53,6 +53,8 @@ export function useCategoryNews(slug: string, page = 1) {
     queryFn: () => queries.getCategoryNews(slug, page),
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
+    retry: false, // Não tenta novamente se falhar
+    enabled: Boolean(slug), // Só executa se houver slug
   });
 }
 

@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
 import { Article } from "@/types/api";
+import { toast } from "@/components/ui/use-toast";
 
 export default function CategoryPage() {
   const { category } = useParams<{ category: string }>();
@@ -38,24 +39,6 @@ export default function CategoryPage() {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
-
-  if (error) {
-    return (
-      <div className="min-h-screen flex flex-col">
-        <NewsTicker />
-        <Header />
-        <Navigation />
-        <main className="container py-10 text-center">
-          <h1 className="text-2xl font-bold">Categoria não encontrada</h1>
-          <p className="mt-4">A categoria que você está procurando não existe.</p>
-          <Button className="mt-6" asChild>
-            <Link to="/">Voltar para a página inicial</Link>
-          </Button>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -105,6 +88,13 @@ export default function CategoryPage() {
                 <Skeleton className="h-4 w-2/3" />
               </div>
             ))}
+          </div>
+        ) : error ? (
+          <div className="text-center py-10">
+            <p className="text-xl">Ocorreu um erro ao carregar esta categoria.</p>
+            <Button className="mt-4" asChild>
+              <Link to="/">Voltar para a página inicial</Link>
+            </Button>
           </div>
         ) : news.length > 0 ? (
           <>
