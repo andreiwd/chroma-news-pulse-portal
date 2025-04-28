@@ -7,9 +7,10 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { useToast } from "./ui/use-toast";
+import { Category } from "@/types/api";
 
 export default function Footer() {
-  const { data: categories } = useCategories();
+  const { data: categoriesData } = useCategories();
   const { toast } = useToast();
   const [contactForm, setContactForm] = useState({
     name: "",
@@ -18,7 +19,7 @@ export default function Footer() {
   });
   
   // Ensure categories is always an array
-  const safeCategories = Array.isArray(categories) ? categories : [];
+  const safeCategories: Category[] = Array.isArray(categoriesData) ? categoriesData : [];
   
   // Split categories into two columns
   const midPoint = Math.ceil(safeCategories.length / 2);

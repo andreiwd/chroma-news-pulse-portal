@@ -23,7 +23,7 @@ export default function Index() {
   const latestNewsItems: Article[] = Array.isArray(latestNewsData) ? latestNewsData : [];
   
   const getNewsByCategory = () => {
-    if (!allNews.length) return {};
+    if (!allNews?.length) return {};
     
     const categoryMap: Record<string, Article[]> = {};
     
@@ -42,12 +42,12 @@ export default function Index() {
   };
   
   const getMostViewedNews = () => {
-    return [...allNews].slice(0, 5);
+    return [...(allNews || [])].slice(0, 5);
   };
   
   const newsByCategory = getNewsByCategory();
   const mostViewedNews = getMostViewedNews();
-  const mainLatestNews = allNews.slice(0, 12);
+  const mainLatestNews = allNews?.slice(0, 12) || [];
 
   // Convert object to array of [key, value] pairs for safe rendering
   const categoryEntries = Object.entries(newsByCategory || {});

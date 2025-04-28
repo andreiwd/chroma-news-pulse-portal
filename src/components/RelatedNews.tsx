@@ -3,29 +3,35 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Article } from "@/types/api";
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Link } from "react-router-dom";
 
 interface RelatedNewsProps {
   articles: Article[];
 }
 
 export default function RelatedNews({ articles }: RelatedNewsProps) {
-  if (!articles.length) return null;
+  if (!articles?.length) return null;
 
   return (
     <div>
       <h2 className="text-2xl font-bold mb-6">Notícias Relacionadas</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
         {articles.map((article) => {
-          const publishedDate = new Date(article.published_at);
+          if (!article) return null;
+          
+          const publishedDate = article.published_at ? new Date(article.published_at) : new Date();
           const timeAgo = formatDistanceToNow(publishedDate, { locale: ptBR, addSuffix: true });
+          const categoryName = article.category?.name || "";
+          const categoryColor = article.category?.color || `var(--category-${article.category?.slug})`;
+          const categorySlug = article.category?.slug || "";
           
           return (
-            <a key={article.id} href={`/news/${article.slug}`} className="block">
+            <Link key={article.id} to={`/news/${article.slug}`} className="block">
               <Card className="h-full flex flex-col hover:shadow-md transition-shadow">
                 <div className="relative h-48 overflow-hidden">
                   <img
                     src={article.featured_image || "https://placehold.co/600x400/333/white?text=News"}
-                    alt={article.title}
+                    alt={article.title || ""}
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
@@ -33,26 +39,26 @@ export default function RelatedNews({ articles }: RelatedNewsProps) {
                       target.src = "https://placehold.co/600x400/333/white?text=News";
                     }}
                   />
-                  <div 
-                    className="absolute bottom-0 left-0 p-2 text-xs font-medium text-white rounded-tr-md"
-                    style={{ 
-                      backgroundColor: article.category?.color || `var(--category-${article.category?.slug})` 
-                    }}
-                  >
-                    {article.category?.name}
-                  </div>
+                  {categoryName && (
+                    <div 
+                      className="absolute bottom-0 left-0 p-2 text-xs font-medium text-white rounded-tr-md"
+                      style={{ backgroundColor: categoryColor }}
+                    >
+                      {categoryName}
+                    </div>
+                  )}
                 </div>
                 
                 <CardContent className="py-4 flex-1">
-                  <h3 className="font-bold line-clamp-2 text-lg mb-2">{article.title}</h3>
-                  <p className="text-muted-foreground line-clamp-2 text-sm">{article.excerpt}</p>
+                  <h3 className="font-bold line-clamp-2 text-lg mb-2">{article.title || "Sem título"}</h3>
+                  <p className="text-muted-foreground line-clamp-2 text-sm">{article.excerpt || "Sem descrição"}</p>
                 </CardContent>
                 
                 <CardFooter className="pt-0 text-xs text-muted-foreground">
                   {timeAgo}
                 </CardFooter>
               </Card>
-            </a>
+            </Link>
           );
         })}
       </div>
