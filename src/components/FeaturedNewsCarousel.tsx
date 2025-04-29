@@ -52,9 +52,9 @@ export default function FeaturedNewsCarousel() {
       <div className="mb-6 relative overflow-hidden rounded-xl">
         <div className="container mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Main featured article with title, summary, and date on the left, image on the right */}
-            <div className="lg:col-span-8 flex flex-col lg:flex-row overflow-hidden bg-transparent border-0">
-              <div className="lg:w-1/2 p-6 flex flex-col justify-center">
+            {/* Main featured article with title, summary, and date above the image */}
+            <div className="lg:col-span-8 flex flex-col overflow-hidden bg-transparent border-0">
+              <div className="p-6 flex flex-col justify-center">
                 {mainArticle?.category && (
                   <span 
                     className="inline-block text-xs font-medium px-3 py-1 rounded-full mb-3"
@@ -75,13 +75,13 @@ export default function FeaturedNewsCarousel() {
                 <div className="text-sm text-muted-foreground mb-4">
                   {mainArticle?.published_at && new Date(mainArticle.published_at).toLocaleDateString('pt-BR')}
                 </div>
-                <Button variant="outline" size="sm" className="w-fit" asChild>
+                <Button variant="outline" size="sm" className="w-fit mb-6" asChild>
                   <Link to={`/news/${mainArticle?.slug}`}>
                     Leia mais <ArrowRight className="h-3 w-3 ml-1" />
                   </Link>
                 </Button>
               </div>
-              <div className="lg:w-1/2 relative min-h-[300px]">
+              <div className="relative min-h-[300px]">
                 <Link to={`/news/${mainArticle?.slug}`} className="block h-full">
                   <img
                     src={mainArticle?.featured_image || "https://placehold.co/800x450/333/white?text=Featured+News"}
