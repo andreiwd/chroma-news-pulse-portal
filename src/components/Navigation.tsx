@@ -18,8 +18,8 @@ export default function Navigation() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const { data: categoriesData, isLoading } = useCategories();
 
-  // Ensure categories is always an array
-  const categories: Category[] = Array.isArray(categoriesData) ? categoriesData : [];
+  // Ensure categories is always an array of valid Category objects
+  const categories: Category[] = Array.isArray(categoriesData) ? categoriesData.filter(Boolean) : [];
 
   console.log("Navigation categories:", categories);
 
@@ -47,9 +47,9 @@ export default function Navigation() {
                     <NavigationMenuTrigger 
                       className="text-sm font-bold hover:bg-transparent whitespace-nowrap"
                       style={{ 
-                        color: category.color || `var(--category-${category.slug})`,
+                        color: category.color || `var(--category-${category.slug || "default"})`,
                         borderBottom: activeCategory === category.name 
-                          ? `3px solid ${category.color || `var(--category-${category.slug})`}` 
+                          ? `3px solid ${category.color || `var(--category-${category.slug || "default"})`}` 
                           : 'none' 
                       }}
                       onClick={() => setActiveCategory(category.name)}
@@ -68,8 +68,8 @@ export default function Navigation() {
                                 "hover:bg-opacity-80"
                               )}
                               style={{ 
-                                backgroundColor: `${category.color}20` || `var(--category-${category.slug}-light)`,
-                                color: category.color || `var(--category-${category.slug})`
+                                backgroundColor: `${category.color || "#333"}20` || `var(--category-${category.slug || "default"}-light)`,
+                                color: category.color || `var(--category-${category.slug || "default"})`
                               }}
                             >
                               Ver todas as notícias
