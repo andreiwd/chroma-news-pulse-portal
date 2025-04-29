@@ -7,12 +7,16 @@ interface LatestNewsSidebarProps {
 }
 
 export default function LatestNewsSidebar({ latestNewsItems }: LatestNewsSidebarProps) {
+  // Ensure latestNewsItems is an array
+  const safeNewsItems = Array.isArray(latestNewsItems) ? latestNewsItems : [];
+  
   return (
     <div className="bg-muted/30 p-4 rounded-lg mt-6">
       <h3 className="text-lg font-bold mb-4 border-b pb-2">Últimas Notícias</h3>
       <div className="space-y-3">
-        {latestNewsItems.slice(0, 5).map((news) => {
-          if (!news) return null;
+        {safeNewsItems.slice(0, 5).map((news) => {
+          if (!news || typeof news !== 'object') return null;
+          // Use optional chaining and provide defaults
           const categoryColor = news.category?.color || '#333';
           
           return (
