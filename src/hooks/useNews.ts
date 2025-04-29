@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { queries } from "@/lib/api";
 import type { Article, Category, PaginatedResponse } from "@/types/api";
@@ -27,11 +28,19 @@ export function useCategories() {
     staleTime: 30 * 60 * 1000, // 30 minutos
     gcTime: 60 * 60 * 1000, // 1 hora
     select: (data) => {
+      // Ensure we return an array of valid Category objects
       if (!data) return [];
-      if (Array.isArray(data)) return data;
-      if (data && typeof data === 'object' && 'data' in data && Array.isArray(data.data)) {
-        return data.data;
+      
+      if (Array.isArray(data)) {
+        return data.filter(item => item && typeof item === 'object');
       }
+      
+      if (data && typeof data === 'object' && 'data' in data) {
+        if (Array.isArray(data.data)) {
+          return data.data.filter(item => item && typeof item === 'object');
+        }
+      }
+      
       return [];
     }
   });
@@ -44,11 +53,19 @@ export function useLatestNews() {
     staleTime: 1 * 60 * 1000, // 1 minuto
     gcTime: 5 * 60 * 1000, // 5 minutos
     select: (data) => {
+      // Ensure we return an array of valid Article objects
       if (!data) return [];
-      if (Array.isArray(data)) return data;
-      if (data && typeof data === 'object' && 'data' in data && Array.isArray(data.data)) {
-        return data.data;
+      
+      if (Array.isArray(data)) {
+        return data.filter(item => item && typeof item === 'object');
       }
+      
+      if (data && typeof data === 'object' && 'data' in data) {
+        if (Array.isArray(data.data)) {
+          return data.data.filter(item => item && typeof item === 'object');
+        }
+      }
+      
       return [];
     }
   });

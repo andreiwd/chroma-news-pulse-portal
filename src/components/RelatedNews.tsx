@@ -10,19 +10,24 @@ interface RelatedNewsProps {
 }
 
 export default function RelatedNews({ articles }: RelatedNewsProps) {
-  if (!articles?.length) return null;
+  // Safety check to ensure articles is an array
+  const safeArticles = Array.isArray(articles) ? articles : [];
+  
+  if (!safeArticles.length) return null;
 
   return (
     <div>
       <h2 className="text-2xl font-bold mb-6">Notícias Relacionadas</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
-        {articles.map((article) => {
+        {safeArticles.map((article) => {
           if (!article) return null;
           
           const publishedDate = article.published_at ? new Date(article.published_at) : new Date();
           const timeAgo = formatDistanceToNow(publishedDate, { locale: ptBR, addSuffix: true });
+          
+          // Make sure category properties are accessed safely
           const categoryName = article.category?.name || "";
-          const categoryColor = article.category?.color || `var(--category-${article.category?.slug})`;
+          const categoryColor = article.category?.color || `var(--category-${article.category?.slug || "default"})`;
           const categorySlug = article.category?.slug || "";
           
           return (

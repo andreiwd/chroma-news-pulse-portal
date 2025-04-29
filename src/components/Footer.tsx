@@ -18,8 +18,8 @@ export default function Footer() {
     message: ""
   });
   
-  // Ensure categories is always an array
-  const safeCategories: Category[] = Array.isArray(categoriesData) ? categoriesData : [];
+  // Ensure categories is always an array of valid Category objects
+  const safeCategories: Category[] = Array.isArray(categoriesData) ? categoriesData.filter(Boolean) : [];
   
   // Split categories into two columns
   const midPoint = Math.ceil(safeCategories.length / 2);
