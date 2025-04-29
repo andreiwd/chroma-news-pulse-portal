@@ -1,12 +1,10 @@
 
 import { useState } from "react";
-import { Article, Category } from "@/types/api";
+import { Article } from "@/types/api";
 import { Card, CardContent } from "./ui/card";
-import { Badge } from "./ui/badge";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "./ui/button";
 import { ScrollArea } from "./ui/scroll-area";
-import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 
 interface CategoryNewsCarouselProps {
@@ -22,7 +20,6 @@ export default function CategoryNewsCarousel({ category, news }: CategoryNewsCar
   const categorySlug = categoryData?.slug || category;
   const categoryName = categoryData?.name || (category.charAt(0).toUpperCase() + category.slice(1));
   const categoryColor = categoryData?.color || '#333';
-  const categoryTextColor = categoryData?.text_color || '#fff';
 
   const scroll = (direction: "left" | "right") => {
     const container = document.getElementById(`scroll-${category}`);
@@ -92,50 +89,54 @@ export default function CategoryNewsCarousel({ category, news }: CategoryNewsCar
           onScroll={(e) => setScrollPosition((e.target as HTMLDivElement).scrollLeft)}
         >
           <div className="flex space-x-4 pb-4 pl-1 pr-10">
-            {news.map((article) => (
-              <Card 
-                key={article.id} 
-                className="flex-shrink-0 w-[280px] overflow-hidden hover:shadow-lg transition-shadow" 
-                style={{ borderTop: `3px solid ${categoryColor}` }}
-              >
-                <div className="relative h-32">
-                  <img
-                    src={article.featured_image || `https://placehold.co/600x400/333/white?text=${categoryName}`}
-                    alt={article.title}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.onerror = null;
-                      target.src = `https://placehold.co/600x400/333/white?text=${categoryName}`;
-                    }}
-                  />
-                </div>
-                <CardContent className="p-4">
-                  <h3 
-                    className="font-bold mb-2 line-clamp-2"
-                    style={{ color: categoryColor }}
-                  >
-                    <Link to={`/news/${article.slug}`} className="hover:underline">
-                      {article.title || 'Notícia sem título'}
-                    </Link>
-                  </h3>
-                  <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                    {article.excerpt || 'Sem descrição disponível'}
-                  </p>
-                  <Button 
-                    variant="link" 
-                    size="sm" 
-                    className="p-0 h-auto"
-                    style={{ color: categoryColor }}
-                    asChild
-                  >
-                    <Link to={`/news/${article.slug}`}>
-                      Leia mais <ArrowRight className="h-3 w-3 ml-1" />
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+            {news.map((article) => {
+              if (!article) return null;
+              
+              return (
+                <Card 
+                  key={article.id} 
+                  className="flex-shrink-0 w-[280px] overflow-hidden hover:shadow-lg transition-shadow" 
+                  style={{ borderTop: `3px solid ${categoryColor}` }}
+                >
+                  <div className="relative h-32">
+                    <img
+                      src={article.featured_image || `https://placehold.co/600x400/333/white?text=${categoryName}`}
+                      alt={article.title}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.onerror = null;
+                        target.src = `https://placehold.co/600x400/333/white?text=${categoryName}`;
+                      }}
+                    />
+                  </div>
+                  <CardContent className="p-4">
+                    <h3 
+                      className="font-bold mb-2 line-clamp-2"
+                      style={{ color: categoryColor }}
+                    >
+                      <Link to={`/news/${article.slug}`} className="hover:underline">
+                        {article.title || 'Notícia sem título'}
+                      </Link>
+                    </h3>
+                    <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                      {article.excerpt || 'Sem descrição disponível'}
+                    </p>
+                    <Button 
+                      variant="link" 
+                      size="sm" 
+                      className="p-0 h-auto"
+                      style={{ color: categoryColor }}
+                      asChild
+                    >
+                      <Link to={`/news/${article.slug}`}>
+                        Leia mais <ArrowRight className="h-3 w-3 ml-1" />
+                      </Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </ScrollArea>
       </div>
