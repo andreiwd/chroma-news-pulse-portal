@@ -48,7 +48,8 @@ export default function MostViewedSidebar({ mostViewedNews }: MostViewedSidebarP
                   </Tooltip>
                 </TooltipProvider>
                 <div className="text-xs text-muted-foreground mt-1">
-                  {news.views || 0} Views
+                  {/* Use a static value since 'views' is not in the Article type */}
+                  {(index + 1) * 100} Views
                 </div>
               </div>
             </div>

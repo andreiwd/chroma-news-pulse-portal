@@ -14,14 +14,16 @@ export default function LatestNewsSidebar({ latestNewsItems }: LatestNewsSidebar
     <div className="bg-muted/30 p-4 rounded-lg mt-6">
       <h3 className="text-lg font-bold mb-4 border-b pb-2">Últimas Notícias</h3>
       <div className="space-y-3">
-        {safeNewsItems.slice(0, 5).map((news) => {
+        {safeNewsItems.slice(0, 5).map((news, index) => {
           if (!news || typeof news !== 'object') return null;
+          
           // Use optional chaining and provide defaults
           const categoryColor = news.category?.color || '#333';
+          const newsId = news.id || `latest-news-${index}`; // Ensure a unique key even if id is missing
           
           return (
             <div 
-              key={news.id} 
+              key={newsId} 
               className="border-l-2 pl-2 py-1 hover:bg-muted/50 transition-colors"
               style={{ borderLeftColor: categoryColor }}
             >
