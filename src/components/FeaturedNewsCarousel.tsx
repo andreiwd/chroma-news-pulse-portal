@@ -18,7 +18,8 @@ import {
 export default function FeaturedNewsCarousel() {
   const { data: newsData, isLoading } = useNews(1, "", "");
   
-  const featuredNews: Article[] = newsData?.data?.slice(0, 4) || [];
+  // Make sure we have an array of articles, even if empty
+  const featuredNews: Article[] = Array.isArray(newsData?.data) ? newsData.data.slice(0, 5) : [];
   
   console.log("Featured news data:", featuredNews);
 
@@ -26,16 +27,12 @@ export default function FeaturedNewsCarousel() {
     return (
       <div className="w-full mb-6 relative overflow-hidden rounded-xl p-6">
         <div className="container mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <Skeleton className="h-[400px] w-full" />
-            </div>
-            <div className="lg:col-span-1">
-              <div className="grid grid-cols-1 gap-4 h-full">
-                {[...Array(4)].map((_, i) => (
-                  <Skeleton key={i} className="h-20 w-full" />
-                ))}
-              </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Skeleton className="h-96 w-full" />
+            <div className="space-y-4">
+              {[...Array(4)].map((_, i) => (
+                <Skeleton key={i} className="h-20 w-full" />
+              ))}
             </div>
           </div>
         </div>
@@ -47,108 +44,89 @@ export default function FeaturedNewsCarousel() {
     return null;
   }
 
+  const mainArticle = featuredNews[0];
+  const sideArticles = featuredNews.slice(1, 5);
+
   return (
     <div className="w-full">
-      <div className="mb-6 relative overflow-hidden rounded-xl p-6">
+      <div className="mb-6 relative overflow-hidden rounded-xl">
         <div className="container mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Featured Article Carousel */}
-            <div className="lg:col-span-2">
-              <Carousel>
-                <CarouselContent>
-                  {featuredNews.map((article, index) => (
-                    <CarouselItem key={article?.id || index}>
-                      <div className="relative overflow-hidden rounded-lg h-[400px]">
-                        <Link to={`/news/${article?.slug}`} className="block h-full">
-                          <img
-                            src={article?.featured_image || "https://placehold.co/800x450/333/white?text=Featured+News"}
-                            alt={article?.title || "Featured news"}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.onerror = null;
-                              target.src = "https://placehold.co/800x450/333/white?text=Featured+News";
-                            }}
-                          />
-                          {/* Text overlay on top of the image */}
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent flex flex-col justify-end p-6">
-                            {article?.category && (
-                              <span 
-                                className="inline-block text-xs font-medium px-3 py-1 rounded-full mb-3"
-                                style={{ 
-                                  backgroundColor: article?.category?.color || '#333',
-                                  color: article?.category?.text_color || '#fff'
-                                }}
-                              >
-                                {article?.category?.name || "Sem categoria"}
-                              </span>
-                            )}
-                            <h2 className="text-2xl md:text-3xl font-bold mb-4 text-white">
-                              {article?.title || "Notícia sem título"}
-                            </h2>
-                            <p className="text-white/80 mb-4 line-clamp-2">
-                              {article?.excerpt || "Sem descrição disponível"}
-                            </p>
-                            <Button variant="secondary" size="sm" asChild>
-                              <Link to={`/news/${article?.slug}`}>
-                                Leia mais <ArrowRight className="h-3 w-3 ml-1" />
-                              </Link>
-                            </Button>
-                          </div>
-                        </Link>
-                      </div>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious className="left-2" />
-                <CarouselNext className="right-2" />
-              </Carousel>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Main featured article with title, summary, and date on the left, image on the right */}
+            <div className="lg:col-span-8 flex flex-col lg:flex-row overflow-hidden bg-transparent border-0">
+              <div className="lg:w-1/2 p-6 flex flex-col justify-center">
+                {mainArticle?.category && (
+                  <span 
+                    className="inline-block text-xs font-medium px-3 py-1 rounded-full mb-3"
+                    style={{ 
+                      backgroundColor: `${mainArticle.category.color || '#333'}20`,
+                      color: mainArticle.category.color || '#333'
+                    }}
+                  >
+                    {mainArticle.category.name || "Sem categoria"}
+                  </span>
+                )}
+                <h2 className="text-2xl md:text-3xl font-bold mb-4" style={{ color: mainArticle?.category?.color || 'inherit' }}>
+                  {mainArticle?.title || "Notícia sem título"}
+                </h2>
+                <p className="text-muted-foreground mb-4 line-clamp-3">
+                  {mainArticle?.excerpt || "Sem descrição disponível"}
+                </p>
+                <div className="text-sm text-muted-foreground mb-4">
+                  {mainArticle?.published_at && new Date(mainArticle.published_at).toLocaleDateString('pt-BR')}
+                </div>
+                <Button variant="outline" size="sm" className="w-fit" asChild>
+                  <Link to={`/news/${mainArticle?.slug}`}>
+                    Leia mais <ArrowRight className="h-3 w-3 ml-1" />
+                  </Link>
+                </Button>
+              </div>
+              <div className="lg:w-1/2 relative min-h-[300px]">
+                <Link to={`/news/${mainArticle?.slug}`} className="block h-full">
+                  <img
+                    src={mainArticle?.featured_image || "https://placehold.co/800x450/333/white?text=Featured+News"}
+                    alt={mainArticle?.title || "Featured news"}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.onerror = null;
+                      target.src = "https://placehold.co/800x450/333/white?text=Featured+News";
+                    }}
+                  />
+                </Link>
+              </div>
             </div>
 
-            {/* Thumbnails */}
-            <div className="lg:col-span-1">
-              <div className="grid grid-cols-1 gap-4 h-full">
-                {featuredNews.map((article, index) => (
-                  <Link 
-                    key={article?.id || index}
-                    to={`/news/${article?.slug}`}
-                    className={cn(
-                      "w-full text-left transition-all duration-300 hover:bg-muted/50 rounded-lg p-2 flex items-center",
-                    )}
-                  >
-                    <div className="flex gap-3 items-center w-full">
-                      <img
-                        src={article?.featured_image || "https://placehold.co/100x100/333/white?text=News"}
-                        alt={article?.title || "News image"}
-                        className="w-20 h-20 object-cover rounded"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.onerror = null;
-                          target.src = "https://placehold.co/100x100/333/white?text=News";
-                        }}
-                      />
-                      <div className="flex-1 min-w-0">
-                        {article?.category && (
-                          <span 
-                            className="text-xs font-medium px-2 py-1 rounded-full inline-block mb-2"
-                            style={{ 
-                              backgroundColor: article?.category?.color || '#333',
-                              color: article?.category?.text_color || '#fff'
-                            }}
-                          >
-                            {article?.category?.name || "Sem categoria"}
-                          </span>
-                        )}
-                        <h3 
-                          className="text-sm font-medium line-clamp-2"
-                          style={{ color: article?.category?.color || 'inherit' }}
-                        >
-                          {article?.title || "Notícia sem título"}
+            {/* Side articles (cards) */}
+            <div className="lg:col-span-4">
+              <div className="flex flex-col space-y-4 h-full">
+                {sideArticles.map((article, index) => {
+                  if (!article || typeof article !== 'object') return null;
+                  
+                  const categoryColor = article.category?.color || '#333';
+                  const articleId = article.id || `side-article-${index}`;
+                  
+                  return (
+                    <Link 
+                      key={articleId}
+                      to={`/news/${article.slug}`}
+                      className="p-3 border-l-2 hover:bg-muted/20 transition-colors flex items-start"
+                      style={{ borderLeftColor: categoryColor }}
+                    >
+                      <div className="flex-grow">
+                        <div className="text-xs font-medium mb-1" style={{ color: categoryColor }}>
+                          {article.category?.name || "Sem categoria"}
+                        </div>
+                        <h3 className="font-medium line-clamp-2 text-sm">
+                          {article.title || "Notícia sem título"}
                         </h3>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          {article.published_at && new Date(article.published_at).toLocaleDateString('pt-BR')}
+                        </div>
                       </div>
-                    </div>
-                  </Link>
-                ))}
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           </div>
