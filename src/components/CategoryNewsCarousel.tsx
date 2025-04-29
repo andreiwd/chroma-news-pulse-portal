@@ -44,7 +44,7 @@ export default function CategoryNewsCarousel({ category, news }: CategoryNewsCar
   }
 
   return (
-    <div className="mb-8">
+    <div className="mb-8 bg-white rounded-lg shadow-sm p-4">
       <div className="flex justify-between items-center mb-4">
         <h2 
           className="text-xl font-bold"

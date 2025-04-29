@@ -53,13 +53,13 @@ export default function Index() {
   const categoryEntries = Object.entries(getNewsByCategory() || {});
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gray-50">
       <NewsTicker />
       <Header />
       <Navigation />
       
-      <main className="flex-1 overflow-hidden">
-        <section className="py-6">
+      <main className="flex-1">
+        <section className="py-6 bg-white border-b">
           <div className="container">
             <h2 className="sr-only">Destaques</h2>
             <FeaturedNewsCarousel />
@@ -72,21 +72,25 @@ export default function Index() {
               <AdPlaceholder 
                 size="sidebar" 
                 id="ad-left-sidebar-1" 
-                className="sticky top-24"
+                className="sticky top-24 bg-white rounded-lg shadow-sm"
               />
               
               <LatestNewsSidebar latestNewsItems={latestNewsItems} />
             </div>
             
-            <div className="lg:col-span-7 space-y-8">
+            <div className="lg:col-span-7">
               <MainNewsGrid mainLatestNews={mainLatestNews} />
               
-              <AdPlaceholder size="banner" id="ad-main-banner-1" />
+              <AdPlaceholder 
+                size="banner" 
+                id="ad-main-banner-1"
+                className="my-8 bg-white rounded-lg shadow-sm" 
+              />
 
               <CustomHtmlBlock
                 id="block-weather"
                 title="Previsão do Tempo"
-                className="bg-muted/10"
+                className="bg-white rounded-lg shadow-sm mb-8"
               />
 
               {categoryEntries.slice(0, 1).map(([category, news], index) => {
@@ -96,12 +100,16 @@ export default function Index() {
                 );
               })}
               
-              <AdPlaceholder size="banner" id="ad-main-banner-2" />
+              <AdPlaceholder 
+                size="banner" 
+                id="ad-main-banner-2"
+                className="my-8 bg-white rounded-lg shadow-sm" 
+              />
               
               <CustomHtmlBlock
                 id="block-horoscope"
                 title="Horóscopo"
-                className="bg-muted/10"
+                className="bg-white rounded-lg shadow-sm mb-8"
               />
 
               {categoryEntries.slice(1, 2).map(([category, news], index) => {
@@ -113,18 +121,30 @@ export default function Index() {
             </div>
 
             <div className="lg:col-span-3 space-y-6">
-              <MostViewedSidebar mostViewedNews={getMostViewedNews()} />
+              <div className="bg-white rounded-lg shadow-sm">
+                <MostViewedSidebar mostViewedNews={getMostViewedNews()} />
+              </div>
               
-              <AdPlaceholder size="rectangle" id="ad-sidebar-rect-1" />
+              <AdPlaceholder 
+                size="rectangle" 
+                id="ad-sidebar-rect-1"
+                className="bg-white rounded-lg shadow-sm" 
+              />
               
-              <NewsletterSignup />
+              <div className="bg-white rounded-lg shadow-sm">
+                <NewsletterSignup />
+              </div>
               
-              <AdPlaceholder size="sidebar" id="ad-sidebar-tall-1" />
+              <AdPlaceholder 
+                size="sidebar" 
+                id="ad-sidebar-tall-1"
+                className="bg-white rounded-lg shadow-sm" 
+              />
             </div>
           </div>
 
           <div className="mt-8 space-y-8">
-            <Separator />
+            <Separator className="my-8" />
             
             {categoryEntries.slice(2, 4).map(([category, news], index) => {
               if (!category || !news || !news.length) return null;
@@ -133,7 +153,11 @@ export default function Index() {
               );
             })}
             
-            <AdPlaceholder size="banner" id="ad-footer-banner-1" />
+            <AdPlaceholder 
+              size="banner" 
+              id="ad-footer-banner-1"
+              className="bg-white rounded-lg shadow-sm my-8" 
+            />
           </div>
         </div>
       </main>

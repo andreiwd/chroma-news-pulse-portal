@@ -8,9 +8,9 @@ interface MainNewsGridProps {
 
 export default function MainNewsGrid({ mainLatestNews }: MainNewsGridProps) {
   return (
-    <>
-      <section>
-        <h2 className="text-2xl font-bold mb-4">Principais Notícias</h2>
+    <div className="space-y-8">
+      <section className="bg-white rounded-lg shadow-sm p-6">
+        <h2 className="text-2xl font-bold mb-4 pb-2 border-b">Principais Notícias</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {mainLatestNews.slice(0, 4).map((article, index) => {
             if (!article) return null;
@@ -31,7 +31,7 @@ export default function MainNewsGrid({ mainLatestNews }: MainNewsGridProps) {
         </div>
       </section>
       
-      <section>
+      <section className="bg-white rounded-lg shadow-sm p-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="md:col-span-2">
             {mainLatestNews.length > 5 && mainLatestNews[5] && <NewsCard news={mainLatestNews[5]} />}
@@ -46,8 +46,8 @@ export default function MainNewsGrid({ mainLatestNews }: MainNewsGridProps) {
         </div>
       </section>
       
-      <section>
-        <h2 className="text-xl font-bold mb-4">Reportagens Especiais</h2>
+      <section className="bg-white rounded-lg shadow-sm p-6">
+        <h2 className="text-xl font-bold mb-4 pb-2 border-b">Reportagens Especiais</h2>
         <div className="space-y-4">
           {mainLatestNews.slice(9, 12).map(news => {
             if (!news) return null;
@@ -55,6 +55,6 @@ export default function MainNewsGrid({ mainLatestNews }: MainNewsGridProps) {
           })}
         </div>
       </section>
-    </>
+    </div>
   );
 }

@@ -26,7 +26,7 @@
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 221.2 83.2% 53.3%;
-    --radius: 1rem;
+    --radius: 0.75rem;
     
     /* Category colors */
     --category-tech: #6366f1;
@@ -159,3 +159,12 @@
   animation: fadeInUp 0.5s ease-out forwards;
 }
 
+/* Container adjustments */
+.container {
+  @apply px-4 sm:px-6 max-w-6xl mx-auto;
+}
+
+/* Card and section shadows */
+.shadow-sm {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1);
+}

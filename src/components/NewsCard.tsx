@@ -62,7 +62,7 @@ export default function NewsCard({ news, variant = "default" }: NewsCardProps) {
               <div className="text-xs text-muted-foreground">
                 {news.published_at && new Date(news.published_at).toLocaleDateString('pt-BR')}
               </div>
-              <Button variant="ghost" size="sm" className="text-primary p-0 h-auto" asChild>
+              <Button variant="ghost" size="sm" className="p-0 h-auto" style={{ color: categoryColor }} asChild>
                 <Link to={`/news/${news.slug}`}>
                   <ArrowRight className="h-3 w-3" />
                 </Link>
@@ -103,7 +103,7 @@ export default function NewsCard({ news, variant = "default" }: NewsCardProps) {
   }
 
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+    <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
       <div className="relative">
         <img
           src={news.featured_image || `https://placehold.co/600x400/333/white?text=${categoryName}`}
@@ -134,7 +134,9 @@ export default function NewsCard({ news, variant = "default" }: NewsCardProps) {
           className={`${variant === "compact" ? "text-lg" : "text-xl"} font-bold line-clamp-2`}
           style={{ color: categoryColor }}
         >
-          {news.title}
+          <Link to={`/news/${news.slug}`} className="hover:underline">
+            {news.title}
+          </Link>
         </CardTitle>
       </CardHeader>
       <CardContent className={variant === "compact" ? "p-4 pt-0" : "p-6 pt-0"}>
@@ -145,7 +147,7 @@ export default function NewsCard({ news, variant = "default" }: NewsCardProps) {
           <div className="text-xs text-muted-foreground">
             {news.published_at && new Date(news.published_at).toLocaleDateString('pt-BR')}
           </div>
-          <Button variant="ghost" size="sm" className="text-primary" asChild>
+          <Button variant="ghost" size="sm" className="p-0 h-auto" style={{ color: categoryColor }} asChild>
             <Link to={`/news/${news.slug}`}>
               Leia mais <ArrowRight className="h-3 w-3 ml-1" />
             </Link>

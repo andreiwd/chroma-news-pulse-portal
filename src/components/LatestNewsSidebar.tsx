@@ -11,7 +11,7 @@ export default function LatestNewsSidebar({ latestNewsItems }: LatestNewsSidebar
   const safeNewsItems = Array.isArray(latestNewsItems) ? latestNewsItems : [];
   
   return (
-    <div className="bg-muted/30 p-4 rounded-lg mt-6">
+    <div className="bg-white shadow-sm rounded-lg p-4 mt-6">
       <h3 className="text-lg font-bold mb-4 border-b pb-2">Últimas Notícias</h3>
       <div className="space-y-3">
         {safeNewsItems.slice(0, 5).map((news, index) => {
