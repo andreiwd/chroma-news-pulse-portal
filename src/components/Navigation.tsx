@@ -20,10 +20,14 @@ export default function Navigation() {
 
   // Ensure categories is always an array of valid Category objects
   const categories: Category[] = Array.isArray(categoriesData) 
-    ? categoriesData.filter((cat): cat is Category => Boolean(cat) && typeof cat === 'object')
+    ? categoriesData.filter((cat): cat is Category => 
+        Boolean(cat) && 
+        typeof cat === 'object' && 
+        'name' in cat && 
+        'id' in cat && 
+        'slug' in cat
+      )
     : [];
-
-  console.log("Navigation categories:", categories);
 
   return (
     <nav className="border-b sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 w-full">
@@ -45,7 +49,7 @@ export default function Navigation() {
               ) : (
                 // Render actual categories when loaded
                 categories.map((category) => (
-                  <NavigationMenuItem key={category.id}>
+                  <NavigationMenuItem key={category.id || 'unknown-category'}>
                     <NavigationMenuTrigger 
                       className="text-sm font-bold hover:bg-transparent whitespace-nowrap"
                       style={{ 

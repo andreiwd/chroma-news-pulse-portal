@@ -85,20 +85,23 @@ export default function CategoryNewsSection({ category, news }: CategoryNewsSect
         
         {/* List of Articles */}
         <div className="space-y-4">
-          {otherArticles.map((article, index) => (
-            <div key={article.id || `${category}-article-${index}`} className="border-b border-gray-100 pb-4 last:border-0">
-              <Link 
-                to={`/news/${article.slug}`}
-                className="font-medium hover:underline line-clamp-2 mb-1 block"
-                style={{ color: categoryColor }}
-              >
-                {article.title || 'Notícia sem título'}
-              </Link>
-              <div className="text-xs text-muted-foreground">
-                {article.published_at && new Date(article.published_at).toLocaleDateString('pt-BR')}
+          {otherArticles.map((article, index) => {
+            if (!article) return null;
+            return (
+              <div key={article.id || `${category}-article-${index}`} className="border-b border-gray-100 pb-4 last:border-0">
+                <Link 
+                  to={`/news/${article.slug}`}
+                  className="font-medium hover:underline line-clamp-2 mb-1 block"
+                  style={{ color: categoryColor }}
+                >
+                  {article.title || 'Notícia sem título'}
+                </Link>
+                <div className="text-xs text-muted-foreground">
+                  {article.published_at && new Date(article.published_at).toLocaleDateString('pt-BR')}
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
     </div>

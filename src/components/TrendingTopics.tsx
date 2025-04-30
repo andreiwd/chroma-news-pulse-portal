@@ -27,7 +27,7 @@ export default function TrendingTopics({ trendingNews }: TrendingTopicsProps) {
             if (!news) return null;
             
             // Safely access category color with fallback
-            const categoryColor = typeof news.category === 'object' && news.category !== null 
+            const categoryColor = news.category && typeof news.category === 'object' && news.category !== null 
               ? news.category.color || 'inherit'
               : 'inherit';
             

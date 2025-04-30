@@ -12,10 +12,11 @@ interface NewsCardProps {
 }
 
 export default function NewsCard({ news, variant = "default" }: NewsCardProps) {
-  const categoryColor = typeof news.category === 'object' && news.category ? news.category.color || "#333" : "#333";
-  const categoryTextColor = typeof news.category === 'object' && news.category ? news.category.text_color || "#fff" : "#fff";
-  const categoryName = typeof news.category === 'object' && news.category ? news.category.name || "" : "";
-  const categorySlug = typeof news.category === 'object' && news.category ? news.category.slug || "" : "";
+  // Safely get category values with fallbacks
+  const categoryColor = news.category && typeof news.category === 'object' ? news.category.color || "#333" : "#333";
+  const categoryTextColor = news.category && typeof news.category === 'object' ? news.category.text_color || "#fff" : "#fff";
+  const categoryName = news.category && typeof news.category === 'object' ? news.category.name || "" : "";
+  const categorySlug = news.category && typeof news.category === 'object' ? news.category.slug || "" : "";
 
   if (variant === "horizontal") {
     return (
@@ -35,7 +36,7 @@ export default function NewsCard({ news, variant = "default" }: NewsCardProps) {
         <div className="w-2/3 flex flex-col">
           <CardHeader className="p-3">
             <div className="mb-1">
-              {news.category && typeof news.category === 'object' && (
+              {categoryName && (
                 <span 
                   className="text-xs font-medium px-2 py-1 rounded-full"
                   style={{ 
@@ -79,7 +80,7 @@ export default function NewsCard({ news, variant = "default" }: NewsCardProps) {
       <Card className="overflow-hidden hover:shadow-lg transition-shadow border-l-4" style={{ borderLeftColor: categoryColor }}>
         <CardContent className="p-3">
           <div className="flex items-center gap-2 mb-1">
-            {news.category && typeof news.category === 'object' && (
+            {categoryName && (
               <span 
                 className="text-xs font-medium px-1 py-0.5 rounded-full"
                 style={{ 
@@ -118,7 +119,7 @@ export default function NewsCard({ news, variant = "default" }: NewsCardProps) {
       </div>
       <CardHeader className={variant === "compact" ? "p-4" : "p-6"}>
         <div className="mb-2">
-          {news.category && typeof news.category === 'object' && (
+          {categoryName && (
             <span 
               className="text-xs font-medium px-2 py-1 rounded-full"
               style={{ 
