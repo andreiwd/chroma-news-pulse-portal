@@ -11,9 +11,12 @@ export default function LatestNewsSidebar({ latestNewsItems }: LatestNewsSidebar
   const safeNewsItems = Array.isArray(latestNewsItems) ? latestNewsItems : [];
   
   return (
-    <div className="bg-white shadow-sm rounded-lg p-4 mt-6">
-      <h3 className="text-lg font-bold mb-4 border-b pb-2">Últimas Notícias</h3>
-      <div className="space-y-3">
+    <div className="bg-white shadow-sm rounded-lg overflow-hidden">
+      <div className="bg-primary text-primary-foreground p-4">
+        <h3 className="text-lg font-bold">Últimas Notícias</h3>
+      </div>
+      
+      <div className="divide-y">
         {safeNewsItems.slice(0, 5).map((news, index) => {
           if (!news || typeof news !== 'object') return null;
           
@@ -24,12 +27,11 @@ export default function LatestNewsSidebar({ latestNewsItems }: LatestNewsSidebar
           return (
             <div 
               key={newsId} 
-              className="border-l-2 pl-2 py-1 hover:bg-muted/50 transition-colors"
-              style={{ borderLeftColor: categoryColor }}
+              className="p-3 hover:bg-muted/20 transition-colors"
             >
               <Link 
                 to={`/news/${news.slug}`}
-                className="text-sm font-medium hover:underline line-clamp-2"
+                className="text-sm font-medium hover:underline line-clamp-2 block"
                 style={{ color: categoryColor }}
               >
                 {news.title || "Notícia sem título"}
@@ -40,6 +42,12 @@ export default function LatestNewsSidebar({ latestNewsItems }: LatestNewsSidebar
             </div>
           );
         })}
+      </div>
+      
+      <div className="p-3 bg-muted/10 text-center">
+        <Link to="/news" className="text-sm text-primary font-medium hover:underline">
+          Ver todas as notícias
+        </Link>
       </div>
     </div>
   );

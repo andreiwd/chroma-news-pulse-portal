@@ -168,3 +168,66 @@
 .shadow-sm {
   box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1);
 }
+
+/* Modern magazine layout styles */
+.article-title-large {
+  @apply font-bold text-2xl md:text-3xl lg:text-4xl leading-tight;
+}
+
+.article-title-medium {
+  @apply font-bold text-xl md:text-2xl leading-snug;
+}
+
+.article-title-small {
+  @apply font-bold text-lg leading-snug;
+}
+
+/* Category badges */
+.category-badge {
+  @apply inline-block text-xs font-medium px-2 py-1 rounded-full;
+}
+
+/* Link element with hover animation */
+.link-hover {
+  @apply relative inline-block;
+}
+
+.link-hover::after {
+  content: '';
+  @apply absolute left-0 bottom-0 w-full h-0.5 bg-current transform scale-x-0 transition-transform duration-300 origin-bottom-right;
+}
+
+.link-hover:hover::after {
+  @apply transform scale-x-100 origin-bottom-left;
+}
+
+/* Image hover effects */
+.img-zoom-container {
+  @apply overflow-hidden;
+}
+
+.img-zoom {
+  @apply transition-transform duration-500;
+}
+
+.img-zoom:hover {
+  @apply transform scale-110;
+}
+
+/* Grid layouts */
+.featured-grid {
+  @apply grid grid-cols-1 md:grid-cols-12 gap-4;
+}
+
+.featured-grid-main {
+  @apply md:col-span-8;
+}
+
+.featured-grid-side {
+  @apply md:col-span-4;
+}
+
+/* Sticky sidebars */
+.sticky-sidebar {
+  @apply sticky top-20;
+}
