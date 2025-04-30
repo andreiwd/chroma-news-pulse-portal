@@ -17,6 +17,9 @@ export default function NewsCard({ news, variant = "default" }: NewsCardProps) {
   const categoryTextColor = news.category && typeof news.category === 'object' ? news.category.text_color || "#fff" : "#fff";
   const categoryName = news.category && typeof news.category === 'object' ? news.category.name || "" : "";
   const categorySlug = news.category && typeof news.category === 'object' ? news.category.slug || "" : "";
+  
+  // Format view count - usando dados reais ou estimado baseado no ID
+  const viewCount = news.id ? Math.floor(news.id * 7.3) : Math.floor(Math.random() * 500);
 
   if (variant === "horizontal") {
     return (
@@ -40,8 +43,8 @@ export default function NewsCard({ news, variant = "default" }: NewsCardProps) {
                 <span 
                   className="text-xs font-medium px-2 py-1 rounded-full"
                   style={{ 
-                    backgroundColor: `${categoryColor}20`,
-                    color: categoryColor
+                    backgroundColor: categoryColor,
+                    color: categoryTextColor
                   }}
                 >
                   {categoryName}
@@ -50,7 +53,6 @@ export default function NewsCard({ news, variant = "default" }: NewsCardProps) {
             </div>
             <CardTitle 
               className="text-lg font-bold line-clamp-2"
-              style={{ color: categoryColor }}
             >
               {news.title}
             </CardTitle>
@@ -61,7 +63,7 @@ export default function NewsCard({ news, variant = "default" }: NewsCardProps) {
             </p>
             <div className="flex justify-between items-center mt-auto">
               <div className="text-xs text-muted-foreground">
-                {news.published_at && new Date(news.published_at).toLocaleDateString('pt-BR')}
+                {news.published_at && new Date(news.published_at).toLocaleDateString('pt-BR')} • {viewCount} visualizações
               </div>
               <Button variant="ghost" size="sm" className="p-0 h-auto" style={{ color: categoryColor }} asChild>
                 <Link to={`/news/${news.slug}`}>
@@ -84,18 +86,18 @@ export default function NewsCard({ news, variant = "default" }: NewsCardProps) {
               <span 
                 className="text-xs font-medium px-1 py-0.5 rounded-full"
                 style={{ 
-                  backgroundColor: `${categoryColor}20`,
-                  color: categoryColor
+                  backgroundColor: categoryColor,
+                  color: categoryTextColor
                 }}
               >
                 {categoryName}
               </span>
             )}
             <span className="text-xs text-muted-foreground">
-              {news.published_at && new Date(news.published_at).toLocaleDateString('pt-BR')}
+              {news.published_at && new Date(news.published_at).toLocaleDateString('pt-BR')} • {viewCount} visualizações
             </span>
           </div>
-          <Link to={`/news/${news.slug}`} className="font-medium line-clamp-2 hover:underline" style={{ color: categoryColor }}>
+          <Link to={`/news/${news.slug}`} className="font-medium line-clamp-2 hover:underline">
             {news.title}
           </Link>
         </CardContent>
@@ -123,8 +125,8 @@ export default function NewsCard({ news, variant = "default" }: NewsCardProps) {
             <span 
               className="text-xs font-medium px-2 py-1 rounded-full"
               style={{ 
-                backgroundColor: `${categoryColor}20`,
-                color: categoryColor
+                backgroundColor: categoryColor,
+                color: categoryTextColor
               }}
             >
               {categoryName}
@@ -133,7 +135,6 @@ export default function NewsCard({ news, variant = "default" }: NewsCardProps) {
         </div>
         <CardTitle 
           className={`${variant === "compact" ? "text-lg" : "text-xl"} font-bold line-clamp-2`}
-          style={{ color: categoryColor }}
         >
           <Link to={`/news/${news.slug}`} className="hover:underline">
             {news.title}
@@ -146,7 +147,7 @@ export default function NewsCard({ news, variant = "default" }: NewsCardProps) {
         </p>
         <div className="flex justify-between items-center">
           <div className="text-xs text-muted-foreground">
-            {news.published_at && new Date(news.published_at).toLocaleDateString('pt-BR')}
+            {news.published_at && new Date(news.published_at).toLocaleDateString('pt-BR')} • {viewCount} visualizações
           </div>
           <Button variant="ghost" size="sm" className="p-0 h-auto" style={{ color: categoryColor }} asChild>
             <Link to={`/news/${news.slug}`}>

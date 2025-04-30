@@ -32,7 +32,7 @@ export default function FeaturedNewsHero({ featuredArticles }: FeaturedNewsHeroP
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-      {/* Main Featured Article */}
+      {/* Main Featured Article - Removida exibição da categoria */}
       <div className="lg:col-span-2 bg-white rounded-xl overflow-hidden shadow-md group">
         <Link to={`/news/${mainArticle.slug}`} className="block">
           <div className="relative h-80">
@@ -48,15 +48,6 @@ export default function FeaturedNewsHero({ featuredArticles }: FeaturedNewsHeroP
             />
             
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent flex flex-col justify-end p-6">
-              {mainArticle.category && typeof mainArticle.category === 'object' && (
-                <span 
-                  className="inline-block text-xs font-semibold px-3 py-1 rounded-full mb-3 bg-white/20 backdrop-blur-sm"
-                  style={{ color: mainArticle.category.color || '#fff' }}
-                >
-                  {mainArticle.category.name || "Sem categoria"}
-                </span>
-              )}
-              
               <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
                 {mainArticle.title || "Notícia sem título"}
               </h2>
@@ -73,13 +64,17 @@ export default function FeaturedNewsHero({ featuredArticles }: FeaturedNewsHeroP
         </Link>
       </div>
 
-      {/* Side Articles */}
+      {/* Side Articles - Ajustadas para usar as cores da API */}
       <div className="space-y-4">
         {sideArticles.map((article, index) => {
           if (!article) return null;
           
           const categoryColor = article.category && typeof article.category === 'object' 
             ? article.category.color || '#fff' 
+            : '#fff';
+          
+          const categoryTextColor = article.category && typeof article.category === 'object'
+            ? article.category.text_color || '#fff'
             : '#fff';
           
           return (
@@ -103,8 +98,11 @@ export default function FeaturedNewsHero({ featuredArticles }: FeaturedNewsHeroP
                   <div className="mb-1">
                     {article.category && typeof article.category === 'object' && (
                       <span 
-                        className="text-xs font-medium"
-                        style={{ color: categoryColor }}
+                        className="text-xs font-medium px-2 py-1 rounded-full"
+                        style={{ 
+                          backgroundColor: categoryColor,
+                          color: categoryTextColor
+                        }}
                       >
                         {article.category.name || "Sem categoria"}
                       </span>

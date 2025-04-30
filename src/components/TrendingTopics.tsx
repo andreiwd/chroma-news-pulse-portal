@@ -3,6 +3,7 @@ import { Article } from "@/types/api";
 import { TrendingUp } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ScrollArea } from "./ui/scroll-area";
+import { useState, useEffect } from "react";
 
 interface TrendingTopicsProps {
   trendingNews: Article[];
@@ -11,6 +12,17 @@ interface TrendingTopicsProps {
 export default function TrendingTopics({ trendingNews }: TrendingTopicsProps) {
   // Make sure we have trending news
   const validTrendingNews = Array.isArray(trendingNews) ? trendingNews.filter(Boolean) : [];
+  const [currentNewsIndex, setCurrentNewsIndex] = useState(0);
+
+  useEffect(() => {
+    if (!validTrendingNews?.length) return;
+    
+    const timer = setInterval(() => {
+      setCurrentNewsIndex((prev) => (prev + 1) % validTrendingNews.length);
+    }, 4000);
+
+    return () => clearInterval(timer);
+  }, [validTrendingNews]);
   
   if (!validTrendingNews.length) return null;
   
@@ -21,9 +33,9 @@ export default function TrendingTopics({ trendingNews }: TrendingTopicsProps) {
         <span>Trending</span>
       </div>
       
-      <ScrollArea className="w-full px-4">
-        <div className="flex gap-8 py-1">
-          {validTrendingNews.map((news) => {
+      <div className="px-4 overflow-hidden">
+        <div className="py-1">
+          {validTrendingNews.map((news, index) => {
             if (!news) return null;
             
             // Extract category color safely
@@ -31,11 +43,12 @@ export default function TrendingTopics({ trendingNews }: TrendingTopicsProps) {
               ? news.category.color || 'inherit'
               : 'inherit';
             
+            // Display with animation similar to NewsTicker
             return (
               <Link 
-                key={news.id || Math.random().toString()} 
+                key={news.id || Math.random().toString()}
                 to={`/news/${news.slug || ''}`}
-                className="text-sm font-medium whitespace-nowrap hover:underline"
+                className={`text-sm font-medium whitespace-nowrap hover:underline block transition-opacity duration-500 ${index === currentNewsIndex ? 'opacity-100' : 'opacity-0 hidden'}`}
                 style={{ color: categoryColor }}
               >
                 {news.title || "Notícia sem título"}
@@ -43,7 +56,7 @@ export default function TrendingTopics({ trendingNews }: TrendingTopicsProps) {
             );
           })}
         </div>
-      </ScrollArea>
+      </div>
     </div>
   );
 }

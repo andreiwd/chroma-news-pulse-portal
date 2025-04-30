@@ -8,15 +8,27 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useCategories } from "@/hooks/useNews";
 import { Skeleton } from "./ui/skeleton";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Category } from "@/types/api";
 
 export default function Navigation() {
+  const location = useLocation();
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const { data: categoriesData, isLoading } = useCategories();
+
+  // Set active category based on URL
+  useEffect(() => {
+    const path = location.pathname;
+    if (path.startsWith('/category/')) {
+      const categorySlug = path.split('/')[2];
+      setActiveCategory(categorySlug);
+    } else {
+      setActiveCategory(null);
+    }
+  }, [location]);
 
   // Ensure categories is always an array of valid Category objects
   const categories: Category[] = Array.isArray(categoriesData) 
@@ -28,6 +40,10 @@ export default function Navigation() {
         'slug' in cat
       )
     : [];
+
+  const handleCategoryClick = (categoryName: string) => {
+    setActiveCategory(categoryName);
+  };
 
   return (
     <nav className="border-b sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 w-full">
@@ -55,6 +71,7 @@ export default function Navigation() {
                   const categoryName = category.name || '';
                   const categorySlug = category.slug || '';
                   const categoryColor = category.color || `var(--category-${categorySlug || "default"})`;
+                  const isActive = activeCategory === categorySlug;
                   
                   return (
                     <NavigationMenuItem key={categoryId}>
@@ -62,16 +79,16 @@ export default function Navigation() {
                         className="text-sm font-bold hover:bg-transparent whitespace-nowrap"
                         style={{ 
                           color: categoryColor,
-                          borderBottom: activeCategory === categoryName 
+                          borderBottom: isActive 
                             ? `3px solid ${categoryColor}` 
                             : 'none' 
                         }}
-                        onClick={() => setActiveCategory(categoryName)}
+                        onClick={() => handleCategoryClick(categorySlug)}
                       >
                         {categoryName}
                       </NavigationMenuTrigger>
                       <NavigationMenuContent>
-                        <ul className="grid w-[200px] gap-2 p-4">
+                        <ul className="grid w-[400px] gap-2 p-4">
                           <li>
                             <NavigationMenuLink asChild>
                               <Link
@@ -85,9 +102,32 @@ export default function Navigation() {
                                   color: categoryColor
                                 }}
                               >
-                                Ver todas as notícias
+                                Ver todas as notícias de {categoryName}
                               </Link>
                             </NavigationMenuLink>
+                          </li>
+                          <li className="mt-2">
+                            <div className="grid grid-cols-2 gap-2">
+                              {/* Opções adicionais de navegação por subcategoria, se houver */}
+                              <Link
+                                to={`/category/${categorySlug}/latest`}
+                                className={cn(
+                                  "block select-none rounded-md p-3 text-center text-sm font-medium leading-none no-underline outline-none transition-colors",
+                                  "hover:bg-muted"
+                                )}
+                              >
+                                Últimas notícias
+                              </Link>
+                              <Link
+                                to={`/category/${categorySlug}/trending`}
+                                className={cn(
+                                  "block select-none rounded-md p-3 text-center text-sm font-medium leading-none no-underline outline-none transition-colors",
+                                  "hover:bg-muted"
+                                )}
+                              >
+                                Em alta
+                              </Link>
+                            </div>
                           </li>
                         </ul>
                       </NavigationMenuContent>
