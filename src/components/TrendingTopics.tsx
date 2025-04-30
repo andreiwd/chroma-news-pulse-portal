@@ -26,15 +26,15 @@ export default function TrendingTopics({ trendingNews }: TrendingTopicsProps) {
           {validTrendingNews.map((news) => {
             if (!news) return null;
             
-            // Safely access category color with fallback
+            // Extract category color safely
             const categoryColor = news.category && typeof news.category === 'object' && news.category !== null 
               ? news.category.color || 'inherit'
               : 'inherit';
             
             return (
               <Link 
-                key={news.id} 
-                to={`/news/${news.slug}`}
+                key={news.id || Math.random().toString()} 
+                to={`/news/${news.slug || ''}`}
                 className="text-sm font-medium whitespace-nowrap hover:underline"
                 style={{ color: categoryColor }}
               >

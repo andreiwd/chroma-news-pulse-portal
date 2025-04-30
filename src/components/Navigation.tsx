@@ -48,43 +48,52 @@ export default function Navigation() {
                 </>
               ) : (
                 // Render actual categories when loaded
-                categories.map((category) => (
-                  <NavigationMenuItem key={category.id || 'unknown-category'}>
-                    <NavigationMenuTrigger 
-                      className="text-sm font-bold hover:bg-transparent whitespace-nowrap"
-                      style={{ 
-                        color: category.color || `var(--category-${category.slug || "default"})`,
-                        borderBottom: activeCategory === category.name 
-                          ? `3px solid ${category.color || `var(--category-${category.slug || "default"})`}` 
-                          : 'none' 
-                      }}
-                      onClick={() => setActiveCategory(category.name)}
-                    >
-                      {category.name}
-                    </NavigationMenuTrigger>
-                    <NavigationMenuContent>
-                      <ul className="grid w-[200px] gap-2 p-4">
-                        <li>
-                          <NavigationMenuLink asChild>
-                            <Link
-                              to={`/category/${category.slug}`}
-                              className={cn(
-                                "block select-none rounded-md p-3 text-center text-sm font-medium leading-none no-underline outline-none transition-colors",
-                                "hover:bg-opacity-80"
-                              )}
-                              style={{ 
-                                backgroundColor: `${category.color || "#333"}20` || `var(--category-${category.slug || "default"}-light)`,
-                                color: category.color || `var(--category-${category.slug || "default"})`
-                              }}
-                            >
-                              Ver todas as notícias
-                            </Link>
-                          </NavigationMenuLink>
-                        </li>
-                      </ul>
-                    </NavigationMenuContent>
-                  </NavigationMenuItem>
-                ))
+                categories.map((category) => {
+                  // Ensure we have a valid ID for the key
+                  const categoryId = category.id?.toString() || `category-${Math.random()}`;
+                  // Safely access properties with fallbacks
+                  const categoryName = category.name || '';
+                  const categorySlug = category.slug || '';
+                  const categoryColor = category.color || `var(--category-${categorySlug || "default"})`;
+                  
+                  return (
+                    <NavigationMenuItem key={categoryId}>
+                      <NavigationMenuTrigger 
+                        className="text-sm font-bold hover:bg-transparent whitespace-nowrap"
+                        style={{ 
+                          color: categoryColor,
+                          borderBottom: activeCategory === categoryName 
+                            ? `3px solid ${categoryColor}` 
+                            : 'none' 
+                        }}
+                        onClick={() => setActiveCategory(categoryName)}
+                      >
+                        {categoryName}
+                      </NavigationMenuTrigger>
+                      <NavigationMenuContent>
+                        <ul className="grid w-[200px] gap-2 p-4">
+                          <li>
+                            <NavigationMenuLink asChild>
+                              <Link
+                                to={`/category/${categorySlug}`}
+                                className={cn(
+                                  "block select-none rounded-md p-3 text-center text-sm font-medium leading-none no-underline outline-none transition-colors",
+                                  "hover:bg-opacity-80"
+                                )}
+                                style={{ 
+                                  backgroundColor: `${categoryColor}20` || `var(--category-${categorySlug || "default"}-light)`,
+                                  color: categoryColor
+                                }}
+                              >
+                                Ver todas as notícias
+                              </Link>
+                            </NavigationMenuLink>
+                          </li>
+                        </ul>
+                      </NavigationMenuContent>
+                    </NavigationMenuItem>
+                  );
+                })
               )}
             </NavigationMenuList>
           </NavigationMenu>
