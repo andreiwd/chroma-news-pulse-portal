@@ -48,7 +48,7 @@ export default function FeaturedNewsHero({ featuredArticles }: FeaturedNewsHeroP
             />
             
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent flex flex-col justify-end p-6">
-              {mainArticle.category && (
+              {mainArticle.category && typeof mainArticle.category === 'object' && (
                 <span 
                   className="inline-block text-xs font-semibold px-3 py-1 rounded-full mb-3 bg-white/20 backdrop-blur-sm"
                   style={{ color: mainArticle.category.color || '#fff' }}
@@ -78,7 +78,9 @@ export default function FeaturedNewsHero({ featuredArticles }: FeaturedNewsHeroP
         {sideArticles.map((article, index) => {
           if (!article) return null;
           
-          const categoryColor = article.category?.color || '#fff';
+          const categoryColor = article.category && typeof article.category === 'object' 
+            ? article.category.color || '#fff' 
+            : '#fff';
           
           return (
             <Link 
@@ -99,7 +101,7 @@ export default function FeaturedNewsHero({ featuredArticles }: FeaturedNewsHeroP
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent p-4 flex flex-col justify-end">
                   <div className="mb-1">
-                    {article.category && (
+                    {article.category && typeof article.category === 'object' && (
                       <span 
                         className="text-xs font-medium"
                         style={{ color: categoryColor }}

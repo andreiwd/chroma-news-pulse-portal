@@ -50,7 +50,7 @@ export default function FeaturedNewsCarousel() {
             <div className="lg:col-span-8">
               <div className="flex flex-col gap-4">
                 <div className="bg-white rounded-lg shadow-sm p-6">
-                  {mainArticle?.category && (
+                  {mainArticle?.category && typeof mainArticle.category === 'object' && (
                     <span 
                       className="inline-block text-xs font-medium px-3 py-1 rounded-full mb-3"
                       style={{ 
@@ -66,7 +66,11 @@ export default function FeaturedNewsCarousel() {
                     <Link 
                       to={`/news/${mainArticle?.slug}`}
                       className="hover:underline"
-                      style={{ color: mainArticle?.category?.color || 'inherit' }}
+                      style={{ 
+                        color: mainArticle?.category && typeof mainArticle.category === 'object' 
+                          ? mainArticle.category.color || 'inherit' 
+                          : 'inherit'
+                      }}
                     >
                       {mainArticle?.title || "Notícia sem título"}
                     </Link>
@@ -116,7 +120,9 @@ export default function FeaturedNewsCarousel() {
                   {sideArticles.map((article, index) => {
                     if (!article || typeof article !== 'object') return null;
                     
-                    const categoryColor = article.category?.color || '#333';
+                    const categoryColor = article.category && typeof article.category === 'object' 
+                      ? article.category.color || '#333' 
+                      : '#333';
                     const articleId = article.id || `side-article-${index}`;
                     
                     return (
@@ -128,7 +134,9 @@ export default function FeaturedNewsCarousel() {
                       >
                         <div className="flex-grow">
                           <div className="text-xs font-medium mb-1" style={{ color: categoryColor }}>
-                            {article.category?.name || "Sem categoria"}
+                            {article.category && typeof article.category === 'object' 
+                              ? article.category.name || "Sem categoria"
+                              : "Sem categoria"}
                           </div>
                           <h3 className="font-medium line-clamp-2">
                             {article.title || "Notícia sem título"}
