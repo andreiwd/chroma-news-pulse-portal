@@ -19,7 +19,9 @@ export default function Navigation() {
   const { data: categoriesData, isLoading } = useCategories();
 
   // Ensure categories is always an array of valid Category objects
-  const categories: Category[] = Array.isArray(categoriesData) ? categoriesData.filter(Boolean) : [];
+  const categories: Category[] = Array.isArray(categoriesData) 
+    ? categoriesData.filter((cat): cat is Category => Boolean(cat) && typeof cat === 'object')
+    : [];
 
   console.log("Navigation categories:", categories);
 
@@ -58,7 +60,6 @@ export default function Navigation() {
                     </NavigationMenuTrigger>
                     <NavigationMenuContent>
                       <ul className="grid w-[200px] gap-2 p-4">
-                        {/* If we had subcategories, we'd map them here */}
                         <li>
                           <NavigationMenuLink asChild>
                             <Link

@@ -26,7 +26,10 @@ export default function TrendingTopics({ trendingNews }: TrendingTopicsProps) {
           {validTrendingNews.map((news) => {
             if (!news) return null;
             
-            const categoryColor = news.category?.color || 'inherit';
+            // Safely access category color with fallback
+            const categoryColor = typeof news.category === 'object' && news.category !== null 
+              ? news.category.color || 'inherit'
+              : 'inherit';
             
             return (
               <Link 

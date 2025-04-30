@@ -1,6 +1,7 @@
 
 import { Article } from "@/types/api";
 import NewsCard from "@/components/NewsCard";
+import { Link } from "react-router-dom";
 
 interface MainNewsGridProps {
   mainLatestNews: Article[];
