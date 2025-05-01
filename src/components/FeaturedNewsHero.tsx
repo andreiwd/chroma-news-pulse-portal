@@ -77,6 +77,10 @@ export default function FeaturedNewsHero({ featuredArticles }: FeaturedNewsHeroP
             ? article.category.text_color || '#fff'
             : '#fff';
           
+          const categoryName = article.category && typeof article.category === 'object'
+            ? article.category.name || 'Sem categoria'
+            : 'Sem categoria';
+          
           return (
             <Link 
               key={article.id || `side-article-${index}`}
@@ -104,7 +108,7 @@ export default function FeaturedNewsHero({ featuredArticles }: FeaturedNewsHeroP
                           color: categoryTextColor
                         }}
                       >
-                        {article.category.name || "Sem categoria"}
+                        {categoryName}
                       </span>
                     )}
                   </div>

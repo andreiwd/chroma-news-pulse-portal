@@ -41,8 +41,8 @@ export default function Navigation() {
       )
     : [];
 
-  const handleCategoryClick = (categoryName: string) => {
-    setActiveCategory(categoryName);
+  const handleCategoryClick = (categorySlug: string) => {
+    setActiveCategory(categorySlug);
   };
 
   return (
@@ -108,7 +108,6 @@ export default function Navigation() {
                           </li>
                           <li className="mt-2">
                             <div className="grid grid-cols-2 gap-2">
-                              {/* Opções adicionais de navegação por subcategoria, se houver */}
                               <Link
                                 to={`/category/${categorySlug}/latest`}
                                 className={cn(

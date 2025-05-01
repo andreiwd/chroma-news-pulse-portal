@@ -2,7 +2,6 @@
 import { Article } from "@/types/api";
 import { TrendingUp } from "lucide-react";
 import { Link } from "react-router-dom";
-import { ScrollArea } from "./ui/scroll-area";
 import { useState, useEffect } from "react";
 
 interface TrendingTopicsProps {
@@ -46,7 +45,7 @@ export default function TrendingTopics({ trendingNews }: TrendingTopicsProps) {
             // Display with animation similar to NewsTicker
             return (
               <Link 
-                key={news.id || Math.random().toString()}
+                key={news.id || `trending-${index}`}
                 to={`/news/${news.slug || ''}`}
                 className={`text-sm font-medium whitespace-nowrap hover:underline block transition-opacity duration-500 ${index === currentNewsIndex ? 'opacity-100' : 'opacity-0 hidden'}`}
                 style={{ color: categoryColor }}
