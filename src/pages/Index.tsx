@@ -137,8 +137,8 @@ export default function Index() {
 
             {/* Right Sidebar */}
             <div className="lg:col-span-3">
-              <div className="space-y-6">
-                {/* Fixed position for the newsletter so it doesn't get hidden */}
+              <div className="sticky top-24 space-y-6">
+                {/* Use sticky for the sidebar with proper top offset */}
                 <div className="mb-6">
                   <MostViewedSidebar mostViewedNews={getMostViewedNews()} />
                 </div>

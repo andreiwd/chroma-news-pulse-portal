@@ -64,21 +64,23 @@ export default function FeaturedNewsHero({ featuredArticles }: FeaturedNewsHeroP
         </Link>
       </div>
 
-      {/* Side Articles - Ajustadas para usar as cores da API */}
+      {/* Side Articles */}
       <div className="space-y-4">
         {sideArticles.map((article, index) => {
           if (!article) return null;
           
-          const categoryColor = article.category && typeof article.category === 'object' 
-            ? String(article.category.color || '#fff')
+          // Safely extract category properties as primitive values
+          const categoryObj = article.category;
+          const categoryColor = categoryObj && typeof categoryObj === 'object' 
+            ? String(categoryObj.color || '#fff')
             : '#fff';
           
-          const categoryTextColor = article.category && typeof article.category === 'object'
-            ? String(article.category.text_color || '#fff')
+          const categoryTextColor = categoryObj && typeof categoryObj === 'object'
+            ? String(categoryObj.text_color || '#fff')
             : '#fff';
           
-          const categoryName = article.category && typeof article.category === 'object'
-            ? String(article.category.name || 'Sem categoria')
+          const categoryName = categoryObj && typeof categoryObj === 'object'
+            ? String(categoryObj.name || 'Sem categoria')
             : 'Sem categoria';
           
           return (
@@ -100,7 +102,7 @@ export default function FeaturedNewsHero({ featuredArticles }: FeaturedNewsHeroP
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent p-4 flex flex-col justify-end">
                   <div className="mb-1">
-                    {article.category && typeof article.category === 'object' && (
+                    {categoryObj && typeof categoryObj === 'object' && (
                       <span 
                         className="text-xs font-medium px-2 py-1 rounded-full"
                         style={{ 
