@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { ArrowRight } from "lucide-react";
@@ -13,10 +12,10 @@ interface NewsCardProps {
 
 export default function NewsCard({ news, variant = "default" }: NewsCardProps) {
   // Safely get category values with fallbacks
-  const categoryColor = news.category && typeof news.category === 'object' ? news.category.color || "#333" : "#333";
-  const categoryTextColor = news.category && typeof news.category === 'object' ? news.category.text_color || "#fff" : "#fff";
-  const categoryName = news.category && typeof news.category === 'object' ? news.category.name || "" : "";
-  const categorySlug = news.category && typeof news.category === 'object' ? news.category.slug || "" : "";
+  const categoryColor = news.category && typeof news.category === 'object' ? String(news.category.color || "#333") : "#333";
+  const categoryTextColor = news.category && typeof news.category === 'object' ? String(news.category.text_color || "#fff") : "#fff";
+  const categoryName = news.category && typeof news.category === 'object' ? String(news.category.name || "") : "";
+  const categorySlug = news.category && typeof news.category === 'object' ? String(news.category.slug || "") : "";
   
   // Format view count - usando dados reais ou estimado baseado no ID
   const viewCount = news.id ? Math.floor(news.id * 7.3) : Math.floor(Math.random() * 500);

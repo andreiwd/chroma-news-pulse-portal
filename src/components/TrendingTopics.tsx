@@ -38,9 +38,10 @@ export default function TrendingTopics({ trendingNews }: TrendingTopicsProps) {
             if (!news) return null;
             
             // Extract category color safely
-            const categoryColor = news.category && typeof news.category === 'object' && news.category !== null 
-              ? news.category.color || 'inherit'
-              : 'inherit';
+            let categoryColor = 'inherit';
+            if (news.category && typeof news.category === 'object' && news.category !== null) {
+              categoryColor = String(news.category.color || 'inherit');
+            }
             
             // Display with animation similar to NewsTicker
             return (

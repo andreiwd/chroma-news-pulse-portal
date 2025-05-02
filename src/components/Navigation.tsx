@@ -66,11 +66,11 @@ export default function Navigation() {
                 // Render actual categories when loaded
                 categories.map((category) => {
                   // Ensure we have a valid ID for the key
-                  const categoryId = category.id?.toString() || `category-${Math.random()}`;
+                  const categoryId = String(category.id || `category-${Math.random()}`);
                   // Safely access properties with fallbacks
-                  const categoryName = category.name || '';
-                  const categorySlug = category.slug || '';
-                  const categoryColor = category.color || `var(--category-${categorySlug || "default"})`;
+                  const categoryName = String(category.name || '');
+                  const categorySlug = String(category.slug || '');
+                  const categoryColor = String(category.color || `var(--category-${categorySlug || "default"})`);
                   const isActive = activeCategory === categorySlug;
                   
                   return (

@@ -70,15 +70,15 @@ export default function FeaturedNewsHero({ featuredArticles }: FeaturedNewsHeroP
           if (!article) return null;
           
           const categoryColor = article.category && typeof article.category === 'object' 
-            ? article.category.color || '#fff' 
+            ? String(article.category.color || '#fff')
             : '#fff';
           
           const categoryTextColor = article.category && typeof article.category === 'object'
-            ? article.category.text_color || '#fff'
+            ? String(article.category.text_color || '#fff')
             : '#fff';
           
           const categoryName = article.category && typeof article.category === 'object'
-            ? article.category.name || 'Sem categoria'
+            ? String(article.category.name || 'Sem categoria')
             : 'Sem categoria';
           
           return (
