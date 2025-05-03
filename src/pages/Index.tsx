@@ -14,6 +14,7 @@ import NewsletterSignup from "@/components/NewsletterSignup";
 import FeaturedNewsHero from "@/components/FeaturedNewsHero";
 import TrendingTopics from "@/components/TrendingTopics";
 import CategoryNewsSection from "@/components/CategoryNewsSection";
+import WeatherWidget from "@/components/WeatherWidget";
 
 export default function Index() {
   const { data: newsData, isLoading: isNewsLoading } = useNews(1, "", "");
@@ -93,6 +94,11 @@ export default function Index() {
                 />
                 
                 <LatestNewsSidebar latestNewsItems={latestNewsItems} />
+                
+                {/* Weather Widget */}
+                <div className="mt-6">
+                  <WeatherWidget city="Taquaritinga,BR" />
+                </div>
               </div>
             </div>
             
