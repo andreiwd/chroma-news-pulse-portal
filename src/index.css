@@ -1,4 +1,3 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 @tailwind base;
@@ -113,6 +112,64 @@
 
 .prose .lead {
   @apply text-xl font-normal text-muted-foreground;
+}
+
+/* Permitir formatações HTML no conteúdo da notícia */
+.prose h1 {
+  @apply text-2xl font-bold mt-6 mb-4;
+}
+
+.prose h2 {
+  @apply text-xl font-bold mt-5 mb-3;
+}
+
+.prose h3 {
+  @apply text-lg font-semibold mt-4 mb-2;
+}
+
+.prose ul {
+  @apply list-disc pl-5 my-4;
+}
+
+.prose ol {
+  @apply list-decimal pl-5 my-4;
+}
+
+.prose blockquote {
+  @apply border-l-4 border-muted pl-4 italic my-4;
+}
+
+.prose img {
+  @apply max-w-full h-auto my-4 rounded-md;
+}
+
+.prose a {
+  @apply text-primary underline;
+}
+
+.prose pre {
+  @apply bg-muted p-4 rounded overflow-x-auto my-4;
+}
+
+.prose code {
+  @apply bg-muted px-1 py-0.5 rounded text-sm;
+}
+
+.prose table {
+  @apply w-full border-collapse my-4;
+}
+
+.prose table td, .prose table th {
+  @apply border border-muted p-2;
+}
+
+.prose table th {
+  @apply bg-muted;
+}
+
+/* Classe para texto justificado */
+.text-justify {
+  text-align: justify;
 }
 
 .text-balance {

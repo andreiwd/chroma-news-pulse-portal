@@ -1,4 +1,3 @@
-
 import { useParams, Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
@@ -164,7 +163,10 @@ export default function NewsDetail() {
             <div className="prose prose-lg max-w-none">
               <p className="lead text-xl mb-6">{article.excerpt}</p>
               
-              <div dangerouslySetInnerHTML={{ __html: article.content }} />
+              <div 
+                dangerouslySetInnerHTML={{ __html: article.content }} 
+                className="text-justify"
+              />
             </div>
 
             {/* Ad banner after content */}
