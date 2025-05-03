@@ -1,3 +1,4 @@
+
 import { useParams, Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
@@ -6,7 +7,7 @@ import Footer from "@/components/Footer";
 import AdPlaceholder from "@/components/AdPlaceholder";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import { Badge } from "@/components/ui/badge";
-import { Share } from "lucide-react";
+import { Share, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import RelatedNews from "@/components/RelatedNews";
 import { useNewsDetail, useNews } from "@/hooks/useNews";
@@ -114,30 +115,6 @@ export default function NewsDetail() {
               <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-4">
                 {formattedDate && <span>{formattedDate}</span>}
               </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="flex gap-2">
-                  {article.tags?.map(tag => (
-                    <Badge key={tag.id} variant="outline">{tag.name}</Badge>
-                  ))}
-                </div>
-                
-                <Button variant="outline" size="sm" 
-                  onClick={() => {
-                    if (navigator.share) {
-                      navigator.share({
-                        title: article.title,
-                        url: window.location.href
-                      });
-                    } else {
-                      navigator.clipboard.writeText(window.location.href);
-                      // Would add a toast notification here
-                    }
-                  }}
-                >
-                  <Share className="h-4 w-4 mr-2" /> Compartilhar
-                </Button>
-              </div>
             </header>
             
             <figure className="mb-8 rounded-lg overflow-hidden">
@@ -168,6 +145,34 @@ export default function NewsDetail() {
                 className="text-justify"
               />
             </div>
+
+            {/* Footer section with tags and share */}
+            <footer className="mt-10 pt-6 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div className="flex flex-wrap gap-2">
+                {article.tags?.map(tag => (
+                  <Badge key={tag.id} variant="outline">{tag.name}</Badge>
+                ))}
+              </div>
+              
+              <Button 
+                variant="default" 
+                size="sm" 
+                className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white transition-all shadow-md hover:shadow-lg"
+                onClick={() => {
+                  if (navigator.share) {
+                    navigator.share({
+                      title: article.title,
+                      url: window.location.href
+                    });
+                  } else {
+                    navigator.clipboard.writeText(window.location.href);
+                    // Would add a toast notification here
+                  }
+                }}
+              >
+                <Share2 className="h-4 w-4 mr-2" /> Compartilhar Notícia
+              </Button>
+            </footer>
 
             {/* Ad banner after content */}
             <AdPlaceholder 
