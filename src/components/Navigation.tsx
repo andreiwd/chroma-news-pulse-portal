@@ -65,11 +65,11 @@ export default function Navigation() {
               ) : (
                 // Render actual categories when loaded
                 categories.map((category) => {
-                  // Safety checks for all category properties
-                  const categoryId = category.id ? String(category.id) : `category-${Math.random()}`;
-                  const categoryName = category.name ? String(category.name) : '';
-                  const categorySlug = category.slug ? String(category.slug) : '';
-                  const categoryColor = category.color ? String(category.color) : `var(--category-${categorySlug || "default"})`;
+                  // Ensure all category properties are strings
+                  const categoryId = typeof category.id === 'number' ? String(category.id) : `category-${Math.random()}`;
+                  const categoryName = typeof category.name === 'string' ? category.name : '';
+                  const categorySlug = typeof category.slug === 'string' ? category.slug : '';
+                  const categoryColor = typeof category.color === 'string' ? category.color : `var(--category-${categorySlug || "default"})`;
                   const isActive = activeCategory === categorySlug;
                   
                   return (

@@ -69,19 +69,16 @@ export default function FeaturedNewsHero({ featuredArticles }: FeaturedNewsHeroP
         {sideArticles.map((article, index) => {
           if (!article) return null;
           
-          // Safely extract category properties as primitive values
-          const categoryObj = article.category;
-          const categoryColor = categoryObj && typeof categoryObj === 'object' 
-            ? String(categoryObj.color || '#fff')
-            : '#fff';
+          // Process category safely to get primitive values
+          let categoryColor = '#fff';
+          let categoryTextColor = '#fff';
+          let categoryName = 'Sem categoria';
           
-          const categoryTextColor = categoryObj && typeof categoryObj === 'object'
-            ? String(categoryObj.text_color || '#fff')
-            : '#fff';
-          
-          const categoryName = categoryObj && typeof categoryObj === 'object'
-            ? String(categoryObj.name || 'Sem categoria')
-            : 'Sem categoria';
+          if (article.category && typeof article.category === 'object') {
+            categoryColor = typeof article.category.color === 'string' ? article.category.color : '#fff';
+            categoryTextColor = typeof article.category.text_color === 'string' ? article.category.text_color : '#fff';
+            categoryName = typeof article.category.name === 'string' ? article.category.name : 'Sem categoria';
+          }
           
           return (
             <Link 
@@ -102,7 +99,7 @@ export default function FeaturedNewsHero({ featuredArticles }: FeaturedNewsHeroP
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent p-4 flex flex-col justify-end">
                   <div className="mb-1">
-                    {categoryObj && typeof categoryObj === 'object' && (
+                    {article.category && typeof article.category === 'object' && (
                       <span 
                         className="text-xs font-medium px-2 py-1 rounded-full"
                         style={{ 

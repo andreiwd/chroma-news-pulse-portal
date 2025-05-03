@@ -13,12 +13,18 @@ interface CategoryNewsSectionProps {
 
 export default function CategoryNewsSection({ category, news }: CategoryNewsSectionProps) {
   // Get category details from the first news item, with safety checks
-  const categoryData = news?.[0]?.category;
-  const categorySlug = categoryData && typeof categoryData === 'object' ? String(categoryData.slug || category) : category;
-  const categoryName = categoryData && typeof categoryData === 'object'
-    ? String(categoryData.name || (category.charAt(0).toUpperCase() + category.slice(1)))
-    : (category.charAt(0).toUpperCase() + category.slice(1));
-  const categoryColor = categoryData && typeof categoryData === 'object' ? String(categoryData.color || '#333') : '#333';
+  let categorySlug = category;
+  let categoryName = category.charAt(0).toUpperCase() + category.slice(1);
+  let categoryColor = '#333';
+  
+  if (news && news.length > 0 && news[0]?.category) {
+    const categoryData = news[0].category;
+    if (typeof categoryData === 'object') {
+      categorySlug = typeof categoryData.slug === 'string' ? categoryData.slug : category;
+      categoryName = typeof categoryData.name === 'string' ? categoryData.name : categoryName;
+      categoryColor = typeof categoryData.color === 'string' ? categoryData.color : '#333';
+    }
+  }
 
   // If no news items, don't render anything
   if (!news || news.length === 0) {

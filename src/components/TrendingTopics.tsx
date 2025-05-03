@@ -37,11 +37,11 @@ export default function TrendingTopics({ trendingNews }: TrendingTopicsProps) {
           {validTrendingNews.map((news, index) => {
             if (!news) return null;
             
-            // Extract category color safely
-            const categoryObj = news.category;
-            const categoryColor = categoryObj && typeof categoryObj === 'object' 
-              ? String(categoryObj.color || 'inherit') 
-              : 'inherit';
+            // Extract category color safely and ensure it's a string
+            let categoryColor = 'inherit';
+            if (news.category && typeof news.category === 'object') {
+              categoryColor = typeof news.category.color === 'string' ? news.category.color : 'inherit';
+            }
             
             // Display with animation
             return (
