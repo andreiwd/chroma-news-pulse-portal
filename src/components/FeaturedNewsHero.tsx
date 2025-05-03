@@ -14,11 +14,11 @@ export default function FeaturedNewsHero({ featuredArticles }: FeaturedNewsHeroP
     return (
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 animate-pulse">
         <div className="lg:col-span-2">
-          <Skeleton className="h-80 rounded-lg" />
+          <Skeleton className="h-96 rounded-lg" /> {/* Increased from h-80 to h-96 */}
         </div>
         <div className="space-y-4">
-          <Skeleton className="h-[calc(40px*2)] rounded-lg" />
-          <Skeleton className="h-[calc(40px*2)] rounded-lg" />
+          <Skeleton className="h-[calc(48px*2)] rounded-lg" /> {/* Increased from 40px to 48px */}
+          <Skeleton className="h-[calc(48px*2)] rounded-lg" /> {/* Increased from 40px to 48px */}
         </div>
       </div>
     );
@@ -33,9 +33,9 @@ export default function FeaturedNewsHero({ featuredArticles }: FeaturedNewsHeroP
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
       {/* Main Featured Article - Removida exibição da categoria */}
-      <div className="lg:col-span-2 bg-white rounded-xl overflow-hidden shadow-md group">
+      <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-md group">
         <Link to={`/news/${mainArticle.slug}`} className="block">
-          <div className="relative h-80">
+          <div className="relative h-96"> {/* Increased from h-80 to h-96 */}
             <img
               src={mainArticle.featured_image || "https://placehold.co/1200x800/333/white?text=Featured+News"}
               alt={mainArticle.title || "Featured News"}
@@ -84,7 +84,7 @@ export default function FeaturedNewsHero({ featuredArticles }: FeaturedNewsHeroP
             <Link 
               key={article.id || `side-article-${index}`}
               to={`/news/${article.slug}`} 
-              className="flex flex-col h-[calc(40vh/2)] max-h-40 bg-white rounded-lg shadow-md overflow-hidden relative group"
+              className="flex flex-col h-[calc(48vh/2)] max-h-48 bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden relative group"
             >
               <div className="absolute inset-0">
                 <img
@@ -122,7 +122,7 @@ export default function FeaturedNewsHero({ featuredArticles }: FeaturedNewsHeroP
         
         {/* See More Button - Only show if we have articles */}
         {featuredArticles.length > 0 && (
-          <Button asChild className="w-full">
+          <Button asChild className="w-full dark:bg-gray-700 dark:hover:bg-gray-600">
             <Link to="/category/destaque">
               Mais destaques <ArrowRight className="ml-2 h-4 w-4" />
             </Link>

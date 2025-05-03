@@ -13,9 +13,9 @@ export default function MainNewsGrid({ mainLatestNews }: MainNewsGridProps) {
   return (
     <div className="space-y-8">
       {/* Top Grid Section */}
-      <section className="bg-white rounded-lg shadow-sm p-6">
-        <div className="flex items-center justify-between mb-4 pb-2 border-b">
-          <h2 className="text-xl font-bold">Últimas Notícias</h2>
+      <section className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+        <div className="flex items-center justify-between mb-4 pb-2 border-b dark:border-gray-700">
+          <h2 className="text-xl font-bold dark:text-white">Últimas Notícias</h2>
           <Link to="/news" className="text-sm text-primary hover:underline">Ver todas</Link>
         </div>
         
@@ -40,7 +40,7 @@ export default function MainNewsGrid({ mainLatestNews }: MainNewsGridProps) {
       </section>
       
       {/* Middle Highlight Section */}
-      <section className="bg-white rounded-lg shadow-sm p-6">
+      <section className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="md:col-span-2">
             {mainLatestNews.length > 4 && mainLatestNews[4] && (
@@ -58,8 +58,8 @@ export default function MainNewsGrid({ mainLatestNews }: MainNewsGridProps) {
       </section>
       
       {/* Bottom Section */}
-      <section className="bg-white rounded-lg shadow-sm p-6">
-        <h2 className="text-xl font-bold mb-4 pb-2 border-b">Reportagens Especiais</h2>
+      <section className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+        <h2 className="text-xl font-bold mb-4 pb-2 border-b dark:border-gray-700 dark:text-white">Reportagens Especiais</h2>
         <div className="space-y-4">
           {mainLatestNews.slice(8, 11).map((news, index) => {
             if (!news) return null;
