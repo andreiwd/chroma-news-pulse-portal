@@ -7,8 +7,8 @@ export function useNews(page = 1, category = "", query = "") {
   return useQuery({
     queryKey: ["news", { page, category, query }],
     queryFn: () => queries.getNews({ pageParam: page, category, query }),
-    staleTime: 5 * 60 * 1000, // 5 minutos
-    gcTime: 10 * 60 * 1000, // 10 minutos
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
   });
 }
 
@@ -25,8 +25,8 @@ export function useCategories() {
   return useQuery({
     queryKey: ["categories"],
     queryFn: queries.getCategories,
-    staleTime: 30 * 60 * 1000, // 30 minutos
-    gcTime: 60 * 60 * 1000, // 1 hora
+    staleTime: 30 * 60 * 1000, // 30 minutes
+    gcTime: 60 * 60 * 1000, // 1 hour
     select: (data) => {
       // Ensure we return an array of valid Category objects
       if (!data) return [];
@@ -50,8 +50,8 @@ export function useLatestNews() {
   return useQuery({
     queryKey: ["latest-news"],
     queryFn: queries.getLatestNews,
-    staleTime: 1 * 60 * 1000, // 1 minuto
-    gcTime: 5 * 60 * 1000, // 5 minutos
+    staleTime: 1 * 60 * 1000, // 1 minute
+    gcTime: 5 * 60 * 1000, // 5 minutes
     select: (data) => {
       // Ensure we return an array of valid Article objects
       if (!data) return [];
@@ -71,13 +71,18 @@ export function useLatestNews() {
   });
 }
 
-export function useCategoryNews(slug: string, page = 1) {
+export function useCategoryNews(slug: string | undefined, page = 1) {
   return useQuery({
     queryKey: ["category-news", slug, page],
-    queryFn: () => queries.getCategoryNews(slug, page),
+    queryFn: () => {
+      if (!slug) {
+        throw new Error("Category slug is required");
+      }
+      return queries.getCategoryNews(slug, page);
+    },
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
-    retry: 3, // Increase retries for category news
+    retry: 3,
     retryDelay: (attempt) => Math.min(attempt > 1 ? 2 ** attempt * 1000 : 1000, 30 * 1000),
     enabled: Boolean(slug), // Only execute if there's a slug
     select: (data) => {

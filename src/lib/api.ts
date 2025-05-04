@@ -11,7 +11,7 @@ export const api = axios.create({
   },
 });
 
-// Interceptor para tratamento de erros global
+// Global error interceptor
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -20,7 +20,7 @@ api.interceptors.response.use(
   }
 );
 
-// Queries functions
+// Query functions
 export const queries = {
   getNews: async ({ pageParam = 1, category = "", query = "" }) => {
     const params = new URLSearchParams();
@@ -58,30 +58,55 @@ export const queries = {
   },
 
   getCategoryNews: async (slug: string, page = 1) => {
+    if (!slug) {
+      console.error("No category slug provided");
+      throw new Error("Category slug is required");
+    }
+
     try {
       console.log(`Fetching news for category ${slug}, page ${page}`);
       
-      // Use a more direct approach to get category news
-      const { data } = await api.get(`/categories/${slug}/news?page=${page}`);
+      // Try the endpoint for category news first
+      const response = await api.get(`/categories/${slug}/news?page=${page}`);
+      console.log("Category API response:", response.data);
       
-      // Log response for debugging
-      console.log("Category news API response:", data);
-      
-      // If the API returns empty data but not as expected format, standardize it
-      if (data && !data.data && Array.isArray(data)) {
-        return {
-          data: data,
-          current_page: page,
-          last_page: 1,
-          per_page: data.length,
-          total: data.length
-        };
+      // Check if we got valid data
+      if (response.data) {
+        // If data is a direct array, wrap it in a paginated format
+        if (Array.isArray(response.data)) {
+          return {
+            data: response.data,
+            current_page: page,
+            last_page: Math.ceil(response.data.length / 10) || 1,
+            per_page: 10,
+            total: response.data.length
+          };
+        }
+        
+        // If data is already paginated (has data property and pagination info)
+        if (response.data.data && Array.isArray(response.data.data)) {
+          return response.data;
+        }
+        
+        // Unknown format - return as is and let the hook handle it
+        return response.data;
       }
       
-      return data;
+      throw new Error("Invalid response format from API");
     } catch (error) {
       console.error(`Failed to fetch news for category ${slug}:`, error);
-      throw error;
+      
+      // Try fallback to general news search with category filter
+      try {
+        console.log(`Trying fallback for category ${slug}`);
+        const fallbackResponse = await api.get(`/news?category=${slug}&page=${page}`);
+        console.log("Fallback response:", fallbackResponse.data);
+        
+        return fallbackResponse.data;
+      } catch (fallbackError) {
+        console.error(`Fallback also failed for category ${slug}:`, fallbackError);
+        throw error; // Throw the original error
+      }
     }
   },
 

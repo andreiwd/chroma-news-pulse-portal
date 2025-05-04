@@ -1,5 +1,5 @@
 
-import { useParams, Link, useLocation } from "react-router-dom";
+import { useParams, Link, useLocation, useNavigate } from "react-router-dom";
 import { useCategoryNews, useCategories } from "@/hooks/useNews";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
@@ -12,9 +12,19 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useState, useEffect } from "react";
 import { Article } from "@/types/api";
 import { toast } from "@/components/ui/use-toast";
+import { 
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis
+} from "@/components/ui/pagination";
 
 export default function CategoryPage() {
-  const { category } = useParams<{ category: string }>();
+  const navigate = useNavigate();
+  const { category: categorySlug } = useParams<{ category: string }>();
   const [currentPage, setCurrentPage] = useState(1);
   const location = useLocation();
   
@@ -26,12 +36,13 @@ export default function CategoryPage() {
     isLoading,
     error,
     isFetching,
-    refetch
-  } = useCategoryNews(category || "", currentPage);
+    refetch,
+    isError
+  } = useCategoryNews(categorySlug, currentPage);
 
   // Log current state to help debug
   console.log("CategoryPage render:", { 
-    category, 
+    category: categorySlug, 
     currentPage, 
     newsData, 
     isLoading,
@@ -41,12 +52,12 @@ export default function CategoryPage() {
 
   // Refetch when category changes
   useEffect(() => {
-    if (category) {
-      console.log("Category changed, refetching:", category);
+    if (categorySlug) {
+      console.log("Category changed, refetching:", categorySlug);
       setCurrentPage(1);
       refetch();
     }
-  }, [category, refetch]);
+  }, [categorySlug, refetch]);
 
   // Extract news articles and pagination data
   const news = newsData?.data || [];
@@ -54,12 +65,12 @@ export default function CategoryPage() {
 
   // Find category details from categories list
   const categoryDetails = categoriesData?.find(
-    cat => cat.slug === category
+    cat => cat.slug === categorySlug
   ) || null;
 
   // Get category name, color, description
   const categoryName = categoryDetails?.name || 
-    (category ? category.charAt(0).toUpperCase() + category.slice(1) : "Categoria");
+    (categorySlug ? categorySlug.charAt(0).toUpperCase() + categorySlug.slice(1) : "Categoria");
   
   const categoryColor = categoryDetails?.color || "#333";
   
@@ -73,14 +84,36 @@ export default function CategoryPage() {
 
   // Display a notification when loading fails
   useEffect(() => {
-    if (error) {
+    if (isError && error) {
       toast({
         title: "Erro",
         description: "Não foi possível carregar as notícias desta categoria.",
         variant: "destructive",
       });
     }
-  }, [error]);
+  }, [isError, error]);
+  
+  // Protect against missing category slug
+  if (!categorySlug) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <NewsTicker />
+        <Header />
+        <Navigation />
+        
+        <main className="container py-6 flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-3xl font-bold mb-4">Categoria não encontrada</h1>
+            <Button className="mt-4" asChild>
+              <Link to="/">Voltar para a página inicial</Link>
+            </Button>
+          </div>
+        </main>
+
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -131,7 +164,7 @@ export default function CategoryPage() {
               </div>
             ))}
           </div>
-        ) : error ? (
+        ) : isError ? (
           <div className="text-center py-10">
             <p className="text-xl">Ocorreu um erro ao carregar esta categoria.</p>
             <p className="text-sm text-muted-foreground mt-2">
@@ -169,58 +202,63 @@ export default function CategoryPage() {
               className="my-8"
             />
             
-            {/* Pagination */}
+            {/* Pagination using shadcn UI components */}
             {totalPages > 1 && (
               <div className="flex justify-center mt-10">
-                <div className="flex space-x-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1 || isFetching}
-                  >
-                    Anterior
-                  </Button>
-                  
-                  {[...Array(totalPages)].map((_, index) => {
-                    const pageNumber = index + 1;
-                    // Show limited page numbers to avoid cluttering
-                    if (
-                      pageNumber === 1 ||
-                      pageNumber === totalPages ||
-                      (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
-                    ) {
-                      return (
-                        <Button
-                          key={pageNumber}
-                          variant={currentPage === pageNumber ? "default" : "outline"}
-                          onClick={() => handlePageChange(pageNumber)}
-                          disabled={isFetching}
-                          style={
-                            currentPage === pageNumber
-                              ? { backgroundColor: categoryColor }
-                              : {}
-                          }
-                        >
-                          {pageNumber}
-                        </Button>
-                      );
-                    } else if (
-                      (pageNumber === currentPage - 2 && currentPage > 3) ||
-                      (pageNumber === currentPage + 2 && currentPage < totalPages - 2)
-                    ) {
-                      return <span key={pageNumber} className="flex items-center">...</span>;
-                    }
-                    return null;
-                  })}
-                  
-                  <Button
-                    variant="outline"
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages || isFetching}
-                  >
-                    Próximo
-                  </Button>
-                </div>
+                <Pagination>
+                  <PaginationContent>
+                    {/* Previous button */}
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        className={currentPage === 1 || isFetching ? "pointer-events-none opacity-50" : ""}
+                      />
+                    </PaginationItem>
+                    
+                    {/* Generate page numbers */}
+                    {[...Array(totalPages)].map((_, index) => {
+                      const pageNumber = index + 1;
+                      
+                      // Show first page, last page, and pages around current page
+                      if (
+                        pageNumber === 1 ||
+                        pageNumber === totalPages ||
+                        (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
+                      ) {
+                        return (
+                          <PaginationItem key={pageNumber}>
+                            <PaginationLink
+                              isActive={currentPage === pageNumber}
+                              onClick={() => handlePageChange(pageNumber)}
+                              className={isFetching ? "pointer-events-none" : ""}
+                              style={
+                                currentPage === pageNumber
+                                  ? { backgroundColor: categoryColor, borderColor: categoryColor }
+                                  : {}
+                              }
+                            >
+                              {pageNumber}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      } else if (
+                        (pageNumber === currentPage - 2 && currentPage > 3) ||
+                        (pageNumber === currentPage + 2 && currentPage < totalPages - 2)
+                      ) {
+                        return <PaginationItem key={pageNumber}><PaginationEllipsis /></PaginationItem>;
+                      }
+                      return null;
+                    })}
+                    
+                    {/* Next button */}
+                    <PaginationItem>
+                      <PaginationNext 
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        className={currentPage === totalPages || isFetching ? "pointer-events-none opacity-50" : ""}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
               </div>
             )}
           </>
