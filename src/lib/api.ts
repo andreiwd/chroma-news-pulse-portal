@@ -59,7 +59,9 @@ export const queries = {
 
   getCategoryNews: async (slug: string, page = 1) => {
     try {
+      console.log(`Fetching news for category ${slug}, page ${page}`);
       const { data } = await api.get(`/categories/${slug}/news?page=${page}`);
+      console.log("Category news response:", data);
       return data;
     } catch (error) {
       console.error(`Failed to fetch news for category ${slug}:`, error);

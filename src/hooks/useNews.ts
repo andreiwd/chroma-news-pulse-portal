@@ -77,8 +77,33 @@ export function useCategoryNews(slug: string, page = 1) {
     queryFn: () => queries.getCategoryNews(slug, page),
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
-    retry: 1, // Retry once if it fails
+    retry: 2, // Retry twice if it fails
     enabled: Boolean(slug), // Only execute if there's a slug
+    select: (data) => {
+      console.log("Data received in useCategoryNews select:", data);
+      
+      // Return empty results if no data
+      if (!data) return { data: [], current_page: page, last_page: 1, per_page: 10, total: 0 };
+      
+      // If data is already in the expected format
+      if (data.data && Array.isArray(data.data)) {
+        return data;
+      }
+      
+      // If data is an array (direct list of articles)
+      if (Array.isArray(data)) {
+        return {
+          data: data,
+          current_page: page,
+          last_page: 1,
+          per_page: data.length,
+          total: data.length
+        };
+      }
+      
+      // Default empty response
+      return { data: [], current_page: page, last_page: 1, per_page: 10, total: 0 };
+    }
   });
 }
 

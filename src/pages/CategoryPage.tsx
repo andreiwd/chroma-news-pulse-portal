@@ -1,6 +1,6 @@
 
-import { useParams, Link } from "react-router-dom";
-import { useCategoryNews } from "@/hooks/useNews";
+import { useParams, Link, useLocation } from "react-router-dom";
+import { useCategoryNews, useCategories } from "@/hooks/useNews";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
 import NewsTicker from "@/components/NewsTicker";
@@ -16,31 +16,54 @@ import { toast } from "@/components/ui/use-toast";
 export default function CategoryPage() {
   const { category } = useParams<{ category: string }>();
   const [currentPage, setCurrentPage] = useState(1);
+  const location = useLocation();
+  
+  // Fetch all categories to get color and other metadata
+  const { data: categoriesData } = useCategories();
   
   const {
     data: newsData,
     isLoading,
     error,
     isFetching,
+    refetch
   } = useCategoryNews(category || "", currentPage);
 
+  // Log current state to help debug
+  console.log("CategoryPage render:", { 
+    category, 
+    currentPage, 
+    newsData, 
+    isLoading,
+    error,
+    categoriesData
+  });
+
+  // Refetch when category changes
+  useEffect(() => {
+    if (category) {
+      console.log("Category changed, refetching:", category);
+      setCurrentPage(1);
+      refetch();
+    }
+  }, [category, refetch]);
+
   // Extract news articles and pagination data
-  const news = Array.isArray(newsData?.data) ? newsData?.data : [];
+  const news = newsData?.data || [];
   const totalPages = newsData?.last_page || 1;
 
-  // Get category details from the first news item for styling
-  const categoryDetails = news[0]?.category;
-  const categoryName = categoryDetails && typeof categoryDetails === 'object' && 'name' in categoryDetails 
-    ? String(categoryDetails.name) 
-    : (category ? category.charAt(0).toUpperCase() + category.slice(1) : "");
+  // Find category details from categories list
+  const categoryDetails = categoriesData?.find(
+    cat => cat.slug === category
+  ) || null;
+
+  // Get category name, color, description
+  const categoryName = categoryDetails?.name || 
+    (category ? category.charAt(0).toUpperCase() + category.slice(1) : "Categoria");
   
-  const categoryColor = categoryDetails && typeof categoryDetails === 'object' && 'color' in categoryDetails 
-    ? String(categoryDetails.color) 
-    : "#333";
+  const categoryColor = categoryDetails?.color || "#333";
   
-  const categoryDescription = categoryDetails && typeof categoryDetails === 'object' && 'description' in categoryDetails
-    ? String(categoryDetails.description)
-    : "";
+  const categoryDescription = categoryDetails?.description || "";
 
   // Handle page change
   const handlePageChange = (page: number) => {
@@ -111,11 +134,14 @@ export default function CategoryPage() {
         ) : error ? (
           <div className="text-center py-10">
             <p className="text-xl">Ocorreu um erro ao carregar esta categoria.</p>
+            <p className="text-sm text-muted-foreground mt-2">
+              Detalhes: {error instanceof Error ? error.message : "Erro desconhecido"}
+            </p>
             <Button className="mt-4" asChild>
               <Link to="/">Voltar para a página inicial</Link>
             </Button>
           </div>
-        ) : news.length > 0 ? (
+        ) : news && news.length > 0 ? (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {news.map((article: Article, index) => (
