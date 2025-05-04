@@ -9,7 +9,7 @@ import AdPlaceholder from "@/components/AdPlaceholder";
 import NewsCard from "@/components/NewsCard";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Article } from "@/types/api";
 import { toast } from "@/components/ui/use-toast";
 import { 
@@ -26,11 +26,13 @@ export default function CategoryPage() {
   const navigate = useNavigate();
   const { category: categorySlug } = useParams<{ category: string }>();
   const [currentPage, setCurrentPage] = useState(1);
-  const location = useLocation();
+  
+  console.log("CategoryPage rendering with slug:", categorySlug);
   
   // Fetch all categories to get color and other metadata
   const { data: categoriesData } = useCategories();
   
+  // Fetch category news with the slug from URL
   const {
     data: newsData,
     isLoading,
@@ -41,7 +43,7 @@ export default function CategoryPage() {
   } = useCategoryNews(categorySlug, currentPage);
 
   // Log current state to help debug
-  console.log("CategoryPage render:", { 
+  console.log("CategoryPage state:", { 
     category: categorySlug, 
     currentPage, 
     newsData, 
@@ -63,10 +65,14 @@ export default function CategoryPage() {
   const news = newsData?.data || [];
   const totalPages = newsData?.last_page || 1;
 
+  console.log("Parsed news data:", news);
+
   // Find category details from categories list
   const categoryDetails = categoriesData?.find(
     cat => cat.slug === categorySlug
-  ) || null;
+  );
+  
+  console.log("Found category details:", categoryDetails);
 
   // Get category name, color, description
   const categoryName = categoryDetails?.name || 

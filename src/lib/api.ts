@@ -63,16 +63,21 @@ export const queries = {
       throw new Error("Category slug is required");
     }
 
+    console.log(`Fetching news for category ${slug}, page ${page}`);
+    
     try {
-      console.log(`Fetching news for category ${slug}, page ${page}`);
-      
-      // Try the endpoint for category news first
+      // Use the exact endpoint from the documentation
       const response = await api.get(`/categories/${slug}/news?page=${page}`);
       console.log("Category API response:", response.data);
       
-      // Check if we got valid data
-      if (response.data) {
-        // If data is a direct array, wrap it in a paginated format
+      // If the API returns data in the expected format, use it
+      if (response.data && typeof response.data === 'object') {
+        // If the data is in a paginated format
+        if ('data' in response.data && Array.isArray(response.data.data)) {
+          return response.data;
+        }
+        
+        // If the data is a direct array of articles
         if (Array.isArray(response.data)) {
           return {
             data: response.data,
@@ -82,30 +87,23 @@ export const queries = {
             total: response.data.length
           };
         }
-        
-        // If data is already paginated (has data property and pagination info)
-        if (response.data.data && Array.isArray(response.data.data)) {
-          return response.data;
-        }
-        
-        // Unknown format - return as is and let the hook handle it
-        return response.data;
       }
       
-      throw new Error("Invalid response format from API");
-    } catch (error) {
-      console.error(`Failed to fetch news for category ${slug}:`, error);
+      // If we couldn't determine the format, return the raw data
+      return response.data;
+    } catch (firstError) {
+      console.error(`Error fetching category ${slug}:`, firstError);
       
-      // Try fallback to general news search with category filter
+      // Try fallback method using the news endpoint with category filter
       try {
         console.log(`Trying fallback for category ${slug}`);
         const fallbackResponse = await api.get(`/news?category=${slug}&page=${page}`);
         console.log("Fallback response:", fallbackResponse.data);
         
         return fallbackResponse.data;
-      } catch (fallbackError) {
-        console.error(`Fallback also failed for category ${slug}:`, fallbackError);
-        throw error; // Throw the original error
+      } catch (secondError) {
+        console.error(`Both category endpoints failed for ${slug}:`, secondError);
+        throw firstError; // Throw the original error
       }
     }
   },
