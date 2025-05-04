@@ -60,8 +60,24 @@ export const queries = {
   getCategoryNews: async (slug: string, page = 1) => {
     try {
       console.log(`Fetching news for category ${slug}, page ${page}`);
+      
+      // Use a more direct approach to get category news
       const { data } = await api.get(`/categories/${slug}/news?page=${page}`);
-      console.log("Category news response:", data);
+      
+      // Log response for debugging
+      console.log("Category news API response:", data);
+      
+      // If the API returns empty data but not as expected format, standardize it
+      if (data && !data.data && Array.isArray(data)) {
+        return {
+          data: data,
+          current_page: page,
+          last_page: 1,
+          per_page: data.length,
+          total: data.length
+        };
+      }
+      
       return data;
     } catch (error) {
       console.error(`Failed to fetch news for category ${slug}:`, error);

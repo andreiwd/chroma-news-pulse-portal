@@ -77,7 +77,8 @@ export function useCategoryNews(slug: string, page = 1) {
     queryFn: () => queries.getCategoryNews(slug, page),
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
-    retry: 2, // Retry twice if it fails
+    retry: 3, // Increase retries for category news
+    retryDelay: (attempt) => Math.min(attempt > 1 ? 2 ** attempt * 1000 : 1000, 30 * 1000),
     enabled: Boolean(slug), // Only execute if there's a slug
     select: (data) => {
       console.log("Data received in useCategoryNews select:", data);
@@ -95,8 +96,8 @@ export function useCategoryNews(slug: string, page = 1) {
         return {
           data: data,
           current_page: page,
-          last_page: 1,
-          per_page: data.length,
+          last_page: Math.ceil(data.length / 10) || 1,
+          per_page: 10,
           total: data.length
         };
       }
