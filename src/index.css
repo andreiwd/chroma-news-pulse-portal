@@ -1,3 +1,4 @@
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 @tailwind base;
@@ -338,8 +339,9 @@
   @apply text-gray-400;
 }
 
+/* Fix for circular dependency - directly use colors instead of @apply */
 .dark .text-gray-500 {
-  @apply text-gray-500;
+  color: #6b7280; /* This is the hex equivalent of text-gray-500 */
 }
 
 .dark .border-gray-200 {
@@ -353,5 +355,6 @@
 }
 
 .dark .ad-placeholder {
-  @apply border-gray-700 bg-gray-800/30 text-gray-500;
+  @apply border-gray-700 bg-gray-800/30;
+  color: #6b7280; /* Using hex instead of text-gray-500 to avoid circular dependency */
 }

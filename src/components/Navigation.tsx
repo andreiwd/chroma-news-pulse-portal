@@ -51,8 +51,19 @@ export default function Navigation() {
     setActiveCategory(categorySlug);
   };
 
-  // For desktop view, show only 7 categories + "Ver Todas"
-  const desktopCategories = categories.slice(0, 7);
+  // For desktop view, show only 8 categories + "Ver Todas"
+  const desktopCategories = categories.slice(0, 8);
+
+  // Function to render a category safely
+  const renderCategory = (category: Category, index: number) => {
+    // Ensure all values are primitive types
+    const categoryId = String(category.id || `category-${index}`);
+    const categoryName = String(category.name || "");
+    const categorySlug = String(category.slug || "");
+    const categoryColor = String(category.color || "");
+    
+    return { id: categoryId, name: categoryName, slug: categorySlug, color: categoryColor };
+  };
 
   return (
     <nav className="border-b sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 w-full dark:bg-gray-900 dark:border-gray-800">
@@ -72,11 +83,8 @@ export default function Navigation() {
                     <Skeleton key={i} className="h-12 rounded-md" />
                   ))
                 ) : (
-                  categories.map(category => {
-                    const categoryId = typeof category.id === 'number' ? String(category.id) : `category-${Math.random()}`;
-                    const categoryName = typeof category.name === 'string' ? category.name : '';
-                    const categorySlug = typeof category.slug === 'string' ? category.slug : '';
-                    const categoryColor = typeof category.color === 'string' ? category.color : `var(--category-${categorySlug || "default"})`;
+                  categories.map((category, index) => {
+                    const { id: categoryId, name: categoryName, slug: categorySlug, color: categoryColor } = renderCategory(category, index);
                     
                     return (
                       <Link 
@@ -122,12 +130,8 @@ export default function Navigation() {
               ) : (
                 // Render actual categories when loaded
                 <>
-                  {desktopCategories.map((category) => {
-                    // Ensure all category properties are strings
-                    const categoryId = typeof category.id === 'number' ? String(category.id) : `category-${Math.random()}`;
-                    const categoryName = typeof category.name === 'string' ? category.name : '';
-                    const categorySlug = typeof category.slug === 'string' ? category.slug : '';
-                    const categoryColor = typeof category.color === 'string' ? category.color : `var(--category-${categorySlug || "default"})`;
+                  {desktopCategories.map((category, index) => {
+                    const { id: categoryId, name: categoryName, slug: categorySlug, color: categoryColor } = renderCategory(category, index);
                     const isActive = activeCategory === categorySlug;
                     
                     return (
@@ -155,7 +159,7 @@ export default function Navigation() {
                                     "hover:bg-opacity-80"
                                   )}
                                   style={{ 
-                                    backgroundColor: `${categoryColor}20` || `var(--category-${categorySlug || "default"}-light)`,
+                                    backgroundColor: `${categoryColor}20`,
                                     color: categoryColor
                                   }}
                                 >
