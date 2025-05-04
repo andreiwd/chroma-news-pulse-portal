@@ -77,7 +77,7 @@ export function useCategoryNews(slug: string, page = 1) {
     queryFn: () => queries.getCategoryNews(slug, page),
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
-    retry: false, // Don't retry if it fails
+    retry: 1, // Retry once if it fails
     enabled: Boolean(slug), // Only execute if there's a slug
   });
 }

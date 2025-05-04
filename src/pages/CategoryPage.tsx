@@ -9,7 +9,7 @@ import AdPlaceholder from "@/components/AdPlaceholder";
 import NewsCard from "@/components/NewsCard";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Article } from "@/types/api";
 import { toast } from "@/components/ui/use-toast";
 
@@ -25,20 +25,39 @@ export default function CategoryPage() {
   } = useCategoryNews(category || "", currentPage);
 
   // Extract news articles and pagination data
-  const news = newsData?.data || [];
+  const news = Array.isArray(newsData?.data) ? newsData?.data : [];
   const totalPages = newsData?.last_page || 1;
 
   // Get category details from the first news item for styling
   const categoryDetails = news[0]?.category;
-  const categoryName = categoryDetails?.name || (category ? category.charAt(0).toUpperCase() + category?.slice(1) : "");
-  const categoryColor = categoryDetails?.color || "#333";
-  const categoryDescription = categoryDetails?.description || "";
+  const categoryName = categoryDetails && typeof categoryDetails === 'object' && 'name' in categoryDetails 
+    ? String(categoryDetails.name) 
+    : (category ? category.charAt(0).toUpperCase() + category.slice(1) : "");
+  
+  const categoryColor = categoryDetails && typeof categoryDetails === 'object' && 'color' in categoryDetails 
+    ? String(categoryDetails.color) 
+    : "#333";
+  
+  const categoryDescription = categoryDetails && typeof categoryDetails === 'object' && 'description' in categoryDetails
+    ? String(categoryDetails.description)
+    : "";
 
   // Handle page change
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
+  // Display a notification when loading fails
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar as notícias desta categoria.",
+        variant: "destructive",
+      });
+    }
+  }, [error]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -100,7 +119,7 @@ export default function CategoryPage() {
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {news.map((article: Article, index) => (
-                <div key={article.id}>
+                <div key={article.id || `article-${index}`}>
                   {/* Insert ad after every 6 articles */}
                   {index > 0 && index % 6 === 0 && (
                     <AdPlaceholder 

@@ -28,32 +28,62 @@ export const queries = {
     if (query) params.append("q", query);
     params.append("page", pageParam.toString());
 
-    const { data } = await api.get(`/news?${params.toString()}`);
-    return data;
+    try {
+      const { data } = await api.get(`/news?${params.toString()}`);
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch news:", error);
+      throw error;
+    }
   },
 
   getNewsById: async (slug: string) => {
-    const { data } = await api.get(`/news/${slug}`);
-    return data;
+    try {
+      const { data } = await api.get(`/news/${slug}`);
+      return data;
+    } catch (error) {
+      console.error(`Failed to fetch news ${slug}:`, error);
+      throw error;
+    }
   },
 
   getCategories: async () => {
-    const { data } = await api.get("/categories");
-    return data;
+    try {
+      const { data } = await api.get("/categories");
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch categories:", error);
+      throw error;
+    }
   },
 
   getCategoryNews: async (slug: string, page = 1) => {
-    const { data } = await api.get(`/categories/${slug}/news?page=${page}`);
-    return data;
+    try {
+      const { data } = await api.get(`/categories/${slug}/news?page=${page}`);
+      return data;
+    } catch (error) {
+      console.error(`Failed to fetch news for category ${slug}:`, error);
+      throw error;
+    }
   },
 
   getLatestNews: async () => {
-    const { data } = await api.get("/latest-news");
-    return data;
+    try {
+      const { data } = await api.get("/latest-news");
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch latest news:", error);
+      throw error;
+    }
   },
 
   searchNews: async (query: string, page = 1) => {
-    const { data } = await api.get(`/search?query=${query}&page=${page}`);
-    return data;
+    try {
+      const { data } = await api.get(`/search?query=${query}&page=${page}`);
+      return data;
+    } catch (error) {
+      console.error(`Failed to search news for query ${query}:`, error);
+      throw error;
+    }
   },
 };
