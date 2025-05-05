@@ -37,6 +37,7 @@ export default function Navigation() {
   }, [location]);
 
   // Ensure categories is always an array of valid Category objects
+  // Using type guard to ensure we only get valid Category objects
   const categories: Category[] = Array.isArray(categoriesData) 
     ? categoriesData.filter((cat): cat is Category => 
         Boolean(cat) && 
@@ -53,17 +54,6 @@ export default function Navigation() {
 
   // For desktop view, show only 8 categories + "Ver Todas"
   const desktopCategories = categories.slice(0, 8);
-
-  // Function to render a category safely
-  const renderCategory = (category: Category, index: number) => {
-    // Ensure all values are primitive types
-    const categoryId = String(category.id || `category-${index}`);
-    const categoryName = String(category.name || "");
-    const categorySlug = String(category.slug || "");
-    const categoryColor = String(category.color || "");
-    
-    return { id: categoryId, name: categoryName, slug: categorySlug, color: categoryColor };
-  };
 
   return (
     <nav className="border-b sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 w-full dark:bg-gray-900 dark:border-gray-800">
@@ -83,23 +73,19 @@ export default function Navigation() {
                     <Skeleton key={i} className="h-12 rounded-md" />
                   ))
                 ) : (
-                  categories.map((category, index) => {
-                    const { id: categoryId, name: categoryName, slug: categorySlug, color: categoryColor } = renderCategory(category, index);
-                    
-                    return (
-                      <Link 
-                        key={categoryId}
-                        to={`/category/${categorySlug}`}
-                        className="flex items-center justify-center p-3 rounded-md font-medium text-center transition-all"
-                        style={{ 
-                          backgroundColor: `${categoryColor}20`,
-                          color: categoryColor
-                        }}
-                      >
-                        {categoryName}
-                      </Link>
-                    );
-                  })
+                  categories.map((category, index) => (
+                    <Link 
+                      key={`${category.id}-${index}`}
+                      to={`/category/${category.slug}`}
+                      className="flex items-center justify-center p-3 rounded-md font-medium text-center transition-all"
+                      style={{ 
+                        backgroundColor: `${category.color}20`,
+                        color: category.color
+                      }}
+                    >
+                      {category.name}
+                    </Link>
+                  ))
                 )}
                 <Link 
                   to="/categories"
@@ -131,46 +117,45 @@ export default function Navigation() {
                 // Render actual categories when loaded
                 <>
                   {desktopCategories.map((category, index) => {
-                    const { id: categoryId, name: categoryName, slug: categorySlug, color: categoryColor } = renderCategory(category, index);
-                    const isActive = activeCategory === categorySlug;
+                    const isActive = activeCategory === category.slug;
                     
                     return (
-                      <NavigationMenuItem key={categoryId}>
+                      <NavigationMenuItem key={`${category.id}-${index}`}>
                         <NavigationMenuTrigger 
                           className="text-sm font-bold hover:bg-transparent whitespace-nowrap dark:text-gray-200 dark:hover:text-white"
                           style={{ 
-                            color: categoryColor,
+                            color: category.color,
                             borderBottom: isActive 
-                              ? `3px solid ${categoryColor}` 
+                              ? `3px solid ${category.color}` 
                               : 'none' 
                           }}
-                          onClick={() => handleCategoryClick(categorySlug)}
+                          onClick={() => handleCategoryClick(category.slug)}
                         >
-                          {categoryName}
+                          {category.name}
                         </NavigationMenuTrigger>
                         <NavigationMenuContent>
                           <ul className="grid w-[400px] gap-2 p-4 dark:bg-gray-800">
                             <li>
                               <NavigationMenuLink asChild>
                                 <Link
-                                  to={`/category/${categorySlug}`}
+                                  to={`/category/${category.slug}`}
                                   className={cn(
                                     "block select-none rounded-md p-3 text-center text-sm font-medium leading-none no-underline outline-none transition-colors",
                                     "hover:bg-opacity-80"
                                   )}
                                   style={{ 
-                                    backgroundColor: `${categoryColor}20`,
-                                    color: categoryColor
+                                    backgroundColor: `${category.color}20`,
+                                    color: category.color
                                   }}
                                 >
-                                  Ver todas as notícias de {categoryName}
+                                  Ver todas as notícias de {category.name}
                                 </Link>
                               </NavigationMenuLink>
                             </li>
                             <li className="mt-2">
                               <div className="grid grid-cols-2 gap-2">
                                 <Link
-                                  to={`/category/${categorySlug}/latest`}
+                                  to={`/category/${category.slug}/latest`}
                                   className={cn(
                                     "block select-none rounded-md p-3 text-center text-sm font-medium leading-none no-underline outline-none transition-colors",
                                     "hover:bg-muted dark:hover:bg-gray-700"
@@ -179,7 +164,7 @@ export default function Navigation() {
                                   Últimas notícias
                                 </Link>
                                 <Link
-                                  to={`/category/${categorySlug}/trending`}
+                                  to={`/category/${category.slug}/trending`}
                                   className={cn(
                                     "block select-none rounded-md p-3 text-center text-sm font-medium leading-none no-underline outline-none transition-colors",
                                     "hover:bg-muted dark:hover:bg-gray-700"

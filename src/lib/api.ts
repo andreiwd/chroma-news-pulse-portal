@@ -50,7 +50,20 @@ export const queries = {
   getCategories: async () => {
     try {
       const { data } = await api.get("/categories");
-      return data;
+      
+      // Check if data is an array of category objects
+      if (Array.isArray(data)) {
+        return data;
+      }
+      
+      // Check if data has a property 'data' that is an array (paginated response)
+      if (data && typeof data === 'object' && 'data' in data && Array.isArray(data.data)) {
+        return data.data;
+      }
+      
+      // Return empty array if none of the above
+      console.error("Unexpected data structure from categories API:", data);
+      return [];
     } catch (error) {
       console.error("Failed to fetch categories:", error);
       throw error;

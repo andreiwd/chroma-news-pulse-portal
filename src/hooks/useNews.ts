@@ -28,17 +28,29 @@ export function useCategories() {
     staleTime: 30 * 60 * 1000, // 30 minutes
     gcTime: 60 * 60 * 1000, // 1 hour
     select: (data) => {
-      // Ensure we return an array of valid Category objects
+      // Ensure we return properly formed Category objects
       if (!data) return [];
       
+      // If data is an array, filter out any non-objects and ensure they have the required properties
       if (Array.isArray(data)) {
-        return data.filter(item => item && typeof item === 'object');
+        return data.filter(item => 
+          item && 
+          typeof item === 'object' &&
+          'id' in item &&
+          'name' in item &&
+          'slug' in item
+        );
       }
       
-      if (data && typeof data === 'object' && 'data' in data) {
-        if (Array.isArray(data.data)) {
-          return data.data.filter(item => item && typeof item === 'object');
-        }
+      // If data is an object with a data property that's an array
+      if (data && typeof data === 'object' && 'data' in data && Array.isArray(data.data)) {
+        return data.data.filter(item => 
+          item && 
+          typeof item === 'object' &&
+          'id' in item &&
+          'name' in item &&
+          'slug' in item
+        );
       }
       
       return [];

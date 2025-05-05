@@ -79,20 +79,17 @@ export default function CategoriesPage() {
                 if (!category || !category.slug) return null;
                 
                 const latestArticle = categoryWithLatest[category.slug];
-                const categoryName = typeof category.name === 'string' ? category.name : '';
-                const categorySlug = typeof category.slug === 'string' ? category.slug : '';
-                const categoryColor = typeof category.color === 'string' ? category.color : '#333';
                 
                 return (
                   <Link 
-                    key={category.id}
-                    to={`/category/${categorySlug}`}
+                    key={`${category.id}`}
+                    to={`/category/${category.slug}`}
                     className="group overflow-hidden rounded-lg shadow-md transition-all hover:-translate-y-1 hover:shadow-lg bg-white dark:bg-gray-800"
                   >
                     <div className="relative h-40 overflow-hidden">
                       <img 
                         src={latestArticle?.featured_image || "https://placehold.co/800x450/333/white?text=Category"}
-                        alt={categoryName}
+                        alt={category.name}
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
@@ -106,9 +103,9 @@ export default function CategoriesPage() {
                     <div className="p-4">
                       <h2 
                         className="text-xl font-bold mb-2 transition-all group-hover:text-primary dark:text-white"
-                        style={{ color: categoryColor }}
+                        style={{ color: category.color }}
                       >
-                        {categoryName}
+                        {category.name}
                       </h2>
                       
                       {latestArticle ? (
@@ -122,8 +119,8 @@ export default function CategoriesPage() {
                       )}
                       
                       <div className="mt-4 inline-block px-4 py-1 rounded-full text-xs font-medium" style={{
-                        backgroundColor: `${categoryColor}20`,
-                        color: categoryColor
+                        backgroundColor: `${category.color}20`,
+                        color: category.color
                       }}>
                         Ver notícias
                       </div>
