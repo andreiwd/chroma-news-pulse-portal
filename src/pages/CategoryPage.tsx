@@ -6,7 +6,7 @@ import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
 import NewsTicker from "@/components/NewsTicker";
 import Footer from "@/components/Footer";
-import { Category } from "@/types/api";
+import { Category, Article } from "@/types/api"; // Certifique-se de ter a interface Article definida
 import CategoryHeader from "@/components/category/CategoryHeader";
 import CategoryLoadingState from "@/components/category/CategoryLoadingState";
 import CategoryErrorState from "@/components/category/CategoryErrorState";
@@ -23,7 +23,7 @@ export default function CategoryPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [categoryDetails, setCategoryDetails] = useState<Category | null>(null);
-  const [articles, setArticles] = useState<any[]>([]);
+  const [articles, setArticles] = useState<Article[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   
   useEffect(() => {
@@ -34,72 +34,91 @@ export default function CategoryPage() {
       setError(null);
       
       try {
-        // Tentativa direta para buscar notícias da categoria
-        console.log(`Buscando notícias para categoria: ${categorySlug}`);
-        const response = await axios.get(`https://taquaritinganoticias.criarsite.online/api/categories/${categorySlug}/news?page=${currentPage}`);
-        console.log('Resposta da API:', response.data);
-        
-        // Processar dados de acordo com o formato da resposta
-        if (Array.isArray(response.data)) {
-          setArticles(response.data);
-          setTotalPages(1);
-        } else if (response.data && typeof response.data === 'object') {
-          if (Array.isArray(response.data.data)) {
-            setArticles(response.data.data);
-            setTotalPages(response.data.last_page || 1);
+        // Configuração do cliente Axios com timeout e headers adequados
+        const apiClient = axios.create({
+          baseURL: 'https://taquaritinganoticias.criarsite.online/api',
+          timeout: 15000,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
           }
+        });
+        
+        // Buscar detalhes da categoria primeiro para confirmar que ela existe
+        const categoriesResponse = await apiClient.get('/categories');
+        let categories = [];
+        
+        if (Array.isArray(categoriesResponse.data)) {
+          categories = categoriesResponse.data;
+        } else if (categoriesResponse.data && typeof categoriesResponse.data === 'object' && Array.isArray(categoriesResponse.data.data)) {
+          categories = categoriesResponse.data.data;
         }
         
-        // Buscar detalhes da categoria separadamente (não bloqueia o carregamento de notícias)
-        try {
-          const categoriesResponse = await axios.get('https://taquaritinganoticias.criarsite.online/api/categories');
-          let categories = [];
-          
-          if (Array.isArray(categoriesResponse.data)) {
-            categories = categoriesResponse.data;
-          } else if (categoriesResponse.data && typeof categoriesResponse.data === 'object' && Array.isArray(categoriesResponse.data.data)) {
-            categories = categoriesResponse.data.data;
-          }
-          
-          const category = categories.find((cat: any) => cat.slug === categorySlug);
-          if (category) {
-            setCategoryDetails({
-              id: Number(category.id) || 0,
-              name: String(category.name || ""),
-              slug: String(category.slug || ""),
-              description: String(category.description || ""),
-              color: String(category.color || "#333333"),
-              text_color: String(category.text_color || "#FFFFFF"),
-              active: Boolean(category.active),
-              order: Number(category.order) || 0
-            });
-          }
-        } catch (categoryError) {
-          console.error("Erro ao buscar detalhes da categoria:", categoryError);
-          // Não definimos erro aqui pois as notícias já foram carregadas
+        const category = categories.find((cat: any) => cat.slug === categorySlug);
+        if (category) {
+          setCategoryDetails({
+            id: Number(category.id) || 0,
+            name: String(category.name || ""),
+            slug: String(category.slug || ""),
+            description: String(category.description || ""),
+            color: String(category.color || "#333333"),
+            text_color: String(category.text_color || "#FFFFFF"),
+            active: Boolean(category.active),
+            order: Number(category.order) || 0
+          });
         }
-      } catch (newsError) {
-        console.error("Erro ao buscar notícias da categoria:", newsError);
         
-        // Tentar o fallback para a API regular de notícias
+        // Agora buscar as notícias desta categoria conforme documentação da API
+        let newsResponse;
         try {
-          console.log(`Tentando fallback com filtro de categoria: ${categorySlug}`);
-          const fallbackResponse = await axios.get(`https://taquaritinganoticias.criarsite.online/api/news?category=${categorySlug}&page=${currentPage}`);
-          console.log('Resposta do fallback:', fallbackResponse.data);
+          // Primeiro tenta o endpoint específico para categoria
+          console.log(`Tentando endpoint específico: /categories/${categorySlug}/news?page=${currentPage}`);
+          newsResponse = await apiClient.get(`/categories/${categorySlug}/news?page=${currentPage}`);
+        } catch (categoryApiError) {
+          console.warn("Endpoint específico de categoria falhou, tentando fallback", categoryApiError);
           
-          if (fallbackResponse.data && typeof fallbackResponse.data === 'object') {
-            if (Array.isArray(fallbackResponse.data.data)) {
-              setArticles(fallbackResponse.data.data);
-              setTotalPages(fallbackResponse.data.last_page || 1);
-            } else if (Array.isArray(fallbackResponse.data)) {
-              setArticles(fallbackResponse.data);
-              setTotalPages(1);
+          // Fallback para o endpoint geral com filtro de categoria
+          console.log(`Tentando fallback: /news?category=${categorySlug}&page=${currentPage}`);
+          newsResponse = await apiClient.get(`/news?category=${categorySlug}&page=${currentPage}`);
+        }
+        
+        console.log('Resposta da API:', newsResponse.data);
+        
+        // Processar dados garantindo compatibilidade com ambos os formatos possíveis
+        if (newsResponse.data) {
+          if (Array.isArray(newsResponse.data)) {
+            // Resposta direta como array
+            setArticles(newsResponse.data);
+            setTotalPages(1);
+          } else if (typeof newsResponse.data === 'object') {
+            if (Array.isArray(newsResponse.data.data)) {
+              // Resposta paginada conforme documentação
+              setArticles(newsResponse.data.data);
+              setTotalPages(newsResponse.data.last_page || 1);
+            } else {
+              // Caso ainda não tenha encontrado dados, verificar outros formatos possíveis
+              const possibleDataKeys = Object.keys(newsResponse.data).find(key => 
+                Array.isArray(newsResponse.data[key])
+              );
+              
+              if (possibleDataKeys) {
+                setArticles(newsResponse.data[possibleDataKeys]);
+                // Verificar se existem infos de paginação
+                setTotalPages(newsResponse.data.last_page || newsResponse.data.meta?.last_page || 1);
+              } else {
+                throw new Error("Formato de resposta não reconhecido");
+              }
             }
+          } else {
+            throw new Error("Formato de resposta inválido");
           }
-        } catch (fallbackError) {
-          console.error("Ambos os métodos de busca falharam:", fallbackError);
-          setError("Não foi possível carregar notícias desta categoria.");
+        } else {
+          throw new Error("Resposta da API vazia");
         }
+      } catch (error: any) {
+        console.error("Erro ao buscar dados:", error);
+        setError(error.message || "Não foi possível carregar notícias desta categoria.");
+        setArticles([]);
       } finally {
         setIsLoading(false);
       }
