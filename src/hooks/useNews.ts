@@ -6,7 +6,7 @@ import axios from "axios";
 
 const API_BASE_URL = "https://taquaritinganoticias.criarsite.online/api";
 
-// Simplificada versão direta para buscar notícias
+// Buscar notícias
 export function useNews(page = 1, category = "", query = "") {
   return useQuery({
     queryKey: ["news", { page, category, query }],
@@ -17,27 +17,31 @@ export function useNews(page = 1, category = "", query = "") {
         if (query) params.append("q", query);
         params.append("page", page.toString());
 
+        console.log(`Buscando notícias com parâmetros: ${params.toString()}`);
         const response = await axios.get(`${API_BASE_URL}/news?${params.toString()}`);
+        console.log('Resposta da API de notícias:', response.data);
         return response.data;
       } catch (error) {
-        console.error("Failed to fetch news:", error);
+        console.error("Erro ao buscar notícias:", error);
         throw error;
       }
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000, // 5 minutos
   });
 }
 
-// Simplificada versão para detalhes de notícias
+// Detalhes de notícia
 export function useNewsDetail(slug: string) {
   return useQuery({
     queryKey: ["news-detail", slug],
     queryFn: async () => {
       try {
+        console.log(`Buscando detalhes da notícia: ${slug}`);
         const response = await axios.get(`${API_BASE_URL}/news/${slug}`);
+        console.log('Resposta da API de detalhes:', response.data);
         return response.data;
       } catch (error) {
-        console.error(`Failed to fetch news ${slug}:`, error);
+        console.error(`Erro ao buscar notícia ${slug}:`, error);
         throw error;
       }
     },
@@ -46,15 +50,16 @@ export function useNewsDetail(slug: string) {
   });
 }
 
-// Nova versão simplificada para categorias
+// Categorias
 export function useCategories() {
   return useQuery({
     queryKey: ["categories"],
     queryFn: async () => {
       try {
+        console.log("Buscando categorias...");
         const response = await axios.get(`${API_BASE_URL}/categories`);
+        console.log("Resposta da API de categorias:", response.data);
         
-        // Garantir que sempre retornamos um array
         let categories = [];
         
         if (Array.isArray(response.data)) {
@@ -64,18 +69,20 @@ export function useCategories() {
         }
         
         // Mapear e garantir que temos os campos necessários
-        return categories.map((category: any) => ({
-          id: Number(category.id) || 0,
-          name: String(category.name || ""),
-          slug: String(category.slug || ""),
-          description: String(category.description || ""),
-          color: String(category.color || "#333333"),
-          text_color: String(category.text_color || "#FFFFFF"),
-          active: Boolean(category.active),
-          order: Number(category.order) || 0
-        }));
+        return categories
+          .filter(cat => cat && typeof cat === 'object') // Filtrar categorias inválidas
+          .map((category: any) => ({
+            id: Number(category.id) || 0,
+            name: String(category.name || ""),
+            slug: String(category.slug || ""),
+            description: String(category.description || ""),
+            color: String(category.color || "#333333"),
+            text_color: String(category.text_color || "#FFFFFF"),
+            active: Boolean(category.active),
+            order: Number(category.order) || 0
+          }));
       } catch (error) {
-        console.error("Failed to fetch categories:", error);
+        console.error("Erro ao buscar categorias:", error);
         return [];
       }
     },
@@ -83,10 +90,10 @@ export function useCategories() {
   });
 }
 
-// Nova implementação simples para noticias de categoria
-export function useCategoryNews(categorySlug: string | undefined) {
+// Notícias de categoria
+export function useCategoryNews(categorySlug: string | undefined, page = 1) {
   return useQuery({
-    queryKey: ["category-news", categorySlug],
+    queryKey: ["category-news", categorySlug, page],
     queryFn: async () => {
       if (!categorySlug) {
         return { data: [] };
@@ -94,7 +101,9 @@ export function useCategoryNews(categorySlug: string | undefined) {
 
       try {
         // Tentativa direta
-        const response = await axios.get(`${API_BASE_URL}/categories/${categorySlug}/news`);
+        console.log(`Tentando buscar notícias da categoria ${categorySlug}, página ${page}`);
+        const response = await axios.get(`${API_BASE_URL}/categories/${categorySlug}/news?page=${page}`);
+        console.log('Resposta da API de categoria:', response.data);
         
         // Verificar se a resposta é um array ou um objeto paginado
         if (Array.isArray(response.data)) {
@@ -109,14 +118,16 @@ export function useCategoryNews(categorySlug: string | undefined) {
         
         return response.data;
       } catch (error) {
-        console.error("Failed to fetch category news:", error);
+        console.error("Erro ao buscar notícias da categoria:", error);
         
         // Tentativa alternativa
         try {
-          const fallbackResponse = await axios.get(`${API_BASE_URL}/news?category=${categorySlug}`);
+          console.log(`Tentando fallback para categoria ${categorySlug}`);
+          const fallbackResponse = await axios.get(`${API_BASE_URL}/news?category=${categorySlug}&page=${page}`);
+          console.log('Resposta do fallback:', fallbackResponse.data);
           return fallbackResponse.data;
         } catch (fallbackError) {
-          console.error("Fallback also failed:", fallbackError);
+          console.error("Fallback também falhou:", fallbackError);
           return { data: [] };
         }
       }
@@ -134,7 +145,7 @@ export function useLatestNews() {
         const response = await axios.get(`${API_BASE_URL}/latest-news`);
         return response.data;
       } catch (error) {
-        console.error("Failed to fetch latest news:", error);
+        console.error("Erro ao buscar últimas notícias:", error);
         return [];
       }
     },
@@ -150,7 +161,7 @@ export function useSearchNews(query: string, page = 1) {
         const response = await axios.get(`${API_BASE_URL}/search?query=${query}&page=${page}`);
         return response.data;
       } catch (error) {
-        console.error(`Failed to search news for query ${query}:`, error);
+        console.error(`Erro ao buscar por "${query}":`, error);
         return { data: [] };
       }
     },

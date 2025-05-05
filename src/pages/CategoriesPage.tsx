@@ -18,7 +18,9 @@ export default function CategoriesPage() {
     const fetchCategories = async () => {
       try {
         setIsLoading(true);
+        console.log("Buscando categorias...");
         const response = await axios.get('https://taquaritinganoticias.criarsite.online/api/categories');
+        console.log("Resposta da API de categorias:", response.data);
         
         // Processar a resposta para garantir que temos um array
         let fetchedCategories = [];
@@ -27,6 +29,8 @@ export default function CategoriesPage() {
         } else if (response.data && typeof response.data === 'object' && Array.isArray(response.data.data)) {
           fetchedCategories = response.data.data;
         }
+        
+        console.log("Categorias processadas:", fetchedCategories);
         
         // Mapear para o formato Category
         const processedCategories = fetchedCategories.map((cat: any) => ({
@@ -41,8 +45,12 @@ export default function CategoriesPage() {
         }));
         
         setCategories(processedCategories);
+        
+        if (processedCategories.length === 0) {
+          console.log("Nenhuma categoria encontrada na resposta");
+        }
       } catch (err: any) {
-        console.error("Error fetching categories:", err);
+        console.error("Erro ao buscar categorias:", err);
         setError(err.message || "Erro ao buscar categorias");
       } finally {
         setIsLoading(false);
@@ -62,6 +70,15 @@ export default function CategoriesPage() {
         <div className="container">
           <h1 className="text-3xl font-bold mb-8 text-center dark:text-white">Todas as Categorias</h1>
           
+          {/* Debug info */}
+          {process.env.NODE_ENV === 'development' && (
+            <div className="bg-yellow-100 p-4 mb-4 rounded-md">
+              <p><strong>Total de categorias:</strong> {categories.length}</p>
+              <p><strong>Carregando:</strong> {isLoading ? 'Sim' : 'Não'}</p>
+              <p><strong>Erro:</strong> {error || 'Nenhum'}</p>
+            </div>
+          )}
+          
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {Array(6).fill(0).map((_, i) => (
@@ -76,7 +93,7 @@ export default function CategoriesPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {categories.map((category) => (
                 <Link 
-                  key={`cat-${category.id || 'unknown'}`}
+                  key={`cat-${category.id || 'unknown'}-${category.slug}`}
                   to={`/category/${category.slug}`}
                   className="group overflow-hidden rounded-lg shadow-md transition-all hover:-translate-y-1 hover:shadow-lg bg-white dark:bg-gray-800"
                 >

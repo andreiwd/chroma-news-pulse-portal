@@ -8,7 +8,6 @@ import NewsTicker from "@/components/NewsTicker";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "@/components/ui/use-toast";
 import NewsCard from "@/components/NewsCard";
 import { Article, Category } from "@/types/api";
 
@@ -21,83 +20,86 @@ export default function CategoryPage() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   
-  // Fetch category and its news
   useEffect(() => {
-    const fetchCategoryAndNews = async () => {
-      if (!categorySlug) return;
-      
+    if (!categorySlug) return;
+    
+    const fetchData = async () => {
       setIsLoading(true);
       setError(null);
       
       try {
-        // Get category details first
-        const categoriesResponse = await axios.get('https://taquaritinganoticias.criarsite.online/api/categories');
-        let categories = [];
+        // Tentativa direta para buscar notícias da categoria
+        console.log(`Buscando notícias para categoria: ${categorySlug}`);
+        const response = await axios.get(`https://taquaritinganoticias.criarsite.online/api/categories/${categorySlug}/news?page=${currentPage}`);
+        console.log('Resposta da API:', response.data);
         
-        if (Array.isArray(categoriesResponse.data)) {
-          categories = categoriesResponse.data;
-        } else if (categoriesResponse.data && typeof categoriesResponse.data === 'object' && Array.isArray(categoriesResponse.data.data)) {
-          categories = categoriesResponse.data.data;
+        // Processar dados de acordo com o formato da resposta
+        if (Array.isArray(response.data)) {
+          setArticles(response.data);
+          setTotalPages(1);
+        } else if (response.data && typeof response.data === 'object') {
+          if (Array.isArray(response.data.data)) {
+            setArticles(response.data.data);
+            setTotalPages(response.data.last_page || 1);
+          }
         }
         
-        const category = categories.find((cat: any) => cat.slug === categorySlug);
-        if (category) {
-          setCategoryDetails({
-            id: Number(category.id) || 0,
-            name: String(category.name || ""),
-            slug: String(category.slug || ""),
-            description: String(category.description || ""),
-            color: String(category.color || "#333333"),
-            text_color: String(category.text_color || "#FFFFFF"),
-            active: Boolean(category.active),
-            order: Number(category.order) || 0
-          });
-        }
-        
-        // Get category news
+        // Buscar detalhes da categoria separadamente (não bloqueia o carregamento de notícias)
         try {
-          const newsResponse = await axios.get(`https://taquaritinganoticias.criarsite.online/api/categories/${categorySlug}/news?page=${currentPage}`);
+          const categoriesResponse = await axios.get('https://taquaritinganoticias.criarsite.online/api/categories');
+          let categories = [];
           
-          // Handle different response formats
-          if (Array.isArray(newsResponse.data)) {
-            setArticles(newsResponse.data);
-            setTotalPages(1);
-          } else if (newsResponse.data && typeof newsResponse.data === 'object') {
-            if (Array.isArray(newsResponse.data.data)) {
-              setArticles(newsResponse.data.data);
-              setTotalPages(newsResponse.data.last_page || 1);
-            }
+          if (Array.isArray(categoriesResponse.data)) {
+            categories = categoriesResponse.data;
+          } else if (categoriesResponse.data && typeof categoriesResponse.data === 'object' && Array.isArray(categoriesResponse.data.data)) {
+            categories = categoriesResponse.data.data;
           }
-        } catch (newsError) {
-          // Fallback to regular news endpoint with category filter
-          try {
-            const fallbackResponse = await axios.get(`https://taquaritinganoticias.criarsite.online/api/news?category=${categorySlug}&page=${currentPage}`);
-            
-            if (fallbackResponse.data && typeof fallbackResponse.data === 'object') {
-              if (Array.isArray(fallbackResponse.data.data)) {
-                setArticles(fallbackResponse.data.data);
-                setTotalPages(fallbackResponse.data.last_page || 1);
-              }
-            }
-          } catch (fallbackError) {
-            console.error("Both category news fetching attempts failed:", fallbackError);
-            setError("Não foi possível carregar notícias desta categoria.");
+          
+          const category = categories.find((cat: any) => cat.slug === categorySlug);
+          if (category) {
+            setCategoryDetails({
+              id: Number(category.id) || 0,
+              name: String(category.name || ""),
+              slug: String(category.slug || ""),
+              description: String(category.description || ""),
+              color: String(category.color || "#333333"),
+              text_color: String(category.text_color || "#FFFFFF"),
+              active: Boolean(category.active),
+              order: Number(category.order) || 0
+            });
           }
+        } catch (categoryError) {
+          console.error("Erro ao buscar detalhes da categoria:", categoryError);
+          // Não definimos erro aqui pois as notícias já foram carregadas
         }
-      } catch (error: any) {
-        console.error("Error fetching category data:", error);
-        setError("Erro ao carregar categoria: " + (error.message || "Erro desconhecido"));
-        toast({
-          title: "Erro",
-          description: "Não foi possível carregar as notícias desta categoria.",
-          variant: "destructive",
-        });
+      } catch (newsError) {
+        console.error("Erro ao buscar notícias da categoria:", newsError);
+        
+        // Tentar o fallback para a API regular de notícias
+        try {
+          console.log(`Tentando fallback com filtro de categoria: ${categorySlug}`);
+          const fallbackResponse = await axios.get(`https://taquaritinganoticias.criarsite.online/api/news?category=${categorySlug}&page=${currentPage}`);
+          console.log('Resposta do fallback:', fallbackResponse.data);
+          
+          if (fallbackResponse.data && typeof fallbackResponse.data === 'object') {
+            if (Array.isArray(fallbackResponse.data.data)) {
+              setArticles(fallbackResponse.data.data);
+              setTotalPages(fallbackResponse.data.last_page || 1);
+            } else if (Array.isArray(fallbackResponse.data)) {
+              setArticles(fallbackResponse.data);
+              setTotalPages(1);
+            }
+          }
+        } catch (fallbackError) {
+          console.error("Ambos os métodos de busca falharam:", fallbackError);
+          setError("Não foi possível carregar notícias desta categoria.");
+        }
       } finally {
         setIsLoading(false);
       }
     };
     
-    fetchCategoryAndNews();
+    fetchData();
   }, [categorySlug, currentPage]);
   
   // Handle page change
@@ -108,7 +110,7 @@ export default function CategoryPage() {
   
   // Category name and color fallbacks
   const categoryName = categoryDetails?.name || 
-    (categorySlug ? categorySlug.charAt(0).toUpperCase() + categorySlug.slice(1) : "Categoria");
+    (categorySlug ? categorySlug.charAt(0).toUpperCase() + categorySlug.slice(1).replace(/-/g, ' ') : "Categoria");
   
   const categoryColor = categoryDetails?.color || "#333333";
   
@@ -155,9 +157,19 @@ export default function CategoryPage() {
           </h1>
         </div>
         
-        {/* News Grid - simplified */}
+        {/* Debug info */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="bg-yellow-100 p-4 mb-4 rounded-md">
+            <p><strong>Slug:</strong> {categorySlug}</p>
+            <p><strong>Artigos carregados:</strong> {articles.length}</p>
+            <p><strong>Total páginas:</strong> {totalPages}</p>
+            <p><strong>Página atual:</strong> {currentPage}</p>
+          </div>
+        )}
+        
+        {/* News Grid - simplificado */}
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, index) => (
               <div key={index} className="space-y-3">
                 <Skeleton className="h-48 w-full" />
@@ -177,7 +189,7 @@ export default function CategoryPage() {
         ) : articles && articles.length > 0 ? (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {articles.map((article: Article, index) => (
+              {articles.map((article, index) => (
                 <div key={`article-${index}-${article.id || 'unknown'}`}>
                   <NewsCard news={article} variant="compact" />
                 </div>
@@ -199,16 +211,12 @@ export default function CategoryPage() {
                   // Show first page, last page, current page, and pages around current
                   let pagesToShow = [];
                   if (totalPages <= 5) {
-                    // Show all pages if 5 or fewer
                     pagesToShow = Array.from({ length: totalPages }, (_, i) => i + 1);
                   } else if (currentPage <= 3) {
-                    // Near beginning: show first 5
                     pagesToShow = [1, 2, 3, 4, 5];
                   } else if (currentPage >= totalPages - 2) {
-                    // Near end: show last 5
                     pagesToShow = Array.from({ length: 5 }, (_, i) => totalPages - 4 + i);
                   } else {
-                    // In middle: show current and 2 on each side
                     pagesToShow = [currentPage - 2, currentPage - 1, currentPage, currentPage + 1, currentPage + 2];
                   }
                   

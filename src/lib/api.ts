@@ -20,7 +20,7 @@ api.interceptors.response.use(
   }
 );
 
-// Query functions
+// Query functions simplificados
 export const queries = {
   getNews: async ({ pageParam = 1, category = "", query = "" }) => {
     const params = new URLSearchParams();
@@ -29,7 +29,7 @@ export const queries = {
     params.append("page", pageParam.toString());
 
     try {
-      const response = await api.get(`/news?${params.toString()}`);
+      const response = await axios.get(`${BASE_URL}/news?${params.toString()}`);
       return response.data;
     } catch (error) {
       console.error("Failed to fetch news:", error);
@@ -39,7 +39,7 @@ export const queries = {
 
   getNewsById: async (slug: string) => {
     try {
-      const response = await api.get(`/news/${slug}`);
+      const response = await axios.get(`${BASE_URL}/news/${slug}`);
       return response.data;
     } catch (error) {
       console.error(`Failed to fetch news ${slug}:`, error);
@@ -49,16 +49,14 @@ export const queries = {
 
   getCategories: async () => {
     try {
-      const response = await api.get("/categories");
+      const response = await axios.get(`${BASE_URL}/categories`);
       
       // Determinar a estrutura da resposta
       let categoriesData = [];
       
       if (Array.isArray(response.data)) {
-        // Array direto de categorias
         categoriesData = response.data;
       } else if (response.data && typeof response.data === 'object' && Array.isArray(response.data.data)) {
-        // Resposta paginada
         categoriesData = response.data.data;
       } else {
         console.error("Unexpected categories data format:", response.data);
@@ -66,16 +64,18 @@ export const queries = {
       }
       
       // Mapear e validar cada categoria
-      return categoriesData.map(cat => ({
-        id: Number(cat.id) || 0,
-        name: String(cat.name || ""),
-        slug: String(cat.slug || ""),
-        description: String(cat.description || ""),
-        color: String(cat.color || "#333333"),
-        text_color: String(cat.text_color || "#FFFFFF"),
-        active: Boolean(cat.active),
-        order: Number(cat.order) || 0
-      }));
+      return categoriesData
+        .filter(cat => cat && typeof cat === 'object') // Filtrar categorias inválidas
+        .map(cat => ({
+          id: Number(cat.id) || 0,
+          name: String(cat.name || ""),
+          slug: String(cat.slug || ""),
+          description: String(cat.description || ""),
+          color: String(cat.color || "#333333"),
+          text_color: String(cat.text_color || "#FFFFFF"),
+          active: Boolean(cat.active),
+          order: Number(cat.order) || 0
+        }));
     } catch (error) {
       console.error("Failed to fetch categories:", error);
       return [];
@@ -84,7 +84,9 @@ export const queries = {
 
   getCategoryNews: async (slug: string, page = 1) => {
     try {
-      const response = await api.get(`/categories/${slug}/news?page=${page}`);
+      console.log(`Tentando buscar notícias da categoria ${slug}, página ${page}`);
+      const response = await axios.get(`${BASE_URL}/categories/${slug}/news?page=${page}`);
+      console.log('Resposta da API:', response.data);
       
       // Handle different response formats
       if (Array.isArray(response.data)) {
@@ -103,7 +105,9 @@ export const queries = {
       
       // Try fallback
       try {
-        const fallbackResponse = await api.get(`/news?category=${slug}&page=${page}`);
+        console.log(`Tentando fallback com filtro de categoria: ${slug}`);
+        const fallbackResponse = await axios.get(`${BASE_URL}/news?category=${slug}&page=${page}`);
+        console.log('Resposta do fallback:', fallbackResponse.data);
         return fallbackResponse.data;
       } catch (fallbackError) {
         console.error("Fallback failed:", fallbackError);
@@ -114,7 +118,7 @@ export const queries = {
 
   getLatestNews: async () => {
     try {
-      const response = await api.get("/latest-news");
+      const response = await axios.get(`${BASE_URL}/latest-news`);
       return response.data;
     } catch (error) {
       console.error("Failed to fetch latest news:", error);
@@ -124,7 +128,7 @@ export const queries = {
 
   searchNews: async (query: string, page = 1) => {
     try {
-      const response = await api.get(`/search?query=${query}&page=${page}`);
+      const response = await axios.get(`${BASE_URL}/search?query=${query}&page=${page}`);
       return response.data;
     } catch (error) {
       console.error(`Failed to search news for query ${query}:`, error);

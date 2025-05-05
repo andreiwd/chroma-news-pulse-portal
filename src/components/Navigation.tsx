@@ -23,27 +23,30 @@ export default function Navigation() {
         
         // Processar a resposta para garantir que temos um array
         let fetchedCategories = [];
+        
         if (Array.isArray(response.data)) {
           fetchedCategories = response.data;
         } else if (response.data && typeof response.data === 'object' && Array.isArray(response.data.data)) {
           fetchedCategories = response.data.data;
         }
         
-        // Mapear para o formato Category
-        const processedCategories = fetchedCategories.map((cat: any) => ({
-          id: Number(cat.id) || 0,
-          name: String(cat.name || ""),
-          slug: String(cat.slug || ""),
-          description: String(cat.description || ""),
-          color: String(cat.color || "#333333"),
-          text_color: String(cat.text_color || "#FFFFFF"),
-          active: Boolean(cat.active),
-          order: Number(cat.order) || 0
-        }));
+        // Mapear para o formato Category e garantir valores válidos
+        const processedCategories = fetchedCategories
+          .filter(cat => cat && typeof cat === 'object' && cat.slug) // Filtra categorias inválidas
+          .map(cat => ({
+            id: Number(cat.id) || 0,
+            name: String(cat.name || ""),
+            slug: String(cat.slug || ""),
+            description: String(cat.description || ""),
+            color: String(cat.color || "#333333"),
+            text_color: String(cat.text_color || "#FFFFFF"),
+            active: Boolean(cat.active),
+            order: Number(cat.order) || 0
+          }));
         
         setCategories(processedCategories);
       } catch (error) {
-        console.error("Error fetching categories for navigation:", error);
+        console.error("Erro ao buscar categorias para navegação:", error);
       } finally {
         setIsLoading(false);
       }
@@ -83,7 +86,7 @@ export default function Navigation() {
                 ) : (
                   categories.map((category) => (
                     <Link 
-                      key={`mobile-cat-${category.id || 'unknown'}`}
+                      key={`mobile-cat-${category.id}-${category.slug}`}
                       to={`/category/${category.slug}`}
                       className="flex items-center justify-center p-3 rounded-md font-medium text-center transition-all"
                       style={{ 
@@ -106,7 +109,7 @@ export default function Navigation() {
           </Sheet>
         </div>
         
-        {/* Desktop Menu - Simplified */}
+        {/* Desktop Menu - Simplificado */}
         <div className="hidden lg:flex space-x-1 py-3 overflow-x-auto">
           {isLoading ? (
             // Skeleton loaders
@@ -122,7 +125,7 @@ export default function Navigation() {
               
               return (
                 <Button
-                  key={`desktop-cat-${category.id || 'unknown'}`}
+                  key={`desktop-cat-${category.id}-${category.slug}`}
                   variant="ghost"
                   className="font-medium"
                   style={{ 
