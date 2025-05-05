@@ -1,25 +1,56 @@
 
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import axios from "axios";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
 import NewsTicker from "@/components/NewsTicker";
 import Footer from "@/components/Footer";
-import { useCategories, useNews } from "@/hooks/useNews";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Category } from "@/types/api";
 
 export default function CategoriesPage() {
-  const { data: categoriesData, isLoading: isCategoriesLoading } = useCategories();
-  const { data: newsData } = useNews(1, "", "");
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
-  // Log everything for debugging
-  console.log("Categories page - categories:", categoriesData);
-  console.log("Categories page - news:", newsData);
-  
-  // Ensure categories is always an array
-  const categories = Array.isArray(categoriesData) ? categoriesData : [];
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setIsLoading(true);
+        const response = await axios.get('https://taquaritinganoticias.criarsite.online/api/categories');
+        
+        // Processar a resposta para garantir que temos um array
+        let fetchedCategories = [];
+        if (Array.isArray(response.data)) {
+          fetchedCategories = response.data;
+        } else if (response.data && typeof response.data === 'object' && Array.isArray(response.data.data)) {
+          fetchedCategories = response.data.data;
+        }
+        
+        // Mapear para o formato Category
+        const processedCategories = fetchedCategories.map((cat: any) => ({
+          id: Number(cat.id) || 0,
+          name: String(cat.name || ""),
+          slug: String(cat.slug || ""),
+          description: String(cat.description || ""),
+          color: String(cat.color || "#333333"),
+          text_color: String(cat.text_color || "#FFFFFF"),
+          active: Boolean(cat.active),
+          order: Number(cat.order) || 0
+        }));
+        
+        setCategories(processedCategories);
+      } catch (err: any) {
+        console.error("Error fetching categories:", err);
+        setError(err.message || "Erro ao buscar categorias");
+      } finally {
+        setIsLoading(false);
+      }
+    };
     
-  const allNews = Array.isArray(newsData?.data) ? newsData.data : [];
+    fetchCategories();
+  }, []);
   
   return (
     <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900">
@@ -31,11 +62,15 @@ export default function CategoriesPage() {
         <div className="container">
           <h1 className="text-3xl font-bold mb-8 text-center dark:text-white">Todas as Categorias</h1>
           
-          {isCategoriesLoading ? (
+          {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {Array(6).fill(0).map((_, i) => (
                 <Skeleton key={i} className="h-64 rounded-lg" />
               ))}
+            </div>
+          ) : error ? (
+            <div className="text-center py-12">
+              <p className="text-lg dark:text-white">Erro ao carregar categorias: {error}</p>
             </div>
           ) : categories.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

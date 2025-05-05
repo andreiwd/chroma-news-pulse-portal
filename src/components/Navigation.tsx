@@ -1,21 +1,56 @@
 
+import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { useCategories } from "@/hooks/useNews";
 import { Skeleton } from "./ui/skeleton";
 import { Menu, ChevronDown } from "lucide-react";
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import { Category } from "@/types/api";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "./ui/button";
-import { useState, useEffect } from "react";
+import axios from "axios";
+import { Category } from "@/types/api";
 
 export default function Navigation() {
   const location = useLocation();
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
-  const { data: categoriesData, isLoading } = useCategories();
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Buscar categorias diretamente
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setIsLoading(true);
+        const response = await axios.get('https://taquaritinganoticias.criarsite.online/api/categories');
+        
+        // Processar a resposta para garantir que temos um array
+        let fetchedCategories = [];
+        if (Array.isArray(response.data)) {
+          fetchedCategories = response.data;
+        } else if (response.data && typeof response.data === 'object' && Array.isArray(response.data.data)) {
+          fetchedCategories = response.data.data;
+        }
+        
+        // Mapear para o formato Category
+        const processedCategories = fetchedCategories.map((cat: any) => ({
+          id: Number(cat.id) || 0,
+          name: String(cat.name || ""),
+          slug: String(cat.slug || ""),
+          description: String(cat.description || ""),
+          color: String(cat.color || "#333333"),
+          text_color: String(cat.text_color || "#FFFFFF"),
+          active: Boolean(cat.active),
+          order: Number(cat.order) || 0
+        }));
+        
+        setCategories(processedCategories);
+      } catch (error) {
+        console.error("Error fetching categories for navigation:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchCategories();
+  }, []);
 
   // Set active category based on URL
   useEffect(() => {
@@ -27,12 +62,7 @@ export default function Navigation() {
       setActiveCategory(null);
     }
   }, [location]);
-
-  // Ensure categories is always an array of valid Category objects
-  const categories = Array.isArray(categoriesData) ? categoriesData : [];
-
-  console.log("Navigation component - categories:", categories);
-
+  
   return (
     <nav className="border-b sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 w-full dark:bg-gray-900 dark:border-gray-800">
       <div className="container">

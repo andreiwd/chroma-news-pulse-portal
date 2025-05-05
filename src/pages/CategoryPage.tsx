@@ -1,13 +1,13 @@
 
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from "react-router-dom";
-import { useCategoryNews, useCategories } from "@/hooks/useNews";
+import axios from 'axios';
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
 import NewsTicker from "@/components/NewsTicker";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useState, useEffect } from "react";
 import { toast } from "@/components/ui/use-toast";
 import NewsCard from "@/components/NewsCard";
 import { Article, Category } from "@/types/api";
@@ -15,63 +15,102 @@ import { Article, Category } from "@/types/api";
 export default function CategoryPage() {
   const { category: categorySlug } = useParams<{ category: string }>();
   const [currentPage, setCurrentPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [categoryDetails, setCategoryDetails] = useState<Category | null>(null);
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [totalPages, setTotalPages] = useState(1);
   
-  console.log("CategoryPage rendering with slug:", categorySlug);
-  
-  // Fetch all categories
-  const { data: categories } = useCategories();
-  
-  // Fetch news for the category
-  const {
-    data: newsData,
-    isLoading,
-    error,
-    isError
-  } = useCategoryNews(categorySlug, currentPage);
-
-  // Log everything to debug
-  console.log("Categories:", categories);
-  console.log("News data:", newsData);
-  console.log("Current page:", currentPage);
-  console.log("Is loading:", isLoading);
-  console.log("Error:", error);
-  
-  // Find the current category in the categories list
-  const categoryDetails = categories?.find(
-    cat => cat && typeof cat === 'object' && cat.slug === categorySlug
-  );
-  
-  console.log("Found category details:", categoryDetails);
-  
-  // Get category name and color
-  const categoryName = categoryDetails?.name || 
-    (categorySlug ? categorySlug.charAt(0).toUpperCase() + categorySlug.slice(1) : "Categoria");
-  
-  const categoryColor = categoryDetails?.color || "#333333";
-  
-  // Get news articles
-  const articles = Array.isArray(newsData?.data) ? newsData.data : [];
-  const totalPages = newsData?.last_page || 1;
-  
-  console.log("Processed articles:", articles);
-  console.log("Total pages:", totalPages);
-
-  // Show error toast if needed
+  // Fetch category and its news
   useEffect(() => {
-    if (isError && error) {
-      toast({
-        title: "Erro",
-        description: "Não foi possível carregar as notícias desta categoria.",
-        variant: "destructive",
-      });
-    }
-  }, [isError, error]);
-
+    const fetchCategoryAndNews = async () => {
+      if (!categorySlug) return;
+      
+      setIsLoading(true);
+      setError(null);
+      
+      try {
+        // Get category details first
+        const categoriesResponse = await axios.get('https://taquaritinganoticias.criarsite.online/api/categories');
+        let categories = [];
+        
+        if (Array.isArray(categoriesResponse.data)) {
+          categories = categoriesResponse.data;
+        } else if (categoriesResponse.data && typeof categoriesResponse.data === 'object' && Array.isArray(categoriesResponse.data.data)) {
+          categories = categoriesResponse.data.data;
+        }
+        
+        const category = categories.find((cat: any) => cat.slug === categorySlug);
+        if (category) {
+          setCategoryDetails({
+            id: Number(category.id) || 0,
+            name: String(category.name || ""),
+            slug: String(category.slug || ""),
+            description: String(category.description || ""),
+            color: String(category.color || "#333333"),
+            text_color: String(category.text_color || "#FFFFFF"),
+            active: Boolean(category.active),
+            order: Number(category.order) || 0
+          });
+        }
+        
+        // Get category news
+        try {
+          const newsResponse = await axios.get(`https://taquaritinganoticias.criarsite.online/api/categories/${categorySlug}/news?page=${currentPage}`);
+          
+          // Handle different response formats
+          if (Array.isArray(newsResponse.data)) {
+            setArticles(newsResponse.data);
+            setTotalPages(1);
+          } else if (newsResponse.data && typeof newsResponse.data === 'object') {
+            if (Array.isArray(newsResponse.data.data)) {
+              setArticles(newsResponse.data.data);
+              setTotalPages(newsResponse.data.last_page || 1);
+            }
+          }
+        } catch (newsError) {
+          // Fallback to regular news endpoint with category filter
+          try {
+            const fallbackResponse = await axios.get(`https://taquaritinganoticias.criarsite.online/api/news?category=${categorySlug}&page=${currentPage}`);
+            
+            if (fallbackResponse.data && typeof fallbackResponse.data === 'object') {
+              if (Array.isArray(fallbackResponse.data.data)) {
+                setArticles(fallbackResponse.data.data);
+                setTotalPages(fallbackResponse.data.last_page || 1);
+              }
+            }
+          } catch (fallbackError) {
+            console.error("Both category news fetching attempts failed:", fallbackError);
+            setError("Não foi possível carregar notícias desta categoria.");
+          }
+        }
+      } catch (error: any) {
+        console.error("Error fetching category data:", error);
+        setError("Erro ao carregar categoria: " + (error.message || "Erro desconhecido"));
+        toast({
+          title: "Erro",
+          description: "Não foi possível carregar as notícias desta categoria.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchCategoryAndNews();
+  }, [categorySlug, currentPage]);
+  
   // Handle page change
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+  
+  // Category name and color fallbacks
+  const categoryName = categoryDetails?.name || 
+    (categorySlug ? categorySlug.charAt(0).toUpperCase() + categorySlug.slice(1) : "Categoria");
+  
+  const categoryColor = categoryDetails?.color || "#333333";
   
   // Render empty state if no category slug
   if (!categorySlug) {
@@ -127,9 +166,10 @@ export default function CategoryPage() {
               </div>
             ))}
           </div>
-        ) : isError ? (
+        ) : error ? (
           <div className="text-center py-10">
             <p className="text-xl">Ocorreu um erro ao carregar esta categoria.</p>
+            <p className="text-sm text-gray-500 mt-2">{error}</p>
             <Button className="mt-4" asChild>
               <Link to="/">Voltar para a página inicial</Link>
             </Button>
@@ -155,15 +195,33 @@ export default function CategoryPage() {
                   Anterior
                 </Button>
                 
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <Button
-                    key={page}
-                    variant={currentPage === page ? "default" : "outline"}
-                    onClick={() => handlePageChange(page)}
-                  >
-                    {page}
-                  </Button>
-                ))}
+                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                  // Show first page, last page, current page, and pages around current
+                  let pagesToShow = [];
+                  if (totalPages <= 5) {
+                    // Show all pages if 5 or fewer
+                    pagesToShow = Array.from({ length: totalPages }, (_, i) => i + 1);
+                  } else if (currentPage <= 3) {
+                    // Near beginning: show first 5
+                    pagesToShow = [1, 2, 3, 4, 5];
+                  } else if (currentPage >= totalPages - 2) {
+                    // Near end: show last 5
+                    pagesToShow = Array.from({ length: 5 }, (_, i) => totalPages - 4 + i);
+                  } else {
+                    // In middle: show current and 2 on each side
+                    pagesToShow = [currentPage - 2, currentPage - 1, currentPage, currentPage + 1, currentPage + 2];
+                  }
+                  
+                  return pagesToShow.map(page => (
+                    <Button
+                      key={page}
+                      variant={currentPage === page ? "default" : "outline"}
+                      onClick={() => handlePageChange(page)}
+                    >
+                      {page}
+                    </Button>
+                  ));
+                })}
                 
                 <Button
                   variant="outline"
