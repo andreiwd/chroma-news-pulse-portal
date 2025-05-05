@@ -1,15 +1,21 @@
 
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import axios from 'axios';
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
 import NewsTicker from "@/components/NewsTicker";
 import Footer from "@/components/Footer";
+import { Category } from "@/types/api";
+import CategoryHeader from "@/components/category/CategoryHeader";
+import CategoryLoadingState from "@/components/category/CategoryLoadingState";
+import CategoryErrorState from "@/components/category/CategoryErrorState";
+import CategoryEmptyState from "@/components/category/CategoryEmptyState";
+import CategoryPagination from "@/components/category/CategoryPagination";
+import CategoryNewsGrid from "@/components/category/CategoryNewsGrid";
+import CategoryDebugInfo from "@/components/category/CategoryDebugInfo";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import NewsCard from "@/components/NewsCard";
-import { Article, Category } from "@/types/api";
 
 export default function CategoryPage() {
   const { category: categorySlug } = useParams<{ category: string }>();
@@ -17,7 +23,7 @@ export default function CategoryPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [categoryDetails, setCategoryDetails] = useState<Category | null>(null);
-  const [articles, setArticles] = useState<Article[]>([]);
+  const [articles, setArticles] = useState<any[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   
   useEffect(() => {
@@ -144,110 +150,38 @@ export default function CategoryPage() {
       
       <main className="container py-6">
         {/* Category Header */}
-        <div className="mb-8 pb-4 border-b">
-          <h1 
-            className="text-3xl font-bold mb-2"
-            style={{ color: categoryColor }}
-          >
-            {isLoading ? (
-              <Skeleton className="h-10 w-48" />
-            ) : (
-              categoryName
-            )}
-          </h1>
-        </div>
+        <CategoryHeader 
+          isLoading={isLoading} 
+          categoryName={categoryName} 
+          categoryColor={categoryColor} 
+        />
         
         {/* Debug info */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="bg-yellow-100 p-4 mb-4 rounded-md">
-            <p><strong>Slug:</strong> {categorySlug}</p>
-            <p><strong>Artigos carregados:</strong> {articles.length}</p>
-            <p><strong>Total páginas:</strong> {totalPages}</p>
-            <p><strong>Página atual:</strong> {currentPage}</p>
-          </div>
-        )}
+        <CategoryDebugInfo 
+          categorySlug={categorySlug}
+          articlesCount={articles.length}
+          totalPages={totalPages}
+          currentPage={currentPage}
+        />
         
-        {/* News Grid - simplificado */}
+        {/* Content states */}
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, index) => (
-              <div key={index} className="space-y-3">
-                <Skeleton className="h-48 w-full" />
-                <Skeleton className="h-6 w-3/4" />
-                <Skeleton className="h-4 w-full" />
-              </div>
-            ))}
-          </div>
+          <CategoryLoadingState />
         ) : error ? (
-          <div className="text-center py-10">
-            <p className="text-xl">Ocorreu um erro ao carregar esta categoria.</p>
-            <p className="text-sm text-gray-500 mt-2">{error}</p>
-            <Button className="mt-4" asChild>
-              <Link to="/">Voltar para a página inicial</Link>
-            </Button>
-          </div>
+          <CategoryErrorState error={error} />
         ) : articles && articles.length > 0 ? (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {articles.map((article, index) => (
-                <div key={`article-${index}-${article.id || 'unknown'}`}>
-                  <NewsCard news={article} variant="compact" />
-                </div>
-              ))}
-            </div>
+            <CategoryNewsGrid articles={articles} />
             
-            {/* Simple pagination */}
-            {totalPages > 1 && (
-              <div className="flex justify-center mt-10 gap-2">
-                <Button
-                  variant="outline"
-                  disabled={currentPage === 1}
-                  onClick={() => handlePageChange(currentPage - 1)}
-                >
-                  Anterior
-                </Button>
-                
-                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                  // Show first page, last page, current page, and pages around current
-                  let pagesToShow = [];
-                  if (totalPages <= 5) {
-                    pagesToShow = Array.from({ length: totalPages }, (_, i) => i + 1);
-                  } else if (currentPage <= 3) {
-                    pagesToShow = [1, 2, 3, 4, 5];
-                  } else if (currentPage >= totalPages - 2) {
-                    pagesToShow = Array.from({ length: 5 }, (_, i) => totalPages - 4 + i);
-                  } else {
-                    pagesToShow = [currentPage - 2, currentPage - 1, currentPage, currentPage + 1, currentPage + 2];
-                  }
-                  
-                  return pagesToShow.map(page => (
-                    <Button
-                      key={page}
-                      variant={currentPage === page ? "default" : "outline"}
-                      onClick={() => handlePageChange(page)}
-                    >
-                      {page}
-                    </Button>
-                  ));
-                })}
-                
-                <Button
-                  variant="outline"
-                  disabled={currentPage === totalPages}
-                  onClick={() => handlePageChange(currentPage + 1)}
-                >
-                  Próximo
-                </Button>
-              </div>
-            )}
+            {/* Pagination */}
+            <CategoryPagination 
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
           </>
         ) : (
-          <div className="text-center py-10">
-            <p className="text-xl">Nenhuma notícia encontrada nesta categoria.</p>
-            <Button className="mt-4" asChild>
-              <Link to="/">Voltar para a página inicial</Link>
-            </Button>
-          </div>
+          <CategoryEmptyState />
         )}
       </main>
 
