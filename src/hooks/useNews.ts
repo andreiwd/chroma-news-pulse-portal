@@ -31,29 +31,29 @@ export function useCategories() {
       // Ensure we return properly formed Category objects
       if (!data) return [];
       
-      // If data is an array, filter out any non-objects and ensure they have the required properties
-      if (Array.isArray(data)) {
-        return data.filter(item => 
-          item && 
-          typeof item === 'object' &&
-          'id' in item &&
-          'name' in item &&
-          'slug' in item
-        );
+      // Make sure we're working with an array
+      if (!Array.isArray(data)) {
+        console.error("Expected categories data to be an array, got:", data);
+        return [];
       }
       
-      // If data is an object with a data property that's an array
-      if (data && typeof data === 'object' && 'data' in data && Array.isArray(data.data)) {
-        return data.data.filter(item => 
-          item && 
-          typeof item === 'object' &&
-          'id' in item &&
-          'name' in item &&
-          'slug' in item
-        );
-      }
-      
-      return [];
+      // Process each category to ensure it has all required fields
+      return data.map(item => {
+        // Skip null or undefined items
+        if (!item || typeof item !== 'object') return null;
+        
+        // Ensure all required fields exist with proper defaults
+        return {
+          id: item.id || 0,
+          name: item.name || '',
+          slug: item.slug || '',
+          description: item.description || '',
+          color: item.color || '#333',
+          text_color: item.text_color || '#fff',
+          active: Boolean(item.active),
+          order: item.order || 0
+        };
+      }).filter(Boolean) as Category[]; // Filter out null items
     }
   });
 }

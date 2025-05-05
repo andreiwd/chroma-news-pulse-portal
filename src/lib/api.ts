@@ -51,22 +51,40 @@ export const queries = {
     try {
       const { data } = await api.get("/categories");
       
+      // Process categories to ensure they're in the right format
+      let categories = [];
+      
       // Check if data is an array of category objects
       if (Array.isArray(data)) {
-        return data;
-      }
-      
+        categories = data.map(cat => ({
+          id: cat.id,
+          name: cat.name || "",
+          slug: cat.slug || "",
+          description: cat.description || "",
+          color: cat.color || "#333",
+          text_color: cat.text_color || "#fff",
+          active: Boolean(cat.active),
+          order: cat.order || 0
+        }));
+      } 
       // Check if data has a property 'data' that is an array (paginated response)
-      if (data && typeof data === 'object' && 'data' in data && Array.isArray(data.data)) {
-        return data.data;
+      else if (data && typeof data === 'object' && 'data' in data && Array.isArray(data.data)) {
+        categories = data.data.map(cat => ({
+          id: cat.id,
+          name: cat.name || "",
+          slug: cat.slug || "",
+          description: cat.description || "",
+          color: cat.color || "#333",
+          text_color: cat.text_color || "#fff",
+          active: Boolean(cat.active),
+          order: cat.order || 0
+        }));
       }
       
-      // Return empty array if none of the above
-      console.error("Unexpected data structure from categories API:", data);
-      return [];
+      return categories;
     } catch (error) {
       console.error("Failed to fetch categories:", error);
-      throw error;
+      return []; // Return empty array instead of throwing
     }
   },
 

@@ -37,14 +37,13 @@ export default function Navigation() {
   }, [location]);
 
   // Ensure categories is always an array of valid Category objects
-  // Using type guard to ensure we only get valid Category objects
-  const categories: Category[] = Array.isArray(categoriesData) 
+  const categories = Array.isArray(categoriesData) 
     ? categoriesData.filter((cat): cat is Category => 
         Boolean(cat) && 
         typeof cat === 'object' && 
-        'name' in cat && 
-        'id' in cat && 
-        'slug' in cat
+        typeof cat.name === 'string' && 
+        typeof cat.slug === 'string' &&
+        typeof cat.id === 'number'
       )
     : [];
 
@@ -73,9 +72,9 @@ export default function Navigation() {
                     <Skeleton key={i} className="h-12 rounded-md" />
                   ))
                 ) : (
-                  categories.map((category, index) => (
+                  categories.map((category) => (
                     <Link 
-                      key={`${category.id}-${index}`}
+                      key={`mobile-cat-${category.id}`}
                       to={`/category/${category.slug}`}
                       className="flex items-center justify-center p-3 rounded-md font-medium text-center transition-all"
                       style={{ 
@@ -116,11 +115,11 @@ export default function Navigation() {
               ) : (
                 // Render actual categories when loaded
                 <>
-                  {desktopCategories.map((category, index) => {
+                  {desktopCategories.map((category) => {
                     const isActive = activeCategory === category.slug;
                     
                     return (
-                      <NavigationMenuItem key={`${category.id}-${index}`}>
+                      <NavigationMenuItem key={`desktop-cat-${category.id}`}>
                         <NavigationMenuTrigger 
                           className="text-sm font-bold hover:bg-transparent whitespace-nowrap dark:text-gray-200 dark:hover:text-white"
                           style={{ 

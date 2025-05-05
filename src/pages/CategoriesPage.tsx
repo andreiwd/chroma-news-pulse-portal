@@ -15,13 +15,13 @@ export default function CategoriesPage() {
   const [categoryWithLatest, setCategoryWithLatest] = useState<Record<string, Article>>({});
   
   // Ensure categories is always an array of valid Category objects
-  const categories: Category[] = Array.isArray(categoriesData) 
+  const categories = Array.isArray(categoriesData) 
     ? categoriesData.filter((cat): cat is Category => 
         Boolean(cat) && 
         typeof cat === 'object' && 
-        'name' in cat && 
-        'id' in cat && 
-        'slug' in cat
+        typeof cat.name === 'string' && 
+        typeof cat.slug === 'string' &&
+        typeof cat.id === 'number'
       )
     : [];
     
@@ -82,7 +82,7 @@ export default function CategoriesPage() {
                 
                 return (
                   <Link 
-                    key={`${category.id}`}
+                    key={`cat-${category.id}`}
                     to={`/category/${category.slug}`}
                     className="group overflow-hidden rounded-lg shadow-md transition-all hover:-translate-y-1 hover:shadow-lg bg-white dark:bg-gray-800"
                   >
