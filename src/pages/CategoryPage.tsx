@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import axios from 'axios';
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
@@ -36,7 +36,29 @@ interface Article {
 
 export default function CategoryPage() {
   const navigate = useNavigate();
+  const location = useLocation(); // Adicionando para debugging
+  const params = useParams(); // Para verificar todos os parâmetros
+  
+  // Extraindo o slug da categoria da URL
+  // Tentativa 1: Usando useParams() normalmente
   const { category: categorySlug } = useParams<{ category: string }>();
+  
+  // Tentativa 2: Extraindo manualmente da URL
+  const urlPath = location.pathname;
+  const urlSlug = urlPath.split('/').filter(Boolean).pop() || "";
+  
+  // Escolha o slug a usar (preferindo o de useParams se disponível)
+  const slugToUse = categorySlug || urlSlug;
+  
+  console.log("DEBUG URL:", {
+    pathname: location.pathname,
+    allParams: params,
+    categorySlug,
+    urlPath,
+    urlSlug,
+    slugToUse
+  });
+  
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -53,6 +75,7 @@ export default function CategoryPage() {
         setIsLoading(true);
         setError(null);
         console.log("Buscando categorias...");
+        console.log("Slug atual a ser usado:", slugToUse);
         
         const response = await axios.get('https://taquaritinganoticias.criarsite.online/api/categories');
         console.log("Resposta da API de categorias:", response.data);
@@ -70,47 +93,48 @@ export default function CategoryPage() {
         
         // Depuração - listar todos os slugs disponíveis
         console.log("Slugs de categorias disponíveis:", categories.map((c: any) => c.slug));
-        console.log("Categoria atual da URL:", categorySlug);
         
-        // Verificar se o slug atual existe nas categorias
-        if (categorySlug) {
-          console.log("Tentando encontrar categoria com slug:", categorySlug);
+        // Verificar se temos um slug para buscar
+        if (!slugToUse) {
+          console.error("Nenhum slug de categoria detectado na URL");
+          setError("Categoria não especificada na URL");
+          setIsLoading(false);
+          return;
+        }
+        
+        console.log("Tentando encontrar categoria com slug:", slugToUse);
+        
+        // Primeiro tenta uma correspondência exata
+        let matchingCategory = categories.find((cat: any) => cat.slug === slugToUse);
+        
+        // Se não encontrar, tenta ignorando case
+        if (!matchingCategory) {
+          console.log("Correspondência exata não encontrada, tentando case-insensitive...");
+          matchingCategory = categories.find(
+            (cat: any) => cat.slug.toLowerCase() === slugToUse.toLowerCase()
+          );
+        }
+        
+        console.log("Categoria correspondente encontrada:", matchingCategory);
+        
+        if (matchingCategory) {
+          const categoryData = {
+            id: Number(matchingCategory.id) || 0,
+            name: String(matchingCategory.name || ""),
+            slug: String(matchingCategory.slug || ""),
+            description: String(matchingCategory.description || ""),
+            color: String(matchingCategory.color || "#333333"),
+            text_color: String(matchingCategory.text_color || "#FFFFFF"),
+            active: Boolean(matchingCategory.active),
+            order: Number(matchingCategory.order) || 0
+          };
           
-          // Primeiro tenta uma correspondência exata
-          let matchingCategory = categories.find((cat: any) => cat.slug === categorySlug);
-          
-          // Se não encontrar, tenta ignorando case
-          if (!matchingCategory) {
-            console.log("Correspondência exata não encontrada, tentando case-insensitive...");
-            matchingCategory = categories.find(
-              (cat: any) => cat.slug.toLowerCase() === categorySlug.toLowerCase()
-            );
-          }
-          
-          console.log("Categoria correspondente encontrada:", matchingCategory);
-          
-          if (matchingCategory) {
-            const categoryData = {
-              id: Number(matchingCategory.id) || 0,
-              name: String(matchingCategory.name || ""),
-              slug: String(matchingCategory.slug || ""),
-              description: String(matchingCategory.description || ""),
-              color: String(matchingCategory.color || "#333333"),
-              text_color: String(matchingCategory.text_color || "#FFFFFF"),
-              active: Boolean(matchingCategory.active),
-              order: Number(matchingCategory.order) || 0
-            };
-            
-            console.log("Definindo detalhes da categoria:", categoryData);
-            setCategoryDetails(categoryData);
-          } else {
-            // Se não encontrou a categoria, definir erro
-            console.error(`Categoria '${categorySlug}' não encontrada entre as categorias disponíveis`);
-            setError(`Categoria '${categorySlug}' não encontrada`);
-          }
+          console.log("Definindo detalhes da categoria:", categoryData);
+          setCategoryDetails(categoryData);
         } else {
-          console.error("Nenhum slug de categoria fornecido na URL");
-          setError("Categoria não especificada");
+          // Se não encontrou a categoria, definir erro
+          console.error(`Categoria '${slugToUse}' não encontrada entre as categorias disponíveis`);
+          setError(`Categoria '${slugToUse}' não encontrada`);
         }
       } catch (err: any) {
         console.error("Erro ao buscar categorias:", err);
@@ -121,7 +145,7 @@ export default function CategoryPage() {
     };
     
     fetchCategories();
-  }, [categorySlug]);
+  }, [slugToUse, location.pathname]);
   
   // Depois, busca as notícias quando temos detalhes da categoria
   useEffect(() => {
@@ -181,11 +205,16 @@ export default function CategoryPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
   
+  // Acessar diretamente uma categoria existente
+  const goToCategory = (slug: string) => {
+    navigate(`/category/${slug}`);
+  };
+  
   // Verifica se estamos carregando algo
   const showLoading = isLoading || loadingArticles;
   
   // Fallback para categoria não encontrada
-  if (error && error.includes("não encontrada")) {
+  if (error && (error.includes("não encontrada") || error.includes("não especificada"))) {
     return (
       <div className="min-h-screen flex flex-col">
         <NewsTicker />
@@ -193,9 +222,13 @@ export default function CategoryPage() {
         <Navigation />
         
         <main className="container mx-auto py-8 flex-1 flex flex-col items-center justify-center">
-          <h1 className="text-3xl font-bold mb-6">Categoria não encontrada</h1>
+          <h1 className="text-3xl font-bold mb-6">
+            {error.includes("não especificada") ? "Categoria não especificada" : "Categoria não encontrada"}
+          </h1>
           <p className="text-gray-600 dark:text-gray-300 mb-8">
-            A categoria que você está procurando não existe ou foi removida.
+            {error.includes("não especificada") 
+              ? "Nenhuma categoria foi especificada na URL." 
+              : "A categoria que você está procurando não existe ou foi removida."}
           </p>
           
           {allCategories.length > 0 && (
@@ -206,7 +239,7 @@ export default function CategoryPage() {
                   <Button 
                     key={cat.id}
                     variant="outline"
-                    onClick={() => navigate(`/category/${cat.slug}`)}
+                    onClick={() => goToCategory(cat.slug)}
                     style={{ 
                       color: cat.color,
                       borderColor: cat.color + '40'
@@ -253,7 +286,10 @@ export default function CategoryPage() {
         
         {/* Informações de Debug - sempre visíveis temporariamente até resolver o problema */}
         <div className="bg-yellow-100 dark:bg-yellow-900/30 p-4 mb-6 rounded-lg text-sm">
-          <p><strong>URL Slug:</strong> {categorySlug}</p>
+          <p><strong>URL Pathname:</strong> {location.pathname}</p>
+          <p><strong>URL Slug (useParams):</strong> {categorySlug || 'N/A'}</p>
+          <p><strong>URL Slug (manual):</strong> {urlSlug || 'N/A'}</p>
+          <p><strong>Slug em uso:</strong> {slugToUse || 'N/A'}</p>
           <p><strong>Categoria ID:</strong> {categoryDetails?.id || 'N/A'}</p>
           <p><strong>Categoria Nome:</strong> {categoryDetails?.name || 'N/A'}</p>
           <p><strong>Categoria Slug:</strong> {categoryDetails?.slug || 'N/A'}</p>
@@ -281,7 +317,7 @@ export default function CategoryPage() {
               </div>
             ))}
           </div>
-        ) : error && !error.includes("não encontrada") ? (
+        ) : error && !error.includes("não encontrada") && !error.includes("não especificada") ? (
           // Estado de erro (que não seja "categoria não encontrada")
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 text-center">
             <h3 className="text-lg font-medium text-red-800 dark:text-red-300 mb-2">Erro</h3>
