@@ -32,8 +32,8 @@ export default function Navigation() {
         
         // Mapear para o formato Category e garantir valores válidos
         const processedCategories = fetchedCategories
-          .filter(cat => cat && typeof cat === 'object' && cat.slug) // Filtra categorias inválidas
-          .map(cat => ({
+          .filter((cat: any) => cat && typeof cat === 'object' && cat.slug) // Filtra categorias inválidas
+          .map((cat: any) => ({
             id: Number(cat.id) || 0,
             name: String(cat.name || ""),
             slug: String(cat.slug || ""),

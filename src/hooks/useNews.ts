@@ -6,6 +6,70 @@ import axios from "axios";
 
 const API_BASE_URL = "https://taquaritinganoticias.criarsite.online/api";
 
+// Helper function to sanitize category objects
+const sanitizeCategory = (category: any): Category | null => {
+  if (!category) return null;
+  
+  if (typeof category === 'object') {
+    return {
+      id: Number(category.id) || 0,
+      name: String(category.name || ""),
+      slug: String(category.slug || ""),
+      description: String(category.description || ""),
+      color: String(category.color || "#333333"),
+      text_color: String(category.text_color || "#FFFFFF"),
+      active: Boolean(category.active),
+      order: Number(category.order) || 0
+    };
+  }
+  
+  if (typeof category === 'string') {
+    return {
+      id: 0,
+      name: category,
+      slug: category.toLowerCase().replace(/\s+/g, '-'),
+      description: '',
+      color: "#333333",
+      text_color: "#FFFFFF",
+      active: true,
+      order: 0
+    };
+  }
+  
+  return null;
+};
+
+// Helper function to sanitize article data
+const sanitizeArticle = (article: any): Article => {
+  if (!article) return {} as Article;
+  
+  // Ensure category is properly formatted
+  const sanitizedCategory = sanitizeCategory(article.category);
+  
+  // Ensure tags are properly formatted
+  const sanitizedTags = Array.isArray(article.tags) 
+    ? article.tags.map((tag: any) => ({
+        id: Number(tag.id) || 0,
+        name: String(tag.name || "")
+      }))
+    : [];
+  
+  // Return sanitized article
+  return {
+    id: Number(article.id) || 0,
+    title: String(article.title || ""),
+    slug: String(article.slug || ""),
+    excerpt: String(article.excerpt || ""),
+    content: String(article.content || ""),
+    featured_image: String(article.featured_image || ""),
+    category: sanitizedCategory as Category,
+    tags: sanitizedTags,
+    published_at: String(article.published_at || ""),
+    created_at: String(article.created_at || ""),
+    updated_at: String(article.updated_at || "")
+  };
+};
+
 // Buscar notícias
 export function useNews(page = 1, category = "", query = "") {
   return useQuery({
@@ -22,14 +86,30 @@ export function useNews(page = 1, category = "", query = "") {
         console.log('Resposta da API de notícias:', response.data);
         
         // Ensure we properly format and sanitize the data
-        const processedData = {
-          ...response.data,
-          data: Array.isArray(response.data.data) ? 
-            response.data.data.map((item: any) => sanitizeArticle(item)) : 
-            []
-        };
+        if (Array.isArray(response.data)) {
+          return { 
+            data: response.data.map(item => sanitizeArticle(item)),
+            current_page: 1,
+            last_page: 1,
+            per_page: response.data.length,
+            total: response.data.length
+          };
+        }
         
-        return processedData;
+        if (response.data && Array.isArray(response.data.data)) {
+          return {
+            ...response.data,
+            data: response.data.data.map(item => sanitizeArticle(item))
+          };
+        }
+        
+        return {
+          data: [],
+          current_page: 1,
+          last_page: 1,
+          per_page: 10,
+          total: 0
+        };
       } catch (error) {
         console.error("Erro ao buscar notícias:", error);
         throw error;
@@ -117,7 +197,7 @@ export function useCategoryNews(categorySlug: string | undefined, page = 1) {
         // Verificar se a resposta é um array ou um objeto paginado
         if (Array.isArray(response.data)) {
           return { 
-            data: response.data.map((item: any) => sanitizeArticle(item)),
+            data: response.data.map(item => sanitizeArticle(item)),
             current_page: 1,
             last_page: 1,
             per_page: response.data.length,
@@ -129,11 +209,17 @@ export function useCategoryNews(categorySlug: string | undefined, page = 1) {
         if (response.data && Array.isArray(response.data.data)) {
           return {
             ...response.data,
-            data: response.data.data.map((item: any) => sanitizeArticle(item))
+            data: response.data.data.map(item => sanitizeArticle(item))
           };
         }
         
-        return response.data;
+        return {
+          data: [],
+          current_page: page,
+          last_page: 1,
+          per_page: 10,
+          total: 0
+        };
       } catch (error) {
         console.error("Erro ao buscar notícias da categoria:", error);
         
@@ -146,14 +232,36 @@ export function useCategoryNews(categorySlug: string | undefined, page = 1) {
           if (fallbackResponse.data && Array.isArray(fallbackResponse.data.data)) {
             return {
               ...fallbackResponse.data,
-              data: fallbackResponse.data.data.map((item: any) => sanitizeArticle(item))
+              data: fallbackResponse.data.data.map(item => sanitizeArticle(item))
             };
           }
           
-          return fallbackResponse.data;
+          if (Array.isArray(fallbackResponse.data)) {
+            return {
+              data: fallbackResponse.data.map(item => sanitizeArticle(item)),
+              current_page: page,
+              last_page: 1,
+              per_page: fallbackResponse.data.length,
+              total: fallbackResponse.data.length
+            };
+          }
+          
+          return {
+            data: [],
+            current_page: page,
+            last_page: 1,
+            per_page: 10,
+            total: 0
+          };
         } catch (fallbackError) {
           console.error("Fallback também falhou:", fallbackError);
-          return { data: [] };
+          return { 
+            data: [],
+            current_page: page,
+            last_page: 1,
+            per_page: 10,
+            total: 0
+          };
         }
       }
     },
@@ -169,9 +277,9 @@ export function useLatestNews() {
       try {
         const response = await axios.get(`${API_BASE_URL}/latest-news`);
         if (Array.isArray(response.data)) {
-          return response.data.map((item: any) => sanitizeArticle(item));
+          return response.data.map(item => sanitizeArticle(item));
         }
-        return response.data;
+        return [];
       } catch (error) {
         console.error("Erro ao buscar últimas notícias:", error);
         return [];
@@ -192,84 +300,39 @@ export function useSearchNews(query: string, page = 1) {
         if (response.data && Array.isArray(response.data.data)) {
           return {
             ...response.data,
-            data: response.data.data.map((item: any) => sanitizeArticle(item))
+            data: response.data.data.map(item => sanitizeArticle(item))
           };
         }
         
-        return response.data;
+        if (Array.isArray(response.data)) {
+          return {
+            data: response.data.map(item => sanitizeArticle(item)),
+            current_page: page,
+            last_page: 1,
+            per_page: response.data.length,
+            total: response.data.length
+          };
+        }
+        
+        return { 
+          data: [],
+          current_page: page,
+          last_page: 1,
+          per_page: 10,
+          total: 0
+        };
       } catch (error) {
         console.error(`Erro ao buscar por "${query}":`, error);
-        return { data: [] };
+        return { 
+          data: [],
+          current_page: page,
+          last_page: 1,
+          per_page: 10,
+          total: 0
+        };
       }
     },
     staleTime: 5 * 60 * 1000,
     enabled: Boolean(query),
   });
-}
-
-// Helper function to sanitize article data including categories
-function sanitizeArticle(article: any): Article {
-  if (!article) return {} as Article;
-  
-  // Ensure category is properly formatted
-  let sanitizedCategory;
-  if (article.category) {
-    if (typeof article.category === 'object') {
-      sanitizedCategory = {
-        id: Number(article.category.id) || 0,
-        name: String(article.category.name || ""),
-        slug: String(article.category.slug || ""),
-        description: String(article.category.description || ""),
-        color: String(article.category.color || "#333333"),
-        text_color: String(article.category.text_color || "#FFFFFF"),
-        active: Boolean(article.category.active),
-        order: Number(article.category.order) || 0
-      };
-    } else {
-      sanitizedCategory = {
-        id: 0,
-        name: String(article.category),
-        slug: String(article.category).toLowerCase().replace(/\s+/g, '-'),
-        description: "",
-        color: "#333333",
-        text_color: "#FFFFFF",
-        active: true,
-        order: 0
-      };
-    }
-  } else {
-    sanitizedCategory = {
-      id: 0,
-      name: "Sem categoria",
-      slug: "sem-categoria",
-      description: "",
-      color: "#333333",
-      text_color: "#FFFFFF",
-      active: true,
-      order: 0
-    };
-  }
-  
-  // Ensure tags are properly formatted
-  const sanitizedTags = Array.isArray(article.tags) 
-    ? article.tags.map((tag: any) => ({
-        id: Number(tag.id) || 0,
-        name: String(tag.name || "")
-      }))
-    : [];
-  
-  // Return sanitized article
-  return {
-    id: Number(article.id) || 0,
-    title: String(article.title || ""),
-    slug: String(article.slug || ""),
-    excerpt: String(article.excerpt || ""),
-    content: String(article.content || ""),
-    featured_image: String(article.featured_image || ""),
-    category: sanitizedCategory,
-    tags: sanitizedTags,
-    published_at: String(article.published_at || ""),
-    created_at: String(article.created_at || ""),
-    updated_at: String(article.updated_at || "")
-  };
 }

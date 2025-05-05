@@ -20,6 +20,71 @@ api.interceptors.response.use(
   }
 );
 
+// Helper function to ensure category is a valid object with primitive values
+const sanitizeCategory = (category: any) => {
+  if (!category) return null;
+  
+  if (typeof category === 'object') {
+    return {
+      id: Number(category.id) || 0,
+      name: String(category.name || ""),
+      slug: String(category.slug || ""),
+      description: String(category.description || ""),
+      color: String(category.color || "#333333"),
+      text_color: String(category.text_color || "#FFFFFF"),
+      active: Boolean(category.active),
+      order: Number(category.order) || 0
+    };
+  }
+  
+  // If category is just a string (name or slug), create a minimal object
+  if (typeof category === 'string') {
+    return {
+      id: 0,
+      name: category,
+      slug: category.toLowerCase().replace(/\s+/g, '-'),
+      description: '',
+      color: "#333333",
+      text_color: "#FFFFFF",
+      active: true,
+      order: 0
+    };
+  }
+  
+  return null;
+};
+
+// Helper function to sanitize article data
+const sanitizeArticle = (article: any) => {
+  if (!article) return null;
+  
+  // Ensure category is properly formatted
+  const sanitizedCategory = sanitizeCategory(article.category);
+  
+  // Ensure tags are properly formatted
+  const sanitizedTags = Array.isArray(article.tags) 
+    ? article.tags.map((tag: any) => ({
+        id: Number(tag.id) || 0,
+        name: String(tag.name || "")
+      }))
+    : [];
+  
+  // Return sanitized article
+  return {
+    id: Number(article.id) || 0,
+    title: String(article.title || ""),
+    slug: String(article.slug || ""),
+    excerpt: String(article.excerpt || ""),
+    content: String(article.content || ""),
+    featured_image: String(article.featured_image || ""),
+    category: sanitizedCategory,
+    tags: sanitizedTags,
+    published_at: String(article.published_at || ""),
+    created_at: String(article.created_at || ""),
+    updated_at: String(article.updated_at || "")
+  };
+};
+
 // Query functions simplificados
 export const queries = {
   getNews: async ({ pageParam = 1, category = "", query = "" }) => {
@@ -30,6 +95,19 @@ export const queries = {
 
     try {
       const response = await axios.get(`${BASE_URL}/news?${params.toString()}`);
+      
+      // Sanitize the data before returning
+      if (Array.isArray(response.data)) {
+        return { data: response.data.map(article => sanitizeArticle(article)) };
+      }
+      
+      if (response.data && Array.isArray(response.data.data)) {
+        return {
+          ...response.data,
+          data: response.data.data.map(article => sanitizeArticle(article))
+        };
+      }
+      
       return response.data;
     } catch (error) {
       console.error("Failed to fetch news:", error);
@@ -40,7 +118,7 @@ export const queries = {
   getNewsById: async (slug: string) => {
     try {
       const response = await axios.get(`${BASE_URL}/news/${slug}`);
-      return response.data;
+      return sanitizeArticle(response.data);
     } catch (error) {
       console.error(`Failed to fetch news ${slug}:`, error);
       throw error;
@@ -91,11 +169,18 @@ export const queries = {
       // Handle different response formats
       if (Array.isArray(response.data)) {
         return {
-          data: response.data,
+          data: response.data.map(article => sanitizeArticle(article)),
           current_page: page,
           last_page: 1,
           per_page: response.data.length,
           total: response.data.length
+        };
+      }
+      
+      if (response.data && Array.isArray(response.data.data)) {
+        return {
+          ...response.data,
+          data: response.data.data.map(article => sanitizeArticle(article))
         };
       }
       
@@ -108,6 +193,24 @@ export const queries = {
         console.log(`Tentando fallback com filtro de categoria: ${slug}`);
         const fallbackResponse = await axios.get(`${BASE_URL}/news?category=${slug}&page=${page}`);
         console.log('Resposta do fallback:', fallbackResponse.data);
+        
+        if (Array.isArray(fallbackResponse.data)) {
+          return {
+            data: fallbackResponse.data.map(article => sanitizeArticle(article)),
+            current_page: page,
+            last_page: 1,
+            per_page: fallbackResponse.data.length,
+            total: fallbackResponse.data.length
+          };
+        }
+        
+        if (fallbackResponse.data && Array.isArray(fallbackResponse.data.data)) {
+          return {
+            ...fallbackResponse.data,
+            data: fallbackResponse.data.data.map(article => sanitizeArticle(article))
+          };
+        }
+        
         return fallbackResponse.data;
       } catch (fallbackError) {
         console.error("Fallback failed:", fallbackError);
@@ -119,6 +222,9 @@ export const queries = {
   getLatestNews: async () => {
     try {
       const response = await axios.get(`${BASE_URL}/latest-news`);
+      if (Array.isArray(response.data)) {
+        return response.data.map(article => sanitizeArticle(article));
+      }
       return response.data;
     } catch (error) {
       console.error("Failed to fetch latest news:", error);
@@ -129,6 +235,20 @@ export const queries = {
   searchNews: async (query: string, page = 1) => {
     try {
       const response = await axios.get(`${BASE_URL}/search?query=${query}&page=${page}`);
+      
+      if (Array.isArray(response.data)) {
+        return { 
+          data: response.data.map(article => sanitizeArticle(article))
+        };
+      }
+      
+      if (response.data && Array.isArray(response.data.data)) {
+        return {
+          ...response.data,
+          data: response.data.data.map(article => sanitizeArticle(article))
+        };
+      }
+      
       return response.data;
     } catch (error) {
       console.error(`Failed to search news for query ${query}:`, error);

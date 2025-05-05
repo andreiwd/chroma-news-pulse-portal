@@ -16,12 +16,18 @@ export default function CategoryNewsCarousel({ category, news }: CategoryNewsCar
   const [scrollPosition, setScrollPosition] = useState(0);
 
   // Get category details from the first news item, with safety checks
-  const categoryData = news?.[0]?.category;
-  const categorySlug = categoryData && typeof categoryData === 'object' ? categoryData.slug || category : category;
-  const categoryName = categoryData && typeof categoryData === 'object' 
-    ? categoryData.name || (category.charAt(0).toUpperCase() + category.slice(1)) 
-    : (category.charAt(0).toUpperCase() + category.slice(1));
-  const categoryColor = categoryData && typeof categoryData === 'object' ? categoryData.color || '#333' : '#333';
+  let categorySlug = category;
+  let categoryName = category.charAt(0).toUpperCase() + category.slice(1);
+  let categoryColor = '#333';
+  
+  if (news && news.length > 0 && news[0]?.category) {
+    const categoryData = news[0].category;
+    if (typeof categoryData === 'object') {
+      categorySlug = typeof categoryData.slug === 'string' ? categoryData.slug : category;
+      categoryName = typeof categoryData.name === 'string' ? categoryData.name : categoryName;
+      categoryColor = typeof categoryData.color === 'string' ? categoryData.color : '#333';
+    }
+  }
 
   const scroll = (direction: "left" | "right") => {
     const container = document.getElementById(`scroll-${category}`);

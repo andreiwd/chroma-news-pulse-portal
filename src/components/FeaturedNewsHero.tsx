@@ -32,7 +32,7 @@ export default function FeaturedNewsHero({ featuredArticles }: FeaturedNewsHeroP
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-      {/* Main Featured Article - Removida exibição da categoria */}
+      {/* Main Featured Article */}
       <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-md group">
         <Link to={`/news/${mainArticle.slug}`} className="block">
           <div className="relative h-96"> {/* Increased from h-80 to h-96 */}

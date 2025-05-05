@@ -1,6 +1,5 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Badge } from "./ui/badge";
 import { ArrowRight } from "lucide-react";
 import { Button } from "./ui/button";
 import { Article } from "@/types/api";
@@ -12,6 +11,10 @@ interface NewsCardProps {
 }
 
 export default function NewsCard({ news, variant = "default" }: NewsCardProps) {
+  if (!news) {
+    return null;
+  }
+  
   // Safely get category values with fallbacks
   const categoryColor = news.category && typeof news.category === 'object' ? String(news.category.color || "#333") : "#333";
   const categoryTextColor = news.category && typeof news.category === 'object' ? String(news.category.text_color || "#fff") : "#fff";
