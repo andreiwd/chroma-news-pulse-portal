@@ -20,7 +20,16 @@ export function useNews(page = 1, category = "", query = "") {
         console.log(`Buscando notícias com parâmetros: ${params.toString()}`);
         const response = await axios.get(`${API_BASE_URL}/news?${params.toString()}`);
         console.log('Resposta da API de notícias:', response.data);
-        return response.data;
+        
+        // Ensure we properly format and sanitize the data
+        const processedData = {
+          ...response.data,
+          data: Array.isArray(response.data.data) ? 
+            response.data.data.map((item: any) => sanitizeArticle(item)) : 
+            []
+        };
+        
+        return processedData;
       } catch (error) {
         console.error("Erro ao buscar notícias:", error);
         throw error;
@@ -39,7 +48,7 @@ export function useNewsDetail(slug: string) {
         console.log(`Buscando detalhes da notícia: ${slug}`);
         const response = await axios.get(`${API_BASE_URL}/news/${slug}`);
         console.log('Resposta da API de detalhes:', response.data);
-        return response.data;
+        return sanitizeArticle(response.data);
       } catch (error) {
         console.error(`Erro ao buscar notícia ${slug}:`, error);
         throw error;
@@ -68,9 +77,9 @@ export function useCategories() {
           categories = response.data.data;
         }
         
-        // Mapear e garantir que temos os campos necessários
+        // Mapear e garantir que temos os campos necessários como strings
         return categories
-          .filter(cat => cat && typeof cat === 'object') // Filtrar categorias inválidas
+          .filter((cat: any) => cat && typeof cat === 'object') // Filtrar categorias inválidas
           .map((category: any) => ({
             id: Number(category.id) || 0,
             name: String(category.name || ""),
@@ -108,11 +117,19 @@ export function useCategoryNews(categorySlug: string | undefined, page = 1) {
         // Verificar se a resposta é um array ou um objeto paginado
         if (Array.isArray(response.data)) {
           return { 
-            data: response.data,
+            data: response.data.map((item: any) => sanitizeArticle(item)),
             current_page: 1,
             last_page: 1,
             per_page: response.data.length,
             total: response.data.length
+          };
+        }
+        
+        // Process paginated data
+        if (response.data && Array.isArray(response.data.data)) {
+          return {
+            ...response.data,
+            data: response.data.data.map((item: any) => sanitizeArticle(item))
           };
         }
         
@@ -125,6 +142,14 @@ export function useCategoryNews(categorySlug: string | undefined, page = 1) {
           console.log(`Tentando fallback para categoria ${categorySlug}`);
           const fallbackResponse = await axios.get(`${API_BASE_URL}/news?category=${categorySlug}&page=${page}`);
           console.log('Resposta do fallback:', fallbackResponse.data);
+          
+          if (fallbackResponse.data && Array.isArray(fallbackResponse.data.data)) {
+            return {
+              ...fallbackResponse.data,
+              data: fallbackResponse.data.data.map((item: any) => sanitizeArticle(item))
+            };
+          }
+          
           return fallbackResponse.data;
         } catch (fallbackError) {
           console.error("Fallback também falhou:", fallbackError);
@@ -143,6 +168,9 @@ export function useLatestNews() {
     queryFn: async () => {
       try {
         const response = await axios.get(`${API_BASE_URL}/latest-news`);
+        if (Array.isArray(response.data)) {
+          return response.data.map((item: any) => sanitizeArticle(item));
+        }
         return response.data;
       } catch (error) {
         console.error("Erro ao buscar últimas notícias:", error);
@@ -159,6 +187,15 @@ export function useSearchNews(query: string, page = 1) {
     queryFn: async () => {
       try {
         const response = await axios.get(`${API_BASE_URL}/search?query=${query}&page=${page}`);
+        
+        // Process paginated data
+        if (response.data && Array.isArray(response.data.data)) {
+          return {
+            ...response.data,
+            data: response.data.data.map((item: any) => sanitizeArticle(item))
+          };
+        }
+        
         return response.data;
       } catch (error) {
         console.error(`Erro ao buscar por "${query}":`, error);
@@ -168,4 +205,71 @@ export function useSearchNews(query: string, page = 1) {
     staleTime: 5 * 60 * 1000,
     enabled: Boolean(query),
   });
+}
+
+// Helper function to sanitize article data including categories
+function sanitizeArticle(article: any): Article {
+  if (!article) return {} as Article;
+  
+  // Ensure category is properly formatted
+  let sanitizedCategory;
+  if (article.category) {
+    if (typeof article.category === 'object') {
+      sanitizedCategory = {
+        id: Number(article.category.id) || 0,
+        name: String(article.category.name || ""),
+        slug: String(article.category.slug || ""),
+        description: String(article.category.description || ""),
+        color: String(article.category.color || "#333333"),
+        text_color: String(article.category.text_color || "#FFFFFF"),
+        active: Boolean(article.category.active),
+        order: Number(article.category.order) || 0
+      };
+    } else {
+      sanitizedCategory = {
+        id: 0,
+        name: String(article.category),
+        slug: String(article.category).toLowerCase().replace(/\s+/g, '-'),
+        description: "",
+        color: "#333333",
+        text_color: "#FFFFFF",
+        active: true,
+        order: 0
+      };
+    }
+  } else {
+    sanitizedCategory = {
+      id: 0,
+      name: "Sem categoria",
+      slug: "sem-categoria",
+      description: "",
+      color: "#333333",
+      text_color: "#FFFFFF",
+      active: true,
+      order: 0
+    };
+  }
+  
+  // Ensure tags are properly formatted
+  const sanitizedTags = Array.isArray(article.tags) 
+    ? article.tags.map((tag: any) => ({
+        id: Number(tag.id) || 0,
+        name: String(tag.name || "")
+      }))
+    : [];
+  
+  // Return sanitized article
+  return {
+    id: Number(article.id) || 0,
+    title: String(article.title || ""),
+    slug: String(article.slug || ""),
+    excerpt: String(article.excerpt || ""),
+    content: String(article.content || ""),
+    featured_image: String(article.featured_image || ""),
+    category: sanitizedCategory,
+    tags: sanitizedTags,
+    published_at: String(article.published_at || ""),
+    created_at: String(article.created_at || ""),
+    updated_at: String(article.updated_at || "")
+  };
 }

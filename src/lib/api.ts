@@ -63,7 +63,7 @@ export const queries = {
         return [];
       }
       
-      // Mapear e validar cada categoria
+      // Mapear e validar cada categoria - garantindo que são strings ou valores primitivos
       return categoriesData
         .filter(cat => cat && typeof cat === 'object') // Filtrar categorias inválidas
         .map(cat => ({
