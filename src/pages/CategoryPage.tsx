@@ -1,94 +1,62 @@
 
-import { useParams, Link, useLocation, useNavigate } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { useCategoryNews, useCategories } from "@/hooks/useNews";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
 import NewsTicker from "@/components/NewsTicker";
 import Footer from "@/components/Footer";
-import AdPlaceholder from "@/components/AdPlaceholder";
-import NewsCard from "@/components/NewsCard";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useEffect, useState } from "react";
-import { Article } from "@/types/api";
+import { useState, useEffect } from "react";
 import { toast } from "@/components/ui/use-toast";
-import { 
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-  PaginationEllipsis
-} from "@/components/ui/pagination";
+import NewsCard from "@/components/NewsCard";
+import { Article, Category } from "@/types/api";
 
 export default function CategoryPage() {
-  const navigate = useNavigate();
   const { category: categorySlug } = useParams<{ category: string }>();
   const [currentPage, setCurrentPage] = useState(1);
   
   console.log("CategoryPage rendering with slug:", categorySlug);
   
-  // Fetch all categories to get color and other metadata
-  const { data: categoriesData } = useCategories();
+  // Fetch all categories
+  const { data: categories } = useCategories();
   
-  // Fetch category news with the slug from URL
+  // Fetch news for the category
   const {
     data: newsData,
     isLoading,
     error,
-    isFetching,
-    refetch,
     isError
   } = useCategoryNews(categorySlug, currentPage);
 
-  // Log current state to help debug
-  console.log("CategoryPage state:", { 
-    category: categorySlug, 
-    currentPage, 
-    newsData, 
-    isLoading,
-    error,
-    categoriesData
-  });
-
-  // Refetch when category changes
-  useEffect(() => {
-    if (categorySlug) {
-      console.log("Category changed, refetching:", categorySlug);
-      setCurrentPage(1);
-      refetch();
-    }
-  }, [categorySlug, refetch]);
-
-  // Extract news articles and pagination data
-  const news = newsData?.data || [];
-  const totalPages = newsData?.last_page || 1;
-
-  console.log("Parsed news data:", news);
-
-  // Find category details from categories list
-  const categoryDetails = categoriesData?.find(
-    cat => cat.slug === categorySlug
+  // Log everything to debug
+  console.log("Categories:", categories);
+  console.log("News data:", newsData);
+  console.log("Current page:", currentPage);
+  console.log("Is loading:", isLoading);
+  console.log("Error:", error);
+  
+  // Find the current category in the categories list
+  const categoryDetails = categories?.find(
+    cat => cat && typeof cat === 'object' && cat.slug === categorySlug
   );
   
   console.log("Found category details:", categoryDetails);
-
-  // Get category name, color, description
+  
+  // Get category name and color
   const categoryName = categoryDetails?.name || 
     (categorySlug ? categorySlug.charAt(0).toUpperCase() + categorySlug.slice(1) : "Categoria");
   
-  const categoryColor = categoryDetails?.color || "#333";
+  const categoryColor = categoryDetails?.color || "#333333";
   
-  const categoryDescription = categoryDetails?.description || "";
+  // Get news articles
+  const articles = Array.isArray(newsData?.data) ? newsData.data : [];
+  const totalPages = newsData?.last_page || 1;
+  
+  console.log("Processed articles:", articles);
+  console.log("Total pages:", totalPages);
 
-  // Handle page change
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  // Display a notification when loading fails
+  // Show error toast if needed
   useEffect(() => {
     if (isError && error) {
       toast({
@@ -98,8 +66,14 @@ export default function CategoryPage() {
       });
     }
   }, [isError, error]);
+
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
   
-  // Protect against missing category slug
+  // Render empty state if no category slug
   if (!categorySlug) {
     return (
       <div className="min-h-screen flex flex-col">
@@ -129,10 +103,7 @@ export default function CategoryPage() {
       
       <main className="container py-6">
         {/* Category Header */}
-        <div 
-          className="mb-8 pb-4 border-b"
-          style={{ borderColor: `${categoryColor}40` }}
-        >
+        <div className="mb-8 pb-4 border-b">
           <h1 
             className="text-3xl font-bold mb-2"
             style={{ color: categoryColor }}
@@ -143,128 +114,64 @@ export default function CategoryPage() {
               categoryName
             )}
           </h1>
-          
-          {categoryDescription && (
-            <p className="text-muted-foreground">
-              {categoryDescription}
-            </p>
-          )}
         </div>
-
-        {/* Ad banner at top */}
-        <AdPlaceholder 
-          size="banner"
-          id="ad-category-top"
-          className="mb-8"
-        />
         
-        {/* News Grid */}
+        {/* News Grid - simplified */}
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {[...Array(6)].map((_, index) => (
               <div key={index} className="space-y-3">
                 <Skeleton className="h-48 w-full" />
                 <Skeleton className="h-6 w-3/4" />
                 <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-2/3" />
               </div>
             ))}
           </div>
         ) : isError ? (
           <div className="text-center py-10">
             <p className="text-xl">Ocorreu um erro ao carregar esta categoria.</p>
-            <p className="text-sm text-muted-foreground mt-2">
-              Detalhes: {error instanceof Error ? error.message : "Erro desconhecido"}
-            </p>
             <Button className="mt-4" asChild>
               <Link to="/">Voltar para a página inicial</Link>
             </Button>
           </div>
-        ) : news && news.length > 0 ? (
+        ) : articles && articles.length > 0 ? (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {news.map((article: Article, index) => (
-                <div key={article.id || `article-${index}`}>
-                  {/* Insert ad after every 6 articles */}
-                  {index > 0 && index % 6 === 0 && (
-                    <AdPlaceholder 
-                      size="rectangle"
-                      id={`ad-category-inline-${Math.floor(index/6)}`}
-                      className="mb-6"
-                    />
-                  )}
-                  <NewsCard 
-                    news={article} 
-                    variant="compact" 
-                  />
+              {articles.map((article: Article, index) => (
+                <div key={`article-${index}-${article.id || 'unknown'}`}>
+                  <NewsCard news={article} variant="compact" />
                 </div>
               ))}
             </div>
             
-            {/* Ad banner before pagination */}
-            <AdPlaceholder 
-              size="banner"
-              id="ad-category-bottom"
-              className="my-8"
-            />
-            
-            {/* Pagination using shadcn UI components */}
+            {/* Simple pagination */}
             {totalPages > 1 && (
-              <div className="flex justify-center mt-10">
-                <Pagination>
-                  <PaginationContent>
-                    {/* Previous button */}
-                    <PaginationItem>
-                      <PaginationPrevious 
-                        onClick={() => handlePageChange(currentPage - 1)}
-                        className={currentPage === 1 || isFetching ? "pointer-events-none opacity-50" : ""}
-                      />
-                    </PaginationItem>
-                    
-                    {/* Generate page numbers */}
-                    {[...Array(totalPages)].map((_, index) => {
-                      const pageNumber = index + 1;
-                      
-                      // Show first page, last page, and pages around current page
-                      if (
-                        pageNumber === 1 ||
-                        pageNumber === totalPages ||
-                        (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
-                      ) {
-                        return (
-                          <PaginationItem key={pageNumber}>
-                            <PaginationLink
-                              isActive={currentPage === pageNumber}
-                              onClick={() => handlePageChange(pageNumber)}
-                              className={isFetching ? "pointer-events-none" : ""}
-                              style={
-                                currentPage === pageNumber
-                                  ? { backgroundColor: categoryColor, borderColor: categoryColor }
-                                  : {}
-                              }
-                            >
-                              {pageNumber}
-                            </PaginationLink>
-                          </PaginationItem>
-                        );
-                      } else if (
-                        (pageNumber === currentPage - 2 && currentPage > 3) ||
-                        (pageNumber === currentPage + 2 && currentPage < totalPages - 2)
-                      ) {
-                        return <PaginationItem key={pageNumber}><PaginationEllipsis /></PaginationItem>;
-                      }
-                      return null;
-                    })}
-                    
-                    {/* Next button */}
-                    <PaginationItem>
-                      <PaginationNext 
-                        onClick={() => handlePageChange(currentPage + 1)}
-                        className={currentPage === totalPages || isFetching ? "pointer-events-none opacity-50" : ""}
-                      />
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
+              <div className="flex justify-center mt-10 gap-2">
+                <Button
+                  variant="outline"
+                  disabled={currentPage === 1}
+                  onClick={() => handlePageChange(currentPage - 1)}
+                >
+                  Anterior
+                </Button>
+                
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <Button
+                    key={page}
+                    variant={currentPage === page ? "default" : "outline"}
+                    onClick={() => handlePageChange(page)}
+                  >
+                    {page}
+                  </Button>
+                ))}
+                
+                <Button
+                  variant="outline"
+                  disabled={currentPage === totalPages}
+                  onClick={() => handlePageChange(currentPage + 1)}
+                >
+                  Próximo
+                </Button>
               </div>
             )}
           </>

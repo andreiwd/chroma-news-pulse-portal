@@ -29,8 +29,8 @@ export const queries = {
     params.append("page", pageParam.toString());
 
     try {
-      const { data } = await api.get(`/news?${params.toString()}`);
-      return data;
+      const response = await api.get(`/news?${params.toString()}`);
+      return response.data;
     } catch (error) {
       console.error("Failed to fetch news:", error);
       throw error;
@@ -39,8 +39,8 @@ export const queries = {
 
   getNewsById: async (slug: string) => {
     try {
-      const { data } = await api.get(`/news/${slug}`);
-      return data;
+      const response = await api.get(`/news/${slug}`);
+      return response.data;
     } catch (error) {
       console.error(`Failed to fetch news ${slug}:`, error);
       throw error;
@@ -49,39 +49,34 @@ export const queries = {
 
   getCategories: async () => {
     try {
-      const { data } = await api.get("/categories");
+      const response = await api.get("/categories");
+      console.log("Raw categories response:", response.data);
       
-      // Process categories to ensure they're in the right format
-      let categories = [];
+      // Determine the structure of the response
+      let categoriesData = [];
       
-      // Check if data is an array of category objects
-      if (Array.isArray(data)) {
-        categories = data.map(cat => ({
-          id: cat.id,
-          name: cat.name || "",
-          slug: cat.slug || "",
-          description: cat.description || "",
-          color: cat.color || "#333",
-          text_color: cat.text_color || "#fff",
-          active: Boolean(cat.active),
-          order: cat.order || 0
-        }));
-      } 
-      // Check if data has a property 'data' that is an array (paginated response)
-      else if (data && typeof data === 'object' && 'data' in data && Array.isArray(data.data)) {
-        categories = data.data.map(cat => ({
-          id: cat.id,
-          name: cat.name || "",
-          slug: cat.slug || "",
-          description: cat.description || "",
-          color: cat.color || "#333",
-          text_color: cat.text_color || "#fff",
-          active: Boolean(cat.active),
-          order: cat.order || 0
-        }));
+      if (Array.isArray(response.data)) {
+        // Direct array of categories
+        categoriesData = response.data;
+      } else if (response.data && typeof response.data === 'object' && Array.isArray(response.data.data)) {
+        // Paginated response
+        categoriesData = response.data.data;
+      } else {
+        console.error("Unexpected categories data format:", response.data);
+        return [];
       }
       
-      return categories;
+      // Map and validate each category
+      return categoriesData.map(cat => ({
+        id: Number(cat.id) || 0,
+        name: String(cat.name || ""),
+        slug: String(cat.slug || ""),
+        description: String(cat.description || ""),
+        color: String(cat.color || "#333333"),
+        text_color: String(cat.text_color || "#FFFFFF"),
+        active: Boolean(cat.active),
+        order: Number(cat.order) || 0
+      }));
     } catch (error) {
       console.error("Failed to fetch categories:", error);
       return []; // Return empty array instead of throwing
@@ -90,59 +85,57 @@ export const queries = {
 
   getCategoryNews: async (slug: string, page = 1) => {
     if (!slug) {
-      console.error("No category slug provided");
       throw new Error("Category slug is required");
     }
 
-    console.log(`Fetching news for category ${slug}, page ${page}`);
-    
     try {
-      // Use the exact endpoint from the documentation
+      console.log(`Fetching news for category: ${slug}, page: ${page}`);
+      // Try the direct endpoint first
       const response = await api.get(`/categories/${slug}/news?page=${page}`);
-      console.log("Category API response:", response.data);
+      console.log("Category news response:", response.data);
       
-      // If the API returns data in the expected format, use it
-      if (response.data && typeof response.data === 'object') {
-        // If the data is in a paginated format
-        if ('data' in response.data && Array.isArray(response.data.data)) {
-          return response.data;
-        }
-        
-        // If the data is a direct array of articles
+      // Handle different response formats
+      if (response.data) {
         if (Array.isArray(response.data)) {
+          // If it's a direct array, convert to paginated format
           return {
             data: response.data,
             current_page: page,
-            last_page: Math.ceil(response.data.length / 10) || 1,
+            last_page: 1,
             per_page: 10,
             total: response.data.length
           };
         }
+        
+        // If it's already in a paginated format with data array
+        if (typeof response.data === 'object' && 'data' in response.data) {
+          return response.data;
+        }
+        
+        // Return whatever we got
+        return response.data;
       }
       
-      // If we couldn't determine the format, return the raw data
-      return response.data;
-    } catch (firstError) {
-      console.error(`Error fetching category ${slug}:`, firstError);
+      return { data: [], current_page: page, last_page: 1, per_page: 10, total: 0 };
+    } catch (error) {
+      console.error(`Error fetching category ${slug}:`, error);
       
-      // Try fallback method using the news endpoint with category filter
+      // Try fallback with filtered news endpoint
       try {
-        console.log(`Trying fallback for category ${slug}`);
         const fallbackResponse = await api.get(`/news?category=${slug}&page=${page}`);
-        console.log("Fallback response:", fallbackResponse.data);
-        
+        console.log("Fallback category news response:", fallbackResponse.data);
         return fallbackResponse.data;
-      } catch (secondError) {
-        console.error(`Both category endpoints failed for ${slug}:`, secondError);
-        throw firstError; // Throw the original error
+      } catch (fallbackError) {
+        console.error("Fallback also failed:", fallbackError);
+        return { data: [], current_page: page, last_page: 1, per_page: 10, total: 0 };
       }
     }
   },
 
   getLatestNews: async () => {
     try {
-      const { data } = await api.get("/latest-news");
-      return data;
+      const response = await api.get("/latest-news");
+      return response.data;
     } catch (error) {
       console.error("Failed to fetch latest news:", error);
       throw error;
@@ -151,8 +144,8 @@ export const queries = {
 
   searchNews: async (query: string, page = 1) => {
     try {
-      const { data } = await api.get(`/search?query=${query}&page=${page}`);
-      return data;
+      const response = await api.get(`/search?query=${query}&page=${page}`);
+      return response.data;
     } catch (error) {
       console.error(`Failed to search news for query ${query}:`, error);
       throw error;
