@@ -1,23 +1,41 @@
-
 import React, { useState, useEffect } from 'react';
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from 'axios';
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
 import NewsTicker from "@/components/NewsTicker";
 import Footer from "@/components/Footer";
-import { Category, Article } from "@/types/api"; // Certifique-se de ter a interface Article definida
-import CategoryHeader from "@/components/category/CategoryHeader";
-import CategoryLoadingState from "@/components/category/CategoryLoadingState";
-import CategoryErrorState from "@/components/category/CategoryErrorState";
-import CategoryEmptyState from "@/components/category/CategoryEmptyState";
-import CategoryPagination from "@/components/category/CategoryPagination";
-import CategoryNewsGrid from "@/components/category/CategoryNewsGrid";
-import CategoryDebugInfo from "@/components/category/CategoryDebugInfo";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+
+// Definição simplificada dos tipos
+interface Category {
+  id: number;
+  name: string;
+  slug: string;
+  description: string;
+  color: string;
+  text_color: string;
+  active: boolean;
+  order: number;
+}
+
+interface Article {
+  id: number;
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  featured_image: string;
+  category: Category;
+  published_at: string;
+  created_at: string;
+  updated_at: string;
+}
 
 export default function CategoryPage() {
+  const navigate = useNavigate();
   const { category: categorySlug } = useParams<{ category: string }>();
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
@@ -25,107 +43,111 @@ export default function CategoryPage() {
   const [categoryDetails, setCategoryDetails] = useState<Category | null>(null);
   const [articles, setArticles] = useState<Article[]>([]);
   const [totalPages, setTotalPages] = useState(1);
+  const [allCategories, setAllCategories] = useState<Category[]>([]);
   
+  // Primeiro, busca todas as categorias disponíveis
   useEffect(() => {
-    if (!categorySlug) return;
-    
-    const fetchData = async () => {
-      setIsLoading(true);
-      setError(null);
-      
+    const fetchCategories = async () => {
       try {
-        // Configuração do cliente Axios com timeout e headers adequados
-        const apiClient = axios.create({
-          baseURL: 'https://taquaritinganoticias.criarsite.online/api',
-          timeout: 15000,
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
+        console.log("Buscando categorias...");
+        const response = await axios.get('https://taquaritinganoticias.criarsite.online/api/categories');
+        console.log("Resposta da API de categorias:", response.data);
+        
+        // Processar categorias
+        let categories = [];
+        if (Array.isArray(response.data)) {
+          categories = response.data;
+        } else if (response.data && typeof response.data === 'object' && Array.isArray(response.data.data)) {
+          categories = response.data.data;
+        }
+        
+        // Salvar todas as categorias disponíveis
+        setAllCategories(categories);
+        
+        // Depuração - listar todos os slugs disponíveis
+        console.log("Slugs de categorias disponíveis:", categories.map(c => c.slug));
+        
+        // Verificar se o slug atual existe nas categorias
+        if (categorySlug) {
+          const matchingCategory = categories.find((cat: any) => 
+            cat.slug.toLowerCase() === categorySlug.toLowerCase()
+          );
+          
+          console.log("Categoria atual:", categorySlug);
+          console.log("Categoria correspondente encontrada:", matchingCategory);
+          
+          if (matchingCategory) {
+            setCategoryDetails({
+              id: Number(matchingCategory.id) || 0,
+              name: String(matchingCategory.name || ""),
+              slug: String(matchingCategory.slug || ""),
+              description: String(matchingCategory.description || ""),
+              color: String(matchingCategory.color || "#333333"),
+              text_color: String(matchingCategory.text_color || "#FFFFFF"),
+              active: Boolean(matchingCategory.active),
+              order: Number(matchingCategory.order) || 0
+            });
+          } else {
+            // Se não encontrou a categoria, definir erro
+            setError(`Categoria '${categorySlug}' não encontrada`);
+            setIsLoading(false);
+          }
+        }
+      } catch (err: any) {
+        console.error("Erro ao buscar categorias:", err);
+        setError("Erro ao carregar categorias");
+        setIsLoading(false);
+      }
+    };
+    
+    fetchCategories();
+  }, [categorySlug]);
+  
+  // Depois, busca as notícias quando temos detalhes da categoria
+  useEffect(() => {
+    // Se não temos categoria ou já temos erro, não buscar notícias
+    if (!categoryDetails || error) {
+      return;
+    }
+    
+    const fetchArticles = async () => {
+      try {
+        console.log(`Buscando notícias com parâmetros: page=${currentPage}`);
+        
+        // Usar o endpoint de notícias com filtro de categoria
+        const newsResponse = await axios.get(`https://taquaritinganoticias.criarsite.online/api/news`, {
+          params: {
+            category: categoryDetails.slug,
+            page: currentPage
           }
         });
         
-        // Buscar detalhes da categoria primeiro para confirmar que ela existe
-        const categoriesResponse = await apiClient.get('/categories');
-        let categories = [];
+        console.log("Resposta da API de notícias:", newsResponse.data);
         
-        if (Array.isArray(categoriesResponse.data)) {
-          categories = categoriesResponse.data;
-        } else if (categoriesResponse.data && typeof categoriesResponse.data === 'object' && Array.isArray(categoriesResponse.data.data)) {
-          categories = categoriesResponse.data.data;
-        }
-        
-        const category = categories.find((cat: any) => cat.slug === categorySlug);
-        if (category) {
-          setCategoryDetails({
-            id: Number(category.id) || 0,
-            name: String(category.name || ""),
-            slug: String(category.slug || ""),
-            description: String(category.description || ""),
-            color: String(category.color || "#333333"),
-            text_color: String(category.text_color || "#FFFFFF"),
-            active: Boolean(category.active),
-            order: Number(category.order) || 0
-          });
-        }
-        
-        // Agora buscar as notícias desta categoria conforme documentação da API
-        let newsResponse;
-        try {
-          // Primeiro tenta o endpoint específico para categoria
-          console.log(`Tentando endpoint específico: /categories/${categorySlug}/news?page=${currentPage}`);
-          newsResponse = await apiClient.get(`/categories/${categorySlug}/news?page=${currentPage}`);
-        } catch (categoryApiError) {
-          console.warn("Endpoint específico de categoria falhou, tentando fallback", categoryApiError);
-          
-          // Fallback para o endpoint geral com filtro de categoria
-          console.log(`Tentando fallback: /news?category=${categorySlug}&page=${currentPage}`);
-          newsResponse = await apiClient.get(`/news?category=${categorySlug}&page=${currentPage}`);
-        }
-        
-        console.log('Resposta da API:', newsResponse.data);
-        
-        // Processar dados garantindo compatibilidade com ambos os formatos possíveis
-        if (newsResponse.data) {
-          if (Array.isArray(newsResponse.data)) {
-            // Resposta direta como array
+        // Processar notícias
+        if (newsResponse.data && typeof newsResponse.data === 'object') {
+          if (Array.isArray(newsResponse.data.data)) {
+            setArticles(newsResponse.data.data);
+            setTotalPages(newsResponse.data.last_page || 1);
+          } else if (Array.isArray(newsResponse.data)) {
             setArticles(newsResponse.data);
             setTotalPages(1);
-          } else if (typeof newsResponse.data === 'object') {
-            if (Array.isArray(newsResponse.data.data)) {
-              // Resposta paginada conforme documentação
-              setArticles(newsResponse.data.data);
-              setTotalPages(newsResponse.data.last_page || 1);
-            } else {
-              // Caso ainda não tenha encontrado dados, verificar outros formatos possíveis
-              const possibleDataKeys = Object.keys(newsResponse.data).find(key => 
-                Array.isArray(newsResponse.data[key])
-              );
-              
-              if (possibleDataKeys) {
-                setArticles(newsResponse.data[possibleDataKeys]);
-                // Verificar se existem infos de paginação
-                setTotalPages(newsResponse.data.last_page || newsResponse.data.meta?.last_page || 1);
-              } else {
-                throw new Error("Formato de resposta não reconhecido");
-              }
-            }
           } else {
-            throw new Error("Formato de resposta inválido");
+            setArticles([]);
           }
         } else {
-          throw new Error("Resposta da API vazia");
+          setArticles([]);
         }
-      } catch (error: any) {
-        console.error("Erro ao buscar dados:", error);
-        setError(error.message || "Não foi possível carregar notícias desta categoria.");
-        setArticles([]);
+      } catch (err: any) {
+        console.error("Erro ao buscar notícias:", err);
+        setError("Erro ao carregar notícias");
       } finally {
         setIsLoading(false);
       }
     };
     
-    fetchData();
-  }, [categorySlug, currentPage]);
+    fetchArticles();
+  }, [categoryDetails, currentPage, error]);
   
   // Handle page change
   const handlePageChange = (page: number) => {
@@ -133,74 +155,225 @@ export default function CategoryPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
   
-  // Category name and color fallbacks
-  const categoryName = categoryDetails?.name || 
-    (categorySlug ? categorySlug.charAt(0).toUpperCase() + categorySlug.slice(1).replace(/-/g, ' ') : "Categoria");
-  
-  const categoryColor = categoryDetails?.color || "#333333";
-  
-  // Render empty state if no category slug
-  if (!categorySlug) {
+  // Fallback para categoria não encontrada
+  if (error && error.includes("não encontrada")) {
     return (
       <div className="min-h-screen flex flex-col">
         <NewsTicker />
         <Header />
         <Navigation />
         
-        <main className="container py-6 flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-3xl font-bold mb-4">Categoria não encontrada</h1>
-            <Button className="mt-4" asChild>
-              <Link to="/">Voltar para a página inicial</Link>
-            </Button>
-          </div>
+        <main className="container mx-auto py-8 flex-1 flex flex-col items-center justify-center">
+          <h1 className="text-3xl font-bold mb-6">Categoria não encontrada</h1>
+          <p className="text-gray-600 dark:text-gray-300 mb-8">
+            A categoria que você está procurando não existe ou foi removida.
+          </p>
+          
+          {allCategories.length > 0 && (
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold mb-4">Categorias disponíveis:</h2>
+              <div className="flex flex-wrap gap-2 justify-center">
+                {allCategories.map((cat) => (
+                  <Button 
+                    key={cat.id}
+                    variant="outline"
+                    onClick={() => navigate(`/category/${cat.slug}`)}
+                    style={{ 
+                      color: cat.color,
+                      borderColor: cat.color + '40'
+                    }}
+                  >
+                    {cat.name}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          <Button asChild>
+            <Link to="/">Voltar para a página inicial</Link>
+          </Button>
         </main>
-
+        
         <Footer />
       </div>
     );
   }
-
+  
+  // Renderização normal
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900">
       <NewsTicker />
       <Header />
       <Navigation />
       
-      <main className="container py-6">
-        {/* Category Header */}
-        <CategoryHeader 
-          isLoading={isLoading} 
-          categoryName={categoryName} 
-          categoryColor={categoryColor} 
-        />
+      <main className="flex-1 container mx-auto py-8">
+        {/* Header da categoria */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2" style={{ 
+            color: categoryDetails?.color || '#333333' 
+          }}>
+            {isLoading ? <Skeleton className="h-10 w-64" /> : categoryDetails?.name || "Carregando..."}
+          </h1>
+          {categoryDetails?.description && (
+            <p className="text-gray-600 dark:text-gray-300">
+              {categoryDetails.description}
+            </p>
+          )}
+        </div>
         
-        {/* Debug info */}
-        <CategoryDebugInfo 
-          categorySlug={categorySlug}
-          articlesCount={articles.length}
-          totalPages={totalPages}
-          currentPage={currentPage}
-        />
+        {/* Informações de Debug */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="bg-yellow-100 p-4 mb-6 rounded-lg">
+            <p><strong>Slug:</strong> {categorySlug}</p>
+            <p><strong>Categoria ID:</strong> {categoryDetails?.id || 'N/A'}</p>
+            <p><strong>Categoria Nome:</strong> {categoryDetails?.name || 'N/A'}</p>
+            <p><strong>Artigos:</strong> {articles.length}</p>
+            <p><strong>Página:</strong> {currentPage} de {totalPages}</p>
+            <p><strong>Carregando:</strong> {isLoading ? 'Sim' : 'Não'}</p>
+            <p><strong>Erro:</strong> {error || 'Nenhum'}</p>
+          </div>
+        )}
         
-        {/* Content states */}
+        {/* Estados de conteúdo */}
         {isLoading ? (
-          <CategoryLoadingState />
+          // Estado de carregamento
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+                <Skeleton className="h-48 w-full" />
+                <div className="p-4">
+                  <Skeleton className="h-6 w-3/4 mb-2" />
+                  <Skeleton className="h-4 w-full mb-1" />
+                  <Skeleton className="h-4 w-full mb-1" />
+                  <Skeleton className="h-4 w-2/3" />
+                </div>
+              </div>
+            ))}
+          </div>
         ) : error ? (
-          <CategoryErrorState error={error} />
+          // Estado de erro
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 text-center">
+            <h3 className="text-lg font-medium text-red-800 dark:text-red-300 mb-2">Erro</h3>
+            <p className="text-red-600 dark:text-red-400">{error}</p>
+            <Button 
+              variant="outline" 
+              className="mt-4" 
+              onClick={() => window.location.reload()}
+            >
+              Tentar novamente
+            </Button>
+          </div>
         ) : articles && articles.length > 0 ? (
+          // Estado com notícias
           <>
-            <CategoryNewsGrid articles={articles} />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {articles.map((article) => (
+                <Link 
+                  key={article.id}
+                  to={`/news/${article.slug}`}
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+                >
+                  {article.featured_image && (
+                    <div className="aspect-video relative overflow-hidden">
+                      <img 
+                        src={article.featured_image} 
+                        alt={article.title}
+                        className="w-full h-full object-cover" 
+                      />
+                    </div>
+                  )}
+                  <div className="p-4">
+                    <h2 className="text-xl font-semibold mb-2 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                      {article.title}
+                    </h2>
+                    {article.excerpt && (
+                      <p className="text-gray-600 dark:text-gray-300 text-sm line-clamp-3 mb-3">
+                        {article.excerpt}
+                      </p>
+                    )}
+                    <div className="flex justify-between items-center text-sm text-gray-500 dark:text-gray-400">
+                      <span>
+                        {new Date(article.published_at).toLocaleDateString('pt-BR')}
+                      </span>
+                      <span 
+                        className="px-2 py-1 rounded-full text-xs"
+                        style={{ 
+                          backgroundColor: article.category?.color + '20' || '#33333320',
+                          color: article.category?.color || '#333333'
+                        }}
+                      >
+                        {article.category?.name || categoryDetails?.name}
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
             
-            {/* Pagination */}
-            <CategoryPagination 
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={handlePageChange}
-            />
+            {/* Paginação */}
+            {totalPages > 1 && (
+              <div className="flex justify-center mt-8">
+                <div className="flex space-x-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    Anterior
+                  </Button>
+                  
+                  {[...Array(Math.min(totalPages, 5))].map((_, i) => {
+                    // Lógica para mostrar no máximo 5 botões de página
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+                    
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={currentPage === pageNum ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => handlePageChange(pageNum)}
+                      >
+                        {pageNum}
+                      </Button>
+                    );
+                  })}
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    Próxima
+                  </Button>
+                </div>
+              </div>
+            )}
           </>
         ) : (
-          <CategoryEmptyState />
+          // Estado vazio
+          <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 text-center">
+            <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-2">Nenhuma notícia encontrada</h3>
+            <p className="text-gray-600 dark:text-gray-400">Não há notícias disponíveis nesta categoria no momento.</p>
+            <Button 
+              variant="outline" 
+              className="mt-4" 
+              asChild
+            >
+              <Link to="/">Voltar para a página inicial</Link>
+            </Button>
+          </div>
         )}
       </main>
 
