@@ -283,24 +283,7 @@ export default function CategoryPage() {
             </p>
           )}
         </div>
-        
-        {/* Informações de Debug - sempre visíveis temporariamente até resolver o problema */}
-        <div className="bg-yellow-100 dark:bg-yellow-900/30 p-4 mb-6 rounded-lg text-sm">
-          <p><strong>URL Pathname:</strong> {location.pathname}</p>
-          <p><strong>URL Slug (useParams):</strong> {categorySlug || 'N/A'}</p>
-          <p><strong>URL Slug (manual):</strong> {urlSlug || 'N/A'}</p>
-          <p><strong>Slug em uso:</strong> {slugToUse || 'N/A'}</p>
-          <p><strong>Categoria ID:</strong> {categoryDetails?.id || 'N/A'}</p>
-          <p><strong>Categoria Nome:</strong> {categoryDetails?.name || 'N/A'}</p>
-          <p><strong>Categoria Slug:</strong> {categoryDetails?.slug || 'N/A'}</p>
-          <p><strong>Artigos:</strong> {articles.length}</p>
-          <p><strong>Página:</strong> {currentPage} de {totalPages}</p>
-          <p><strong>Carregando Categorias:</strong> {isLoading ? 'Sim' : 'Não'}</p>
-          <p><strong>Carregando Artigos:</strong> {loadingArticles ? 'Sim' : 'Não'}</p>
-          <p><strong>Erro:</strong> {error || 'Nenhum'}</p>
-          <p><strong>Categorias disponíveis:</strong> {allCategories.map(c => c.slug).join(', ')}</p>
-        </div>
-        
+       
         {/* Estados de conteúdo */}
         {showLoading ? (
           // Estado de carregamento
