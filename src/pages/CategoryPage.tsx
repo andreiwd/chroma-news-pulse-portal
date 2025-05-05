@@ -44,12 +44,16 @@ export default function CategoryPage() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   const [allCategories, setAllCategories] = useState<Category[]>([]);
+  const [loadingArticles, setLoadingArticles] = useState(false);
   
   // Primeiro, busca todas as categorias disponíveis
   useEffect(() => {
     const fetchCategories = async () => {
       try {
+        setIsLoading(true);
+        setError(null);
         console.log("Buscando categorias...");
+        
         const response = await axios.get('https://taquaritinganoticias.criarsite.online/api/categories');
         console.log("Resposta da API de categorias:", response.data);
         
@@ -65,19 +69,28 @@ export default function CategoryPage() {
         setAllCategories(categories);
         
         // Depuração - listar todos os slugs disponíveis
-        console.log("Slugs de categorias disponíveis:", categories.map(c => c.slug));
+        console.log("Slugs de categorias disponíveis:", categories.map((c: any) => c.slug));
+        console.log("Categoria atual da URL:", categorySlug);
         
         // Verificar se o slug atual existe nas categorias
         if (categorySlug) {
-          const matchingCategory = categories.find((cat: any) => 
-            cat.slug.toLowerCase() === categorySlug.toLowerCase()
-          );
+          console.log("Tentando encontrar categoria com slug:", categorySlug);
           
-          console.log("Categoria atual:", categorySlug);
+          // Primeiro tenta uma correspondência exata
+          let matchingCategory = categories.find((cat: any) => cat.slug === categorySlug);
+          
+          // Se não encontrar, tenta ignorando case
+          if (!matchingCategory) {
+            console.log("Correspondência exata não encontrada, tentando case-insensitive...");
+            matchingCategory = categories.find(
+              (cat: any) => cat.slug.toLowerCase() === categorySlug.toLowerCase()
+            );
+          }
+          
           console.log("Categoria correspondente encontrada:", matchingCategory);
           
           if (matchingCategory) {
-            setCategoryDetails({
+            const categoryData = {
               id: Number(matchingCategory.id) || 0,
               name: String(matchingCategory.name || ""),
               slug: String(matchingCategory.slug || ""),
@@ -86,16 +99,23 @@ export default function CategoryPage() {
               text_color: String(matchingCategory.text_color || "#FFFFFF"),
               active: Boolean(matchingCategory.active),
               order: Number(matchingCategory.order) || 0
-            });
+            };
+            
+            console.log("Definindo detalhes da categoria:", categoryData);
+            setCategoryDetails(categoryData);
           } else {
             // Se não encontrou a categoria, definir erro
+            console.error(`Categoria '${categorySlug}' não encontrada entre as categorias disponíveis`);
             setError(`Categoria '${categorySlug}' não encontrada`);
-            setIsLoading(false);
           }
+        } else {
+          console.error("Nenhum slug de categoria fornecido na URL");
+          setError("Categoria não especificada");
         }
       } catch (err: any) {
         console.error("Erro ao buscar categorias:", err);
-        setError("Erro ao carregar categorias");
+        setError(`Erro ao carregar categorias: ${err.message || "Erro desconhecido"}`);
+      } finally {
         setIsLoading(false);
       }
     };
@@ -107,12 +127,14 @@ export default function CategoryPage() {
   useEffect(() => {
     // Se não temos categoria ou já temos erro, não buscar notícias
     if (!categoryDetails || error) {
+      console.log("Não buscando notícias porque:", !categoryDetails ? "Sem detalhes de categoria" : "Há um erro");
       return;
     }
     
     const fetchArticles = async () => {
       try {
-        console.log(`Buscando notícias com parâmetros: page=${currentPage}`);
+        setLoadingArticles(true);
+        console.log(`Buscando notícias para categoria '${categoryDetails.slug}', página=${currentPage}`);
         
         // Usar o endpoint de notícias com filtro de categoria
         const newsResponse = await axios.get(`https://taquaritinganoticias.criarsite.online/api/news`, {
@@ -127,33 +149,40 @@ export default function CategoryPage() {
         // Processar notícias
         if (newsResponse.data && typeof newsResponse.data === 'object') {
           if (Array.isArray(newsResponse.data.data)) {
+            console.log(`Encontradas ${newsResponse.data.data.length} notícias`);
             setArticles(newsResponse.data.data);
             setTotalPages(newsResponse.data.last_page || 1);
           } else if (Array.isArray(newsResponse.data)) {
+            console.log(`Encontradas ${newsResponse.data.length} notícias (formato alternativo)`);
             setArticles(newsResponse.data);
             setTotalPages(1);
           } else {
+            console.log("Nenhuma notícia encontrada na resposta");
             setArticles([]);
           }
         } else {
+          console.log("Formato de resposta de notícias inválido");
           setArticles([]);
         }
       } catch (err: any) {
         console.error("Erro ao buscar notícias:", err);
-        setError("Erro ao carregar notícias");
+        setError(`Erro ao carregar notícias: ${err.message || "Erro desconhecido"}`);
       } finally {
-        setIsLoading(false);
+        setLoadingArticles(false);
       }
     };
     
     fetchArticles();
-  }, [categoryDetails, currentPage, error]);
+  }, [categoryDetails, currentPage]);
   
   // Handle page change
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+  
+  // Verifica se estamos carregando algo
+  const showLoading = isLoading || loadingArticles;
   
   // Fallback para categoria não encontrada
   if (error && error.includes("não encontrada")) {
@@ -213,7 +242,7 @@ export default function CategoryPage() {
           <h1 className="text-3xl font-bold mb-2" style={{ 
             color: categoryDetails?.color || '#333333' 
           }}>
-            {isLoading ? <Skeleton className="h-10 w-64" /> : categoryDetails?.name || "Carregando..."}
+            {showLoading ? <Skeleton className="h-10 w-64" /> : categoryDetails?.name || "Carregando..."}
           </h1>
           {categoryDetails?.description && (
             <p className="text-gray-600 dark:text-gray-300">
@@ -222,21 +251,22 @@ export default function CategoryPage() {
           )}
         </div>
         
-        {/* Informações de Debug */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="bg-yellow-100 p-4 mb-6 rounded-lg">
-            <p><strong>Slug:</strong> {categorySlug}</p>
-            <p><strong>Categoria ID:</strong> {categoryDetails?.id || 'N/A'}</p>
-            <p><strong>Categoria Nome:</strong> {categoryDetails?.name || 'N/A'}</p>
-            <p><strong>Artigos:</strong> {articles.length}</p>
-            <p><strong>Página:</strong> {currentPage} de {totalPages}</p>
-            <p><strong>Carregando:</strong> {isLoading ? 'Sim' : 'Não'}</p>
-            <p><strong>Erro:</strong> {error || 'Nenhum'}</p>
-          </div>
-        )}
+        {/* Informações de Debug - sempre visíveis temporariamente até resolver o problema */}
+        <div className="bg-yellow-100 dark:bg-yellow-900/30 p-4 mb-6 rounded-lg text-sm">
+          <p><strong>URL Slug:</strong> {categorySlug}</p>
+          <p><strong>Categoria ID:</strong> {categoryDetails?.id || 'N/A'}</p>
+          <p><strong>Categoria Nome:</strong> {categoryDetails?.name || 'N/A'}</p>
+          <p><strong>Categoria Slug:</strong> {categoryDetails?.slug || 'N/A'}</p>
+          <p><strong>Artigos:</strong> {articles.length}</p>
+          <p><strong>Página:</strong> {currentPage} de {totalPages}</p>
+          <p><strong>Carregando Categorias:</strong> {isLoading ? 'Sim' : 'Não'}</p>
+          <p><strong>Carregando Artigos:</strong> {loadingArticles ? 'Sim' : 'Não'}</p>
+          <p><strong>Erro:</strong> {error || 'Nenhum'}</p>
+          <p><strong>Categorias disponíveis:</strong> {allCategories.map(c => c.slug).join(', ')}</p>
+        </div>
         
         {/* Estados de conteúdo */}
-        {isLoading ? (
+        {showLoading ? (
           // Estado de carregamento
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => (
@@ -251,8 +281,8 @@ export default function CategoryPage() {
               </div>
             ))}
           </div>
-        ) : error ? (
-          // Estado de erro
+        ) : error && !error.includes("não encontrada") ? (
+          // Estado de erro (que não seja "categoria não encontrada")
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 text-center">
             <h3 className="text-lg font-medium text-red-800 dark:text-red-300 mb-2">Erro</h3>
             <p className="text-red-600 dark:text-red-400">{error}</p>
