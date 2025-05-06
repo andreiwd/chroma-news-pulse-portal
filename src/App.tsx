@@ -10,8 +10,14 @@ import CategoryPage from "@/pages/CategoryPage";
 import CategoriesPage from "@/pages/CategoriesPage";
 import NotFound from "@/pages/NotFound";
 import AdminLogin from "@/pages/AdminLogin";
-import WeatherConfig from "@/pages/admin/WeatherConfig";
+import AdminLayout from "@/pages/admin/AdminLayout";
 import Dashboard from "@/pages/admin/Dashboard";
+import WeatherConfig from "@/pages/admin/WeatherConfig";
+import AdsManager from "@/pages/admin/AdsManager";
+import HtmlBlocksManager from "@/pages/admin/HtmlBlocksManager";
+import UsersManager from "@/pages/admin/UsersManager";
+import FrontendSettings from "@/pages/admin/FrontendSettings";
+import PrivateRoute from "@/components/admin/PrivateRoute";
 
 const queryClient = new QueryClient();
 
@@ -26,9 +32,19 @@ function App() {
             <Route path="/category/:slug" element={<CategoryPage />} />
             <Route path="/category/:slug/:filter" element={<CategoryPage />} />
             <Route path="/categories" element={<CategoriesPage />} />
-            <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/admin/dashboard" element={<Dashboard />} />
-            <Route path="/admin/weather" element={<WeatherConfig />} />
+            
+            {/* Painel Administrativo */}
+            <Route path="/painel" element={<AdminLogin />} />
+            <Route path="/admin" element={<PrivateRoute><AdminLayout /></PrivateRoute>}>
+              <Route index element={<Dashboard />} />
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="ads" element={<AdsManager />} />
+              <Route path="blocks" element={<HtmlBlocksManager />} />
+              <Route path="users" element={<UsersManager />} />
+              <Route path="settings" element={<FrontendSettings />} />
+              <Route path="weather" element={<WeatherConfig />} />
+            </Route>
+            
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Router>

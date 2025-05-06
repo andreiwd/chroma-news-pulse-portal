@@ -21,8 +21,8 @@ export default function AdminLogin() {
     
     // Simulação de autenticação - em uma aplicação real, isso seria uma chamada à API
     setTimeout(() => {
-      // Credenciais de teste: admin/admin
-      if (username === "admin" && password === "admin") {
+      // Credenciais de teste: admin/admin123
+      if (username === "admin" && password === "admin123") {
         localStorage.setItem("admin_token", "fake-jwt-token");
         
         toast({
@@ -102,7 +102,7 @@ export default function AdminLogin() {
               </Button>
               
               <div className="text-center text-sm text-muted-foreground mt-2">
-                Para testes, use: <code className="bg-muted p-1 rounded">admin / admin</code>
+                Para testes, use: <code className="bg-muted p-1 rounded">admin / admin123</code>
               </div>
             </form>
           </CardContent>

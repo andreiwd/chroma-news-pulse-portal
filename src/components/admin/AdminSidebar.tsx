@@ -2,9 +2,10 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { 
-  LayoutDashboard,
+  LayoutDashboard, 
   Image, 
   FileCode,
+  Users,
   Settings,
   Sun
 } from "lucide-react";
@@ -49,19 +50,24 @@ export default function AdminSidebar() {
       label: "Anúncios",
     },
     {
-      to: "/admin/weather",
-      icon: <Sun size={18} />,
-      label: "Previsão do Tempo",
-    },
-    {
       to: "/admin/blocks",
       icon: <FileCode size={18} />,
       label: "Blocos HTML",
     },
     {
+      to: "/admin/users",
+      icon: <Users size={18} />,
+      label: "Usuários",
+    },
+    {
+      to: "/admin/weather",
+      icon: <Sun size={18} />,
+      label: "Previsão do Tempo",
+    },
+    {
       to: "/admin/settings",
       icon: <Settings size={18} />,
-      label: "Configurações",
+      label: "Personalização",
     }
   ];
   
