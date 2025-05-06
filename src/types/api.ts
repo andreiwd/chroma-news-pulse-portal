@@ -22,6 +22,7 @@ export interface Article {
   excerpt: string;
   content: string;
   featured_image: string;
+  featured?: boolean;
   category: Category;
   tags: Tag[];
   published_at: string;

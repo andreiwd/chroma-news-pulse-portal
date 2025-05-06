@@ -24,8 +24,8 @@ export default function Index() {
   const allNews: Article[] = newsData?.data || [];
   const latestNewsItems: Article[] = Array.isArray(latestNewsData) ? latestNewsData.filter(Boolean) : [];
   
-  // Filter featured articles
-  const featuredArticles = allNews.filter(article => article.featured === true).slice(0, 5);
+  // Filter featured articles - ensure featured property is checked safely
+  const featuredArticles = allNews.filter(article => article && article.featured === true).slice(0, 5);
   
   const getNewsByCategory = () => {
     if (!allNews?.length) return {};
