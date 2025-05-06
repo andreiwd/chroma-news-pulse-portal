@@ -66,8 +66,8 @@ export default function FeaturedYouTubeVideo({ className = "" }: FeaturedVideoPr
     }
   };
 
-  const videoTitle = videoConfig.title || "Vídeo em Destaque";
-  const videoUrl = getYoutubeEmbedUrl(videoConfig.url);
+  const videoTitle = String(videoConfig.title || "Vídeo em Destaque");
+  const videoUrl = getYoutubeEmbedUrl(String(videoConfig.url || ""));
 
   return (
     <section className={`py-6 ${className}`}>

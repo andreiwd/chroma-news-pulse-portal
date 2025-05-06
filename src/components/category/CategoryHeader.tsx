@@ -9,16 +9,20 @@ interface CategoryHeaderProps {
 }
 
 export default function CategoryHeader({ isLoading, categoryName, categoryColor }: CategoryHeaderProps) {
+  // Ensure we're working with strings
+  const name = String(categoryName || "");
+  const color = String(categoryColor || "#333");
+  
   return (
     <div className="mb-8 pb-4 border-b">
       <h1 
         className="text-3xl font-bold mb-2"
-        style={{ color: categoryColor }}
+        style={{ color: color }}
       >
         {isLoading ? (
           <Skeleton className="h-10 w-48" />
         ) : (
-          categoryName
+          name
         )}
       </h1>
     </div>

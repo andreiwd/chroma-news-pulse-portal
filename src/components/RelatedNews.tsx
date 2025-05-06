@@ -26,8 +26,10 @@ export default function RelatedNews({ articles }: RelatedNewsProps) {
           const timeAgo = formatDistanceToNow(publishedDate, { locale: ptBR, addSuffix: true });
           
           // Make sure category properties are accessed safely
-          const categoryName = article.category?.name || "";
-          const categoryColor = article.category?.color || `#333`;
+          const categoryName = article.category && typeof article.category === 'object' ? 
+            String(article.category.name || "") : "";
+          const categoryColor = article.category && typeof article.category === 'object' ? 
+            String(article.category.color || "#333") : "#333";
           
           return (
             <Link key={article.id} to={`/news/${article.slug}`} className="block">

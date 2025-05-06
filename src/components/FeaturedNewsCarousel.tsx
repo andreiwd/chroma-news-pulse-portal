@@ -54,11 +54,11 @@ export default function FeaturedNewsCarousel() {
                     <span 
                       className="inline-block text-xs font-medium px-3 py-1 rounded-full mb-3"
                       style={{ 
-                        backgroundColor: `${mainArticle.category.color || '#333'}20`,
-                        color: mainArticle.category.color || '#333'
+                        backgroundColor: `${String(mainArticle.category.color || '#333')}20`,
+                        color: String(mainArticle.category.color || '#333')
                       }}
                     >
-                      {mainArticle.category.name || "Sem categoria"}
+                      {String(mainArticle.category.name || "Sem categoria")}
                     </span>
                   )}
                   
@@ -68,7 +68,7 @@ export default function FeaturedNewsCarousel() {
                       className="hover:underline"
                       style={{ 
                         color: mainArticle?.category && typeof mainArticle.category === 'object' 
-                          ? mainArticle.category.color || 'inherit' 
+                          ? String(mainArticle.category.color || 'inherit')
                           : 'inherit'
                       }}
                     >
@@ -121,7 +121,7 @@ export default function FeaturedNewsCarousel() {
                     if (!article || typeof article !== 'object') return null;
                     
                     const categoryColor = article.category && typeof article.category === 'object' 
-                      ? article.category.color || '#333' 
+                      ? String(article.category.color || '#333')
                       : '#333';
                     const articleId = article.id || `side-article-${index}`;
                     
@@ -135,7 +135,7 @@ export default function FeaturedNewsCarousel() {
                         <div className="flex-grow">
                           <div className="text-xs font-medium mb-1" style={{ color: categoryColor }}>
                             {article.category && typeof article.category === 'object' 
-                              ? article.category.name || "Sem categoria"
+                              ? String(article.category.name || "Sem categoria")
                               : "Sem categoria"}
                           </div>
                           <h3 className="font-medium line-clamp-2">
