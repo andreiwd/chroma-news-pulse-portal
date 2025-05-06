@@ -108,13 +108,13 @@ export default function CategoryNewsCarousel({ category, news }: CategoryNewsCar
                 >
                   <div className="relative h-32">
                     <img
-                      src={article.featured_image || `https://placehold.co/600x400/333/white?text=${categoryName}`}
+                      src={article.featured_image || `https://placehold.co/600x400/333/white?text=${encodeURIComponent(categoryName)}`}
                       alt={article.title}
                       className="w-full h-full object-cover"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.onerror = null;
-                        target.src = `https://placehold.co/600x400/333/white?text=${categoryName}`;
+                        target.src = `https://placehold.co/600x400/333/white?text=${encodeURIComponent(categoryName)}`;
                       }}
                     />
                   </div>

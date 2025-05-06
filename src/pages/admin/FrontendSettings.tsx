@@ -3,10 +3,37 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import FeaturedYouTubeVideo from "@/components/FeaturedYouTubeVideo";
+
+interface SiteSettings {
+  logo: {
+    url: string;
+    height: number;
+  };
+  ogImage: {
+    url: string;
+    width: number;
+    height: number;
+  };
+  socialLinks: {
+    facebook: string;
+    twitter: string;
+    instagram: string;
+  };
+  colors: {
+    primary: string;
+    secondary: string;
+  };
+  featuredYoutubeVideo: {
+    url: string;
+    title: string;
+    showOnHome: boolean;
+  };
+}
 
 export default function FrontendSettings() {
   const { toast } = useToast();
-  const [settings, setSettings] = useState({
+  const [settings, setSettings] = useState<SiteSettings>({
     logo: {
       url: "",
       height: 60
@@ -44,24 +71,19 @@ export default function FrontendSettings() {
     }
   }, []);
 
-  const handleInputChange = (
-    section: string,
-    field: string,
+  // Generic type-safe handleInputChange function
+  const handleInputChange = <K extends keyof SiteSettings>(
+    section: K,
+    field: keyof SiteSettings[K],
     value: string | number | boolean
   ) => {
-    setSettings(prevSettings => {
-      // Create a copy of the section to modify
-      const sectionData = { ...prevSettings[section as keyof typeof prevSettings] };
-      
-      // Update the specific field
-      sectionData[field as keyof typeof sectionData] = value;
-      
-      // Return the updated settings object
-      return {
-        ...prevSettings,
-        [section]: sectionData
-      };
-    });
+    setSettings(prevSettings => ({
+      ...prevSettings,
+      [section]: {
+        ...prevSettings[section],
+        [field]: value
+      }
+    }));
   };
 
   const handleSaveSettings = () => {
@@ -73,6 +95,14 @@ export default function FrontendSettings() {
       description: "As alterações foram aplicadas com sucesso."
     });
   };
+
+  // Preview section for YouTube video
+  const videoPreview = settings.featuredYoutubeVideo.url ? (
+    <div className="mt-4 p-4 border rounded-md">
+      <h4 className="text-sm font-medium mb-2">Prévia:</h4>
+      <FeaturedYouTubeVideo />
+    </div>
+  ) : null;
 
   return (
     <div>
@@ -363,6 +393,8 @@ export default function FrontendSettings() {
                   Exibir vídeo na página inicial
                 </label>
               </div>
+
+              {videoPreview}
             </CardContent>
           </Card>
         </TabsContent>

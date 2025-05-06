@@ -60,13 +60,13 @@ export default function CategoryNewsSection({ category, news }: CategoryNewsSect
             <Link to={`/news/${featuredArticle.slug}`}>
               <div className="aspect-video w-full">
                 <img
-                  src={featuredArticle.featured_image || `https://placehold.co/800x450/333/white?text=${categoryName}`}
+                  src={featuredArticle.featured_image || `https://placehold.co/800x450/333/white?text=${encodeURIComponent(categoryName)}`}
                   alt={featuredArticle.title || "Article"}
                   className="w-full h-full object-cover"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.onerror = null;
-                    target.src = `https://placehold.co/800x450/333/white?text=${categoryName}`;
+                    target.src = `https://placehold.co/800x450/333/white?text=${encodeURIComponent(categoryName)}`;
                   }}
                 />
               </div>
