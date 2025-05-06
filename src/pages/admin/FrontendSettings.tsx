@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -70,13 +69,32 @@ export default function FrontendSettings() {
     // Lidar com inputs aninhados (usando a notação dot)
     if (name.includes('.')) {
       const [parent, child] = name.split('.');
-      setSettings({
-        ...settings,
-        [parent]: {
-          ...settings[parent as keyof SiteSettings],
-          [child]: type === 'checkbox' ? checked : value
-        }
-      });
+      
+      if (parent === 'socialLinks') {
+        setSettings({
+          ...settings,
+          socialLinks: {
+            ...settings.socialLinks,
+            [child]: value
+          }
+        });
+      } else if (parent === 'header') {
+        setSettings({
+          ...settings,
+          header: {
+            ...settings.header,
+            [child]: type === 'checkbox' ? checked : value
+          }
+        });
+      } else if (parent === 'footer') {
+        setSettings({
+          ...settings,
+          footer: {
+            ...settings.footer,
+            [child]: type === 'checkbox' ? checked : value
+          }
+        });
+      }
     } else {
       setSettings({
         ...settings,
