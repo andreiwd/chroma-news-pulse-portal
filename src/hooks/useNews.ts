@@ -54,7 +54,7 @@ const sanitizeArticle = (article: any): Article => {
       }))
     : [];
   
-  // Return sanitized article
+  // Return sanitized article with featured properly typed
   return {
     id: Number(article.id) || 0,
     title: String(article.title || ""),
@@ -62,6 +62,7 @@ const sanitizeArticle = (article: any): Article => {
     excerpt: String(article.excerpt || ""),
     content: String(article.content || ""),
     featured_image: String(article.featured_image || ""),
+    featured: Boolean(article.featured), // Ensure featured is properly converted to boolean
     category: sanitizedCategory as Category,
     tags: sanitizedTags,
     published_at: String(article.published_at || ""),
@@ -87,8 +88,10 @@ export function useNews(page = 1, category = "", query = "") {
         
         // Ensure we properly format and sanitize the data
         if (Array.isArray(response.data)) {
+          const sanitizedArticles = response.data.map(item => sanitizeArticle(item));
+          console.log('Artigos em destaque:', sanitizedArticles.filter(article => article.featured === true));
           return { 
-            data: response.data.map(item => sanitizeArticle(item)),
+            data: sanitizedArticles,
             current_page: 1,
             last_page: 1,
             per_page: response.data.length,
@@ -97,9 +100,11 @@ export function useNews(page = 1, category = "", query = "") {
         }
         
         if (response.data && Array.isArray(response.data.data)) {
+          const sanitizedArticles = response.data.data.map(item => sanitizeArticle(item));
+          console.log('Artigos em destaque:', sanitizedArticles.filter(article => article.featured === true));
           return {
             ...response.data,
-            data: response.data.data.map(item => sanitizeArticle(item))
+            data: sanitizedArticles
           };
         }
         

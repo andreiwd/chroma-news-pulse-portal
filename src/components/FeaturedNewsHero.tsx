@@ -10,10 +10,12 @@ interface FeaturedNewsHeroProps {
 }
 
 export default function FeaturedNewsHero({ featuredArticles }: FeaturedNewsHeroProps) {
-  // Filter articles to only include those with featured: true
-  const filteredArticles = featuredArticles.filter(article => article.featured === true);
+  console.log("FeaturedNewsHero received articles:", featuredArticles);
+  // Don't filter here again, we already filtered in the parent component
+  const filteredArticles = featuredArticles;
   
   if (!filteredArticles || filteredArticles.length === 0) {
+    console.log("No featured articles available for hero section");
     return (
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 animate-pulse">
         <div className="lg:col-span-2">
@@ -26,6 +28,8 @@ export default function FeaturedNewsHero({ featuredArticles }: FeaturedNewsHeroP
       </div>
     );
   }
+
+  console.log("Rendering hero with featured articles:", filteredArticles.length);
 
   // Ensure we have valid articles
   const mainArticle = filteredArticles[0];

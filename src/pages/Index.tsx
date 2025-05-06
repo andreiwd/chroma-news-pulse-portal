@@ -24,8 +24,20 @@ export default function Index() {
   const allNews: Article[] = newsData?.data || [];
   const latestNewsItems: Article[] = Array.isArray(latestNewsData) ? latestNewsData.filter(Boolean) : [];
   
-  // Filter featured articles - ensure featured property is checked safely
-  const featuredArticles = allNews.filter(article => article && article.featured === true).slice(0, 5);
+  // Filter featured articles - with debug logging
+  const featuredArticles = allNews.filter(article => {
+    if (!article) return false;
+    console.log(`Article ${article.id} - ${article.title} - featured: ${article.featured}`);
+    return article.featured === true;
+  }).slice(0, 5);
+  
+  // Debug log
+  console.log('Featured Articles Count:', featuredArticles.length);
+  if (featuredArticles.length > 0) {
+    console.log('First Featured Article:', featuredArticles[0]?.title);
+  } else {
+    console.log('No featured articles found');
+  }
   
   const getNewsByCategory = () => {
     if (!allNews?.length) return {};
