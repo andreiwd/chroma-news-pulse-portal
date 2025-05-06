@@ -10,7 +10,10 @@ interface FeaturedNewsHeroProps {
 }
 
 export default function FeaturedNewsHero({ featuredArticles }: FeaturedNewsHeroProps) {
-  if (!featuredArticles || featuredArticles.length === 0) {
+  // Filter articles to only include those with featured: true
+  const filteredArticles = featuredArticles.filter(article => article.featured === true);
+  
+  if (!filteredArticles || filteredArticles.length === 0) {
     return (
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 animate-pulse">
         <div className="lg:col-span-2">
@@ -25,8 +28,8 @@ export default function FeaturedNewsHero({ featuredArticles }: FeaturedNewsHeroP
   }
 
   // Ensure we have valid articles
-  const mainArticle = featuredArticles[0];
-  const sideArticles = featuredArticles.slice(1, 3);
+  const mainArticle = filteredArticles[0];
+  const sideArticles = filteredArticles.slice(1, 3);
 
   if (!mainArticle) return null;
 
@@ -121,7 +124,7 @@ export default function FeaturedNewsHero({ featuredArticles }: FeaturedNewsHeroP
         })}
         
         {/* See More Button - Only show if we have articles */}
-        {featuredArticles.length > 0 && (
+        {filteredArticles.length > 0 && (
           <Button asChild className="w-full dark:bg-gray-700 dark:hover:bg-gray-600">
             <Link to="/category/destaque">
               Mais destaques <ArrowRight className="ml-2 h-4 w-4" />

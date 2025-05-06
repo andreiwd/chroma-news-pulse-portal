@@ -24,6 +24,9 @@ export default function Index() {
   const allNews: Article[] = newsData?.data || [];
   const latestNewsItems: Article[] = Array.isArray(latestNewsData) ? latestNewsData.filter(Boolean) : [];
   
+  // Filter featured articles
+  const featuredArticles = allNews.filter(article => article.featured === true).slice(0, 5);
+  
   const getNewsByCategory = () => {
     if (!allNews?.length) return {};
     
@@ -59,7 +62,6 @@ export default function Index() {
   const mainLatestNews = allNews?.slice(0, 12) || [];
   const categoryEntries = Object.entries(getNewsByCategory() || {});
   const trendingNews = allNews?.slice(0, 6) || [];
-  const featuredArticles = allNews?.slice(0, 5) || [];
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">

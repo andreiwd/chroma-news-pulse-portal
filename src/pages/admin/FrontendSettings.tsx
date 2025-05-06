@@ -1,9 +1,7 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import FeaturedYouTubeVideo from "@/components/FeaturedYouTubeVideo";
 
 interface SiteSettings {
   logo: {
@@ -23,11 +21,6 @@ interface SiteSettings {
   colors: {
     primary: string;
     secondary: string;
-  };
-  featuredYoutubeVideo: {
-    url: string;
-    title: string;
-    showOnHome: boolean;
   };
 }
 
@@ -51,11 +44,6 @@ export default function FrontendSettings() {
     colors: {
       primary: "#1a73e8",
       secondary: "#f8f9fa"
-    },
-    featuredYoutubeVideo: {
-      url: "",
-      title: "Vídeo em Destaque",
-      showOnHome: false
     }
   });
 
@@ -96,25 +84,16 @@ export default function FrontendSettings() {
     });
   };
 
-  // Preview section for YouTube video
-  const videoPreview = settings.featuredYoutubeVideo.url ? (
-    <div className="mt-4 p-4 border rounded-md">
-      <h4 className="text-sm font-medium mb-2">Prévia:</h4>
-      <FeaturedYouTubeVideo />
-    </div>
-  ) : null;
-
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">Configurações do Frontend</h1>
       
       <Tabs defaultValue="logo" className="w-full">
-        <TabsList className="grid grid-cols-5 mb-6">
+        <TabsList className="grid grid-cols-4 mb-6">
           <TabsTrigger value="logo">Logo</TabsTrigger>
           <TabsTrigger value="og-images">OG Images</TabsTrigger>
           <TabsTrigger value="social">Social</TabsTrigger>
           <TabsTrigger value="colors">Cores</TabsTrigger>
-          <TabsTrigger value="video">Vídeo</TabsTrigger>
         </TabsList>
         
         <TabsContent value="logo">
@@ -344,57 +323,6 @@ export default function FrontendSettings() {
                   />
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="video">
-          <Card>
-            <CardHeader>
-              <CardTitle>Vídeo em Destaque</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <label htmlFor="video-url" className="text-sm font-medium">URL do Vídeo do YouTube</label>
-                <input
-                  id="video-url"
-                  type="text"
-                  className="w-full p-2 border rounded"
-                  value={settings.featuredYoutubeVideo.url}
-                  onChange={(e) => handleInputChange('featuredYoutubeVideo', 'url', e.target.value)}
-                  placeholder="Ex: https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-                />
-                <p className="text-xs text-gray-500">
-                  Cole a URL completa do vídeo do YouTube que deseja exibir
-                </p>
-              </div>
-              
-              <div className="space-y-2">
-                <label htmlFor="video-title" className="text-sm font-medium">Título do Vídeo</label>
-                <input
-                  id="video-title"
-                  type="text"
-                  className="w-full p-2 border rounded"
-                  value={settings.featuredYoutubeVideo.title}
-                  onChange={(e) => handleInputChange('featuredYoutubeVideo', 'title', e.target.value)}
-                  placeholder="Título do vídeo"
-                />
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <input
-                  id="show-video"
-                  type="checkbox"
-                  checked={settings.featuredYoutubeVideo.showOnHome}
-                  onChange={(e) => handleInputChange('featuredYoutubeVideo', 'showOnHome', e.target.checked)}
-                  className="w-4 h-4"
-                />
-                <label htmlFor="show-video" className="text-sm font-medium">
-                  Exibir vídeo na página inicial
-                </label>
-              </div>
-
-              {videoPreview}
             </CardContent>
           </Card>
         </TabsContent>

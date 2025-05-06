@@ -9,7 +9,6 @@ import {
   DialogClose 
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import {
   Carousel,
   CarouselContent,
@@ -60,7 +59,12 @@ export default function FeaturedYouTubeVideo({ className = "" }: FeaturedVideoPr
   }, []);
 
   // Se não houver vídeos configurados ou isLoading, não renderizar nada
-  if (isLoading || videos.length === 0) {
+  if (isLoading) {
+    return null;
+  }
+  
+  // Se não houver vídeos configurados, não renderizar nada
+  if (videos.length === 0) {
     return null;
   }
 
