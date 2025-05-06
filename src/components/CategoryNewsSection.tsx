@@ -106,7 +106,7 @@ export default function CategoryNewsSection({ category, news }: CategoryNewsSect
                   {article.published_at && new Date(article.published_at).toLocaleDateString('pt-BR')}
                 </div>
               </div>
-            )
+            );
           })}
         </div>
       </div>

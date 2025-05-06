@@ -72,12 +72,12 @@ export default function FeaturedNewsHero({ featuredArticles }: FeaturedNewsHeroP
           // Process category safely to get primitive values
           let categoryColor = '#fff';
           let categoryTextColor = '#fff';
-          let categoryName = 'Sem categoria';
+          let categoryName = '';
           
           if (article.category && typeof article.category === 'object') {
             categoryColor = typeof article.category.color === 'string' ? article.category.color : '#fff';
             categoryTextColor = typeof article.category.text_color === 'string' ? article.category.text_color : '#fff';
-            categoryName = typeof article.category.name === 'string' ? article.category.name : 'Sem categoria';
+            categoryName = typeof article.category.name === 'string' ? article.category.name : '';
           }
           
           return (
@@ -99,7 +99,7 @@ export default function FeaturedNewsHero({ featuredArticles }: FeaturedNewsHeroP
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent p-4 flex flex-col justify-end">
                   <div className="mb-1">
-                    {article.category && typeof article.category === 'object' && (
+                    {categoryName && (
                       <span 
                         className="text-xs font-medium px-2 py-1 rounded-full"
                         style={{ 
