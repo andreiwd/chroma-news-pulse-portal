@@ -14,11 +14,11 @@ export default function FeaturedNewsHero({ featuredArticles }: FeaturedNewsHeroP
     return (
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 animate-pulse">
         <div className="lg:col-span-2">
-          <Skeleton className="h-96 rounded-lg" /> {/* Increased from h-80 to h-96 */}
+          <Skeleton className="h-96 rounded-lg" />
         </div>
         <div className="space-y-4">
-          <Skeleton className="h-[calc(48px*2)] rounded-lg" /> {/* Increased from 40px to 48px */}
-          <Skeleton className="h-[calc(48px*2)] rounded-lg" /> {/* Increased from 40px to 48px */}
+          <Skeleton className="h-[calc(48px*2)] rounded-lg" />
+          <Skeleton className="h-[calc(48px*2)] rounded-lg" />
         </div>
       </div>
     );
@@ -35,7 +35,7 @@ export default function FeaturedNewsHero({ featuredArticles }: FeaturedNewsHeroP
       {/* Main Featured Article */}
       <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-md group">
         <Link to={`/news/${mainArticle.slug}`} className="block">
-          <div className="relative h-96"> {/* Increased from h-80 to h-96 */}
+          <div className="relative h-96">
             <img
               src={mainArticle.featured_image || "https://placehold.co/1200x800/333/white?text=Featured+News"}
               alt={mainArticle.title || "Featured News"}

@@ -15,6 +15,7 @@ import FeaturedNewsHero from "@/components/FeaturedNewsHero";
 import TrendingTopics from "@/components/TrendingTopics";
 import CategoryNewsSection from "@/components/CategoryNewsSection";
 import WeatherWidget from "@/components/WeatherWidget";
+import FeaturedYouTubeVideo from "@/components/FeaturedYouTubeVideo";
 
 export default function Index() {
   const { data: newsData, isLoading: isNewsLoading } = useNews(1, "", "");
@@ -73,6 +74,9 @@ export default function Index() {
             <FeaturedNewsHero featuredArticles={featuredArticles} />
           </div>
         </section>
+
+        {/* Featured YouTube Video */}
+        <FeaturedYouTubeVideo />
 
         {/* Trending Topics Bar */}
         <section className="bg-white py-3 border-y shadow-sm mb-6">

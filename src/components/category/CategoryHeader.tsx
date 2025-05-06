@@ -1,7 +1,6 @@
 
 import React from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Category } from "@/types/api";
 
 interface CategoryHeaderProps {
   isLoading: boolean;
