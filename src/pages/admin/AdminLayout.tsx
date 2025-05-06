@@ -8,9 +8,9 @@ export default function AdminLayout() {
     <div className="min-h-screen flex flex-col bg-muted/10">
       <AdminHeader />
       <div className="flex flex-1 container py-6 gap-6">
-        <div className="w-64 hidden md:block">
+        <aside className="w-64 hidden md:block">
           <AdminSidebar />
-        </div>
+        </aside>
         <main className="flex-1">
           <Outlet />
         </main>
