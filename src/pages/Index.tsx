@@ -75,9 +75,6 @@ export default function Index() {
           </div>
         </section>
 
-        {/* Featured YouTube Video */}
-        <FeaturedYouTubeVideo />
-
         {/* Trending Topics Bar */}
         <section className="bg-white py-3 border-y shadow-sm mb-6">
           <div className="container">
@@ -116,7 +113,25 @@ export default function Index() {
                 className="my-8 bg-white rounded-lg shadow-sm" 
               />
 
-              {categoryEntries.slice(0, 2).map(([category, news], index) => {
+              {/* Primeira categoria */}
+              {categoryEntries.slice(0, 1).map(([category, news], index) => {
+                if (!category || !news || !news.length) return null;
+                return (
+                  <CategoryNewsSection 
+                    key={`cat-section-${category}-${index}`} 
+                    category={category} 
+                    news={news} 
+                  />
+                );
+              })}
+              
+              {/* Vídeos em Destaque - posicionado entre as categorias */}
+              <div className="my-8">
+                <FeaturedYouTubeVideo />
+              </div>
+
+              {/* Segunda categoria */}
+              {categoryEntries.slice(1, 2).map(([category, news], index) => {
                 if (!category || !news || !news.length) return null;
                 return (
                   <CategoryNewsSection 
@@ -133,6 +148,7 @@ export default function Index() {
                 className="my-8 bg-white rounded-lg shadow-sm" 
               />
 
+              {/* Demais categorias */}
               {categoryEntries.slice(2, 4).map(([category, news], index) => {
                 if (!category || !news || !news.length) return null;
                 return (

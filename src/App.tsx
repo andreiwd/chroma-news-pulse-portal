@@ -16,6 +16,7 @@ import WeatherConfig from "@/pages/admin/WeatherConfig";
 import AdsManager from "@/pages/admin/AdsManager";
 import HtmlBlocksManager from "@/pages/admin/HtmlBlocksManager";
 import UsersManager from "@/pages/admin/UsersManager";
+import VideosManager from "@/pages/admin/VideosManager";
 import FrontendSettings from "@/pages/admin/FrontendSettings";
 import PrivateRoute from "@/components/admin/PrivateRoute";
 
@@ -41,6 +42,7 @@ function App() {
               <Route path="ads" element={<AdsManager />} />
               <Route path="blocks" element={<HtmlBlocksManager />} />
               <Route path="users" element={<UsersManager />} />
+              <Route path="videos" element={<VideosManager />} />
               <Route path="settings" element={<FrontendSettings />} />
               <Route path="weather" element={<WeatherConfig />} />
             </Route>

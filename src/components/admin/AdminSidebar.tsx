@@ -7,7 +7,8 @@ import {
   FileCode,
   Users,
   Settings,
-  Sun
+  Sun,
+  Youtube
 } from "lucide-react";
 
 interface NavItemProps {
@@ -53,6 +54,11 @@ export default function AdminSidebar() {
       to: "/admin/blocks",
       icon: <FileCode size={18} />,
       label: "Blocos HTML",
+    },
+    {
+      to: "/admin/videos",
+      icon: <Youtube size={18} />,
+      label: "Vídeos",
     },
     {
       to: "/admin/users",
