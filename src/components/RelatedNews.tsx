@@ -27,8 +27,7 @@ export default function RelatedNews({ articles }: RelatedNewsProps) {
           
           // Make sure category properties are accessed safely
           const categoryName = article.category?.name || "";
-          const categoryColor = article.category?.color || `var(--category-${article.category?.slug || "default"})`;
-          const categorySlug = article.category?.slug || "";
+          const categoryColor = article.category?.color || `#333`;
           
           return (
             <Link key={article.id} to={`/news/${article.slug}`} className="block">

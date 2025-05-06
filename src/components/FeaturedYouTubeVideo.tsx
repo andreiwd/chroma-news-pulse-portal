@@ -13,9 +13,9 @@ interface VideoConfig {
 
 export default function FeaturedYouTubeVideo({ className = "" }: FeaturedVideoProps) {
   const [videoConfig, setVideoConfig] = useState<VideoConfig>({
-    url: "",
-    title: "",
-    showOnHome: false
+    url: "https://www.youtube.com/embed/dQw4w9WgXcQ", // Default video (for testing)
+    title: "Vídeo em Destaque",
+    showOnHome: true
   });
   const [isLoading, setIsLoading] = useState(true);
 
@@ -36,13 +36,19 @@ export default function FeaturedYouTubeVideo({ className = "" }: FeaturedVideoPr
   }, []);
 
   // Se não houver vídeo configurado ou não estiver ativo, não renderizar nada
-  if (!videoConfig.showOnHome || !videoConfig.url || isLoading) {
+  if (isLoading) {
+    return null;
+  }
+
+  // Use a default video if none is configured but showOnHome is true
+  const shouldShowVideo = videoConfig.showOnHome;
+  if (!shouldShowVideo) {
     return null;
   }
 
   // Função para extrair ID do vídeo do YouTube
   const getYoutubeEmbedUrl = (url: string): string => {
-    if (!url) return '';
+    if (!url) return 'https://www.youtube.com/embed/dQw4w9WgXcQ'; // Default fallback
     
     // Se já for uma URL de incorporação, retorne-a
     if (url.includes('youtube.com/embed/')) return url;
@@ -54,21 +60,24 @@ export default function FeaturedYouTubeVideo({ className = "" }: FeaturedVideoPr
       
       return match && match[2].length === 11
         ? `https://www.youtube.com/embed/${match[2]}`
-        : url;
+        : 'https://www.youtube.com/embed/dQw4w9WgXcQ'; // Default fallback
     } catch (error) {
-      return url;
+      return 'https://www.youtube.com/embed/dQw4w9WgXcQ'; // Default fallback
     }
   };
+
+  const videoTitle = videoConfig.title || "Vídeo em Destaque";
+  const videoUrl = getYoutubeEmbedUrl(videoConfig.url);
 
   return (
     <section className={`py-6 ${className}`}>
       <div className="container">
-        <h2 className="text-2xl font-bold mb-4">{videoConfig.title || "Vídeo em Destaque"}</h2>
+        <h2 className="text-2xl font-bold mb-4">{videoTitle}</h2>
         <div className="rounded-lg overflow-hidden shadow-md">
           <div className="aspect-video w-full">
             <iframe
-              src={getYoutubeEmbedUrl(videoConfig.url)}
-              title={videoConfig.title}
+              src={videoUrl}
+              title={videoTitle}
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
