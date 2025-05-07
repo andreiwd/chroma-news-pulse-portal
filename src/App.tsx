@@ -8,6 +8,7 @@ import Index from "@/pages/Index";
 import NewsDetail from "@/pages/NewsDetail";
 import CategoryPage from "@/pages/CategoryPage";
 import CategoriesPage from "@/pages/CategoriesPage";
+import FeaturedArticlesPage from "@/pages/FeaturedArticlesPage";
 import NotFound from "@/pages/NotFound";
 import AdminLogin from "@/pages/AdminLogin";
 import AdminLayout from "@/pages/admin/AdminLayout";
@@ -30,6 +31,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/news/:id" element={<NewsDetail />} />
+            <Route path="/featured" element={<FeaturedArticlesPage />} />
             <Route path="/category/:slug" element={<CategoryPage />} />
             <Route path="/category/:slug/:filter" element={<CategoryPage />} />
             <Route path="/categories" element={<CategoriesPage />} />

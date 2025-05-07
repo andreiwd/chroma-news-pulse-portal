@@ -103,8 +103,8 @@ export default function FeaturedYouTubeVideo({ className = "" }: FeaturedVideoPr
 
   return (
     <section 
-      className={`py-4 relative ${className}`}
-      style={{ backgroundColor: accentColor, maxHeight: '200px' }}
+      className={`py-8 relative ${className}`}
+      style={{ backgroundColor: accentColor }}
     >
       <div className="container">
         <div className="relative">
@@ -117,8 +117,8 @@ export default function FeaturedYouTubeVideo({ className = "" }: FeaturedVideoPr
             <span className="font-medium">Vídeos em Destaque</span>
           </Badge>
 
-          {/* Carrossel de miniaturas */}
-          <div className="pt-4">
+          {/* Carrossel de miniaturas - increased height */}
+          <div className="pt-6">
             <Carousel className="w-full">
               <CarouselContent className="-ml-2 md:-ml-4">
                 {videos.map((video) => (

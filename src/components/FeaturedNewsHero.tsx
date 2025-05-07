@@ -33,6 +33,7 @@ export default function FeaturedNewsHero({ featuredArticles }: FeaturedNewsHeroP
 
   // Ensure we have valid articles
   const mainArticle = filteredArticles[0];
+  // Slice only up to 2 side articles
   const sideArticles = filteredArticles.slice(1, 3);
 
   if (!mainArticle) return null;
@@ -127,10 +128,19 @@ export default function FeaturedNewsHero({ featuredArticles }: FeaturedNewsHeroP
           );
         })}
         
+        {/* Show empty placeholder if we don't have enough side articles */}
+        {sideArticles.length < 2 && (
+          <div className="flex flex-col h-[calc(48vh/2)] max-h-48 bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden relative group">
+            <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+              <p>Mais destaques em breve</p>
+            </div>
+          </div>
+        )}
+        
         {/* See More Button - Only show if we have articles */}
         {filteredArticles.length > 0 && (
           <Button asChild className="w-full dark:bg-gray-700 dark:hover:bg-gray-600">
-            <Link to="/category/destaque">
+            <Link to="/featured">
               Mais destaques <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>

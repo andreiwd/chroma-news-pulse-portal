@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import NewsTicker from "@/components/NewsTicker";
 import Header from "@/components/Header";
@@ -97,7 +96,7 @@ export default function Index() {
         </section>
 
         {/* Main Content */}
-        <div className="container pb-12">
+        <div className="container pb-6">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Left Sidebar */}
             <div className="lg:col-span-2">
@@ -127,25 +126,8 @@ export default function Index() {
                 className="my-8 bg-white rounded-lg shadow-sm" 
               />
 
-              {/* Primeira categoria */}
-              {categoryEntries.slice(0, 1).map(([category, news], index) => {
-                if (!category || !news || !news.length) return null;
-                return (
-                  <CategoryNewsSection 
-                    key={`cat-section-${category}-${index}`} 
-                    category={category} 
-                    news={news} 
-                  />
-                );
-              })}
-              
-              {/* Vídeos em Destaque - posicionado entre as categorias */}
-              <div className="my-8">
-                <FeaturedYouTubeVideo />
-              </div>
-
-              {/* Segunda categoria */}
-              {categoryEntries.slice(1, 2).map(([category, news], index) => {
+              {/* Categorias */}
+              {categoryEntries.slice(0, 4).map(([category, news], index) => {
                 if (!category || !news || !news.length) return null;
                 return (
                   <CategoryNewsSection 
@@ -161,18 +143,6 @@ export default function Index() {
                 id="ad-main-banner-2"
                 className="my-8 bg-white rounded-lg shadow-sm" 
               />
-
-              {/* Demais categorias */}
-              {categoryEntries.slice(2, 4).map(([category, news], index) => {
-                if (!category || !news || !news.length) return null;
-                return (
-                  <CategoryNewsSection 
-                    key={`cat-section-${category}-${index}`} 
-                    category={category} 
-                    news={news} 
-                  />
-                );
-              })}
             </div>
 
             {/* Right Sidebar */}
@@ -201,6 +171,11 @@ export default function Index() {
               </div>
             </div>
           </div>
+        </div>
+        
+        {/* Vídeos em Destaque - moved to bottom of page before footer */}
+        <div className="py-8 mt-4">
+          <FeaturedYouTubeVideo className="w-full" />
         </div>
       </main>
 
