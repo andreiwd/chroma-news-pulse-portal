@@ -1,6 +1,6 @@
 
 import { useEffect } from "react";
-import { useNews } from "@/hooks/useNews";
+import { useAllFeaturedNews } from "@/hooks/useNews";
 import { Article } from "@/types/api";
 import { Card } from "@/components/ui/card";
 import NewsCard from "@/components/NewsCard";
@@ -12,38 +12,19 @@ import Breadcrumbs from "@/components/Breadcrumbs";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function FeaturedArticlesPage() {
-  // Get all news and filter on client side for featured items
-  const { data: newsData, isLoading } = useNews(1, "", "");
+  const { data: featuredNewsData, isLoading } = useAllFeaturedNews(1);
   
   useEffect(() => {
     // Scroll to top when component mounts
     window.scrollTo(0, 0);
   }, []);
   
-  // Filter for featured articles with more debugging
-  const allArticles = Array.isArray(newsData?.data) ? newsData?.data : [];
-  console.log("FeaturedArticlesPage - Total articles:", allArticles.length);
+  // Extract featured articles
+  const featuredArticles: Article[] = Array.isArray(featuredNewsData?.data) 
+    ? featuredNewsData.data.filter(article => article && typeof article === 'object')
+    : [];
   
-  // Debug logging each article's featured status
-  allArticles.forEach((article, index) => {
-    if (article && typeof article === 'object') {
-      console.log(`Article ${index} (${article.title}) featured status:`, article.featured);
-    }
-  });
-  
-  const featuredArticles: Article[] = allArticles
-    .filter(article => {
-      // Explicit check for featured property
-      return article && typeof article === 'object' && article.featured === true;
-    })
-    .sort((a, b) => {
-      // Sort by published_at date, newest first
-      const dateA = new Date(a.published_at || 0).getTime();
-      const dateB = new Date(b.published_at || 0).getTime();
-      return dateB - dateA;
-    });
-  
-  // Debug log to check how many featured articles we have
+  // Debug logging
   console.log("FeaturedArticlesPage - Total featured articles:", featuredArticles.length);
   if (featuredArticles.length > 0) {
     console.log("First featured article:", featuredArticles[0]?.title);

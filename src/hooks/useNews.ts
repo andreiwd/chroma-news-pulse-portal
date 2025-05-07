@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { queries } from "@/lib/api";
 import type { Article, Category, PaginatedResponse } from "@/types/api";
@@ -70,6 +69,90 @@ const sanitizeArticle = (article: any): Article => {
     updated_at: String(article.updated_at || "")
   };
 };
+
+// Fetch featured articles (hero section) - new function
+export function useFeaturedHeroNews() {
+  return useQuery({
+    queryKey: ["featured-hero"],
+    queryFn: async () => {
+      try {
+        console.log("Fetching featured hero articles with new endpoint");
+        const response = await axios.get(`${API_BASE_URL}/news?featured=1&limit=3`);
+        console.log('Featured hero API response:', response.data);
+        
+        // Process the response
+        if (Array.isArray(response.data)) {
+          const sanitizedArticles = response.data.map(item => sanitizeArticle(item));
+          console.log('Sanitized hero articles:', sanitizedArticles.length);
+          return sanitizedArticles;
+        }
+        
+        if (response.data && Array.isArray(response.data.data)) {
+          const sanitizedArticles = response.data.data.map(item => sanitizeArticle(item));
+          console.log('Sanitized hero articles (from data):', sanitizedArticles.length);
+          return sanitizedArticles;
+        }
+        
+        return [];
+      } catch (error) {
+        console.error("Error fetching featured hero articles:", error);
+        return [];
+      }
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+
+// Fetch all featured articles (for the featured page)
+export function useAllFeaturedNews(page = 1) {
+  return useQuery({
+    queryKey: ["all-featured", page],
+    queryFn: async () => {
+      try {
+        console.log(`Fetching all featured articles, page ${page}`);
+        const response = await axios.get(`${API_BASE_URL}/news?featured=1&page=${page}`);
+        console.log('All featured API response:', response.data);
+        
+        // Process paginated data
+        if (response.data && Array.isArray(response.data.data)) {
+          return {
+            ...response.data,
+            data: response.data.data.map(item => sanitizeArticle(item))
+          };
+        }
+        
+        // Process array data
+        if (Array.isArray(response.data)) {
+          return {
+            data: response.data.map(item => sanitizeArticle(item)),
+            current_page: page,
+            last_page: 1,
+            per_page: response.data.length,
+            total: response.data.length
+          };
+        }
+        
+        return {
+          data: [],
+          current_page: page,
+          last_page: 1,
+          per_page: 10,
+          total: 0
+        };
+      } catch (error) {
+        console.error("Error fetching all featured articles:", error);
+        return {
+          data: [],
+          current_page: page,
+          last_page: 1,
+          per_page: 10,
+          total: 0
+        };
+      }
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}
 
 // Buscar notícias
 export function useNews(page = 1, category = "", query = "") {

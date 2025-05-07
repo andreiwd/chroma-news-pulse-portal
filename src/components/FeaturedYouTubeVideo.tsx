@@ -117,14 +117,14 @@ export default function FeaturedYouTubeVideo({ className = "" }: FeaturedVideoPr
             <span className="font-medium">Vídeos em Destaque</span>
           </Badge>
 
-          {/* Carrossel de miniaturas - increased height */}
+          {/* Carrossel de miniaturas - increased height and size */}
           <div className="pt-6">
             <Carousel className="w-full">
               <CarouselContent className="-ml-2 md:-ml-4">
                 {videos.map((video) => (
                   <CarouselItem 
                     key={video.id} 
-                    className="pl-2 md:pl-4 basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6"
+                    className="pl-2 md:pl-4 basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/3"
                   >
                     <div 
                       className="relative cursor-pointer group overflow-hidden rounded-md shadow-md"
@@ -138,10 +138,10 @@ export default function FeaturedYouTubeVideo({ className = "" }: FeaturedVideoPr
                         />
                       </div>
                       <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Youtube size={40} className="text-white" />
+                        <Youtube size={50} className="text-white" />
                       </div>
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
-                        <p className="text-xs text-white font-medium line-clamp-1">
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3">
+                        <p className="text-sm text-white font-medium line-clamp-2">
                           {String(video.title || "")}
                         </p>
                       </div>

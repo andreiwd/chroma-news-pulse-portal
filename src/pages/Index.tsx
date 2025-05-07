@@ -5,7 +5,7 @@ import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import AdPlaceholder from "@/components/AdPlaceholder";
-import { useNews, useLatestNews } from "@/hooks/useNews";
+import { useNews, useLatestNews, useFeaturedHeroNews } from "@/hooks/useNews";
 import { Article } from "@/types/api";
 import MainNewsGrid from "@/components/MainNewsGrid";
 import LatestNewsSidebar from "@/components/LatestNewsSidebar";
@@ -20,33 +20,14 @@ import FeaturedYouTubeVideo from "@/components/FeaturedYouTubeVideo";
 export default function Index() {
   const { data: newsData, isLoading: isNewsLoading } = useNews(1, "", "");
   const { data: latestNewsData, isLoading: isLatestNewsLoading } = useLatestNews();
+  const { data: featuredArticles, isLoading: isFeaturedLoading } = useFeaturedHeroNews();
   
   const allNews: Article[] = Array.isArray(newsData?.data) ? newsData?.data : [];
   console.log("Index - Total articles:", allNews.length);
   
   const latestNewsItems: Article[] = Array.isArray(latestNewsData) ? latestNewsData.filter(Boolean) : [];
   
-  // Filter featured articles with better logging
-  console.log("Checking for featured articles in Index page...");
-  allNews.forEach((article, index) => {
-    if (article && typeof article === 'object') {
-      console.log(`Article ${index} (${article.title}) featured status:`, article.featured);
-    }
-  });
-  
-  const featuredArticles = allNews
-    .filter(article => {
-      if (!article || typeof article !== 'object') return false;
-      // Explicitly check featured property
-      return article.featured === true;
-    })
-    .slice(0, 5);
-  
-  // Debug log for featured articles
-  console.log('Featured Articles Count:', featuredArticles.length);
-  featuredArticles.forEach((article, index) => {
-    console.log(`Featured article ${index}: ${article.title}`);
-  });
+  console.log("Featured articles from new endpoint:", featuredArticles);
   
   const getNewsByCategory = () => {
     if (!allNews?.length) return {};
@@ -94,7 +75,7 @@ export default function Index() {
         {/* Hero Section */}
         <section className="py-6">
           <div className="container">
-            <FeaturedNewsHero featuredArticles={featuredArticles} />
+            <FeaturedNewsHero featuredArticles={featuredArticles || []} />
           </div>
         </section>
 
