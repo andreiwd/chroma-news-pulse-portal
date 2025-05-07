@@ -11,10 +11,8 @@ interface FeaturedNewsHeroProps {
 
 export default function FeaturedNewsHero({ featuredArticles }: FeaturedNewsHeroProps) {
   console.log("FeaturedNewsHero received articles:", featuredArticles);
-  // Don't filter here again, we already filtered in the parent component
-  const filteredArticles = featuredArticles;
   
-  if (!filteredArticles || filteredArticles.length === 0) {
+  if (!featuredArticles || featuredArticles.length === 0) {
     console.log("No featured articles available for hero section");
     return (
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 animate-pulse">
@@ -29,13 +27,15 @@ export default function FeaturedNewsHero({ featuredArticles }: FeaturedNewsHeroP
     );
   }
 
-  console.log("Rendering hero with featured articles:", filteredArticles.length);
+  console.log("Rendering hero with featured articles:", featuredArticles.length);
 
   // Ensure we have valid articles
-  const mainArticle = filteredArticles[0];
-  // Slice only up to 2 side articles
-  const sideArticles = filteredArticles.slice(1, 3);
-
+  const mainArticle = featuredArticles[0];
+  
+  // Always create exactly two side articles - use placeholders if needed
+  const sideArticles = featuredArticles.slice(1, 3);
+  const needsPlaceholders = 3 - featuredArticles.length;
+  
   if (!mainArticle) return null;
 
   return (
@@ -74,8 +74,15 @@ export default function FeaturedNewsHero({ featuredArticles }: FeaturedNewsHeroP
 
       {/* Side Articles */}
       <div className="space-y-4">
+        {/* Display available side articles */}
         {sideArticles.map((article, index) => {
-          if (!article) return null;
+          if (!article) return (
+            <div key={`empty-side-${index}`} className="flex flex-col h-[calc(48vh/2)] max-h-48 bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden relative group">
+              <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+                <p>Mais destaques em breve</p>
+              </div>
+            </div>
+          );
           
           // Process category safely to get primitive values
           let categoryColor = '#fff';
@@ -128,23 +135,24 @@ export default function FeaturedNewsHero({ featuredArticles }: FeaturedNewsHeroP
           );
         })}
         
-        {/* Show empty placeholder if we don't have enough side articles */}
-        {sideArticles.length < 2 && (
-          <div className="flex flex-col h-[calc(48vh/2)] max-h-48 bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden relative group">
+        {/* Add placeholder cards if we don't have enough articles */}
+        {needsPlaceholders > 0 && Array.from({ length: needsPlaceholders }).map((_, index) => (
+          <div 
+            key={`placeholder-${index}`}
+            className="flex flex-col h-[calc(48vh/2)] max-h-48 bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden relative group"
+          >
             <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
               <p>Mais destaques em breve</p>
             </div>
           </div>
-        )}
+        ))}
         
-        {/* See More Button - Only show if we have articles */}
-        {filteredArticles.length > 0 && (
-          <Button asChild className="w-full dark:bg-gray-700 dark:hover:bg-gray-600">
-            <Link to="/featured">
-              Mais destaques <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
-        )}
+        {/* See More Button - Always show this button */}
+        <Button asChild className="w-full dark:bg-gray-700 dark:hover:bg-gray-600">
+          <Link to="/featured">
+            Mais destaques <ArrowRight className="ml-2 h-4 w-4" />
+          </Link>
+        </Button>
       </div>
     </div>
   );

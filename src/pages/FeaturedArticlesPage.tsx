@@ -15,6 +15,11 @@ export default function FeaturedArticlesPage() {
   // Get all news and filter on client side for featured items
   const { data: newsData, isLoading } = useNews(1, "", "");
   
+  useEffect(() => {
+    // Scroll to top when component mounts
+    window.scrollTo(0, 0);
+  }, []);
+  
   // Filter for featured articles
   const featuredArticles: Article[] = (newsData?.data || [])
     .filter(article => article && article.featured === true)
@@ -24,6 +29,12 @@ export default function FeaturedArticlesPage() {
       const dateB = new Date(b.published_at || 0).getTime();
       return dateB - dateA;
     });
+  
+  // Debug log to check how many featured articles we have
+  console.log("FeaturedArticlesPage - Total featured articles:", featuredArticles.length);
+  if (featuredArticles.length > 0) {
+    console.log("First featured article:", featuredArticles[0]?.title);
+  }
   
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">

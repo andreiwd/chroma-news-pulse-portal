@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import NewsTicker from "@/components/NewsTicker";
 import Header from "@/components/Header";
@@ -26,17 +27,11 @@ export default function Index() {
   // Filter featured articles - with debug logging
   const featuredArticles = allNews.filter(article => {
     if (!article) return false;
-    console.log(`Article ${article.id} - ${article.title} - featured: ${article.featured}`);
     return article.featured === true;
   }).slice(0, 5);
   
-  // Debug log
+  // Debug log for featured articles
   console.log('Featured Articles Count:', featuredArticles.length);
-  if (featuredArticles.length > 0) {
-    console.log('First Featured Article:', featuredArticles[0]?.title);
-  } else {
-    console.log('No featured articles found');
-  }
   
   const getNewsByCategory = () => {
     if (!allNews?.length) return {};
@@ -173,10 +168,13 @@ export default function Index() {
           </div>
         </div>
         
-        {/* Vídeos em Destaque - moved to bottom of page before footer */}
-        <div className="py-8 mt-4">
-          <FeaturedYouTubeVideo className="w-full" />
-        </div>
+        {/* Vídeos em Destaque - full width section before footer */}
+        <section className="w-full bg-gray-900 py-8">
+          <div className="container">
+            <h2 className="text-2xl font-bold text-white mb-6">Vídeos em Destaque</h2>
+            <FeaturedYouTubeVideo className="w-full h-[480px]" />
+          </div>
+        </section>
       </main>
 
       <Footer />
