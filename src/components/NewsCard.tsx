@@ -11,7 +11,8 @@ interface NewsCardProps {
 }
 
 export default function NewsCard({ news, variant = "default" }: NewsCardProps) {
-  if (!news) {
+  if (!news || typeof news !== 'object') {
+    console.error("Invalid news item provided to NewsCard:", news);
     return null;
   }
   
@@ -22,15 +23,15 @@ export default function NewsCard({ news, variant = "default" }: NewsCardProps) {
   const categorySlug = news.category && typeof news.category === 'object' ? String(news.category.slug || "") : "";
   
   // Format view count - usando dados reais ou estimado baseado no ID
-  const viewCount = news.id ? Math.floor(news.id * 7.3) : Math.floor(Math.random() * 500);
+  const viewCount = typeof news.id === 'number' ? Math.floor(news.id * 7.3) : Math.floor(Math.random() * 500);
 
   if (variant === "horizontal") {
     return (
       <Card className="overflow-hidden hover:shadow-lg transition-shadow flex flex-row h-40">
         <div className="relative w-1/3">
           <img
-            src={news.featured_image || `https://placehold.co/600x400/333/white?text=${encodeURIComponent(categoryName || "Notícia")}`}
-            alt={news.title || "Notícia"}
+            src={typeof news.featured_image === 'string' ? news.featured_image : `https://placehold.co/600x400/333/white?text=${encodeURIComponent(categoryName || "Notícia")}`}
+            alt={typeof news.title === 'string' ? news.title : "Notícia"}
             className="w-full h-full object-cover"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
@@ -57,12 +58,12 @@ export default function NewsCard({ news, variant = "default" }: NewsCardProps) {
             <CardTitle 
               className="text-lg font-bold line-clamp-2"
             >
-              {news.title || "Notícia sem título"}
+              {typeof news.title === 'string' ? news.title : "Notícia sem título"}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-3 pt-0 flex-grow flex flex-col justify-between">
             <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
-              {news.excerpt || "Sem descrição disponível"}
+              {typeof news.excerpt === 'string' ? news.excerpt : "Sem descrição disponível"}
             </p>
             <div className="flex justify-between items-center mt-auto">
               <div className="text-xs text-muted-foreground">
@@ -101,7 +102,7 @@ export default function NewsCard({ news, variant = "default" }: NewsCardProps) {
             </span>
           </div>
           <Link to={`/news/${news.slug}`} className="font-medium line-clamp-2 hover:underline">
-            {news.title || "Notícia sem título"}
+            {typeof news.title === 'string' ? news.title : "Notícia sem título"}
           </Link>
         </CardContent>
       </Card>
@@ -112,8 +113,8 @@ export default function NewsCard({ news, variant = "default" }: NewsCardProps) {
     <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
       <div className="relative">
         <img
-          src={news.featured_image || `https://placehold.co/600x400/333/white?text=${encodeURIComponent(categoryName || "Notícia")}`}
-          alt={news.title || "Notícia"}
+          src={typeof news.featured_image === 'string' ? news.featured_image : `https://placehold.co/600x400/333/white?text=${encodeURIComponent(categoryName || "Notícia")}`}
+          alt={typeof news.title === 'string' ? news.title : "Notícia"}
           className={`w-full object-cover ${variant === "compact" ? "h-32" : "h-48"}`}
           onError={(e) => {
             const target = e.target as HTMLImageElement;
@@ -140,13 +141,13 @@ export default function NewsCard({ news, variant = "default" }: NewsCardProps) {
           className={`${variant === "compact" ? "text-lg" : "text-xl"} font-bold line-clamp-2`}
         >
           <Link to={`/news/${news.slug}`} className="hover:underline">
-            {news.title || "Notícia sem título"}
+            {typeof news.title === 'string' ? news.title : "Notícia sem título"}
           </Link>
         </CardTitle>
       </CardHeader>
       <CardContent className={variant === "compact" ? "p-4 pt-0" : "p-6 pt-0"}>
         <p className={`text-muted-foreground mb-4 ${variant === "compact" ? "text-sm line-clamp-2" : "line-clamp-3"}`}>
-          {news.excerpt || "Sem descrição disponível"}
+          {typeof news.excerpt === 'string' ? news.excerpt : "Sem descrição disponível"}
         </p>
         <div className="flex justify-between items-center">
           <div className="text-xs text-muted-foreground">

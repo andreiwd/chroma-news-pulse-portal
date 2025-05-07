@@ -45,8 +45,8 @@ export default function FeaturedNewsHero({ featuredArticles }: FeaturedNewsHeroP
         <Link to={`/news/${mainArticle.slug}`} className="block">
           <div className="relative h-96">
             <img
-              src={mainArticle.featured_image || "https://placehold.co/1200x800/333/white?text=Featured+News"}
-              alt={mainArticle.title || "Featured News"}
+              src={typeof mainArticle.featured_image === 'string' ? mainArticle.featured_image : "https://placehold.co/1200x800/333/white?text=Featured+News"}
+              alt={typeof mainArticle.title === 'string' ? mainArticle.title : "Featured News"}
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
@@ -57,11 +57,11 @@ export default function FeaturedNewsHero({ featuredArticles }: FeaturedNewsHeroP
             
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent flex flex-col justify-end p-6">
               <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
-                {mainArticle.title || "Notícia sem título"}
+                {typeof mainArticle.title === 'string' ? mainArticle.title : "Notícia sem título"}
               </h2>
               
               <p className="text-white/80 mb-3 line-clamp-2">
-                {mainArticle.excerpt || "Sem descrição disponível"}
+                {typeof mainArticle.excerpt === 'string' ? mainArticle.excerpt : "Sem descrição disponível"}
               </p>
               
               <div className="text-sm text-white/70">
@@ -97,14 +97,14 @@ export default function FeaturedNewsHero({ featuredArticles }: FeaturedNewsHeroP
           
           return (
             <Link 
-              key={article.id || `side-article-${index}`}
+              key={typeof article.id === 'number' ? article.id : `side-article-${index}`}
               to={`/news/${article.slug}`} 
               className="flex flex-col h-[calc(48vh/2)] max-h-48 bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden relative group"
             >
               <div className="absolute inset-0">
                 <img
-                  src={article.featured_image || "https://placehold.co/800x400/333/white"}
-                  alt={article.title || "News"}
+                  src={typeof article.featured_image === 'string' ? article.featured_image : "https://placehold.co/800x400/333/white"}
+                  alt={typeof article.title === 'string' ? article.title : "News"}
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
@@ -127,7 +127,7 @@ export default function FeaturedNewsHero({ featuredArticles }: FeaturedNewsHeroP
                     )}
                   </div>
                   <h3 className="text-white font-bold text-lg line-clamp-2">
-                    {article.title || "Notícia sem título"}
+                    {typeof article.title === 'string' ? article.title : "Notícia sem título"}
                   </h3>
                 </div>
               </div>

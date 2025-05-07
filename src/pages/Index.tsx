@@ -24,11 +24,13 @@ export default function Index() {
   const allNews: Article[] = newsData?.data || [];
   const latestNewsItems: Article[] = Array.isArray(latestNewsData) ? latestNewsData.filter(Boolean) : [];
   
-  // Filter featured articles - with debug logging
-  const featuredArticles = allNews.filter(article => {
-    if (!article) return false;
-    return article.featured === true;
-  }).slice(0, 5);
+  // Filter featured articles - with type checking
+  const featuredArticles = allNews
+    .filter(article => {
+      if (!article || typeof article !== 'object') return false;
+      return article.featured === true;
+    })
+    .slice(0, 5);
   
   // Debug log for featured articles
   console.log('Featured Articles Count:', featuredArticles.length);
@@ -39,11 +41,11 @@ export default function Index() {
     const categoryMap: Record<string, Article[]> = {};
     
     allNews.forEach(article => {
-      if (!article) return;
+      if (!article || typeof article !== 'object') return;
       if (!article.category || typeof article.category !== 'object') return;
       
       const categorySlug = article.category.slug;
-      if (!categorySlug) return;
+      if (!categorySlug || typeof categorySlug !== 'string') return;
       
       if (!categoryMap[categorySlug]) {
         categoryMap[categorySlug] = [];

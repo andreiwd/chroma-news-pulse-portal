@@ -22,7 +22,7 @@ export default function FeaturedArticlesPage() {
   
   // Filter for featured articles
   const featuredArticles: Article[] = (newsData?.data || [])
-    .filter(article => article && article.featured === true)
+    .filter(article => article && typeof article === 'object' && article.featured === true)
     .sort((a, b) => {
       // Sort by published_at date, newest first
       const dateA = new Date(a.published_at || 0).getTime();
@@ -76,7 +76,7 @@ export default function FeaturedArticlesPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {featuredArticles.map(article => (
                 <NewsCard 
-                  key={article.id || article.slug} 
+                  key={typeof article.id === 'number' ? article.id : article.slug} 
                   news={article} 
                   variant="default" 
                 />
