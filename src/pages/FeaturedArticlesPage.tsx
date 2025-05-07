@@ -20,9 +20,22 @@ export default function FeaturedArticlesPage() {
     window.scrollTo(0, 0);
   }, []);
   
-  // Filter for featured articles
-  const featuredArticles: Article[] = (newsData?.data || [])
-    .filter(article => article && typeof article === 'object' && article.featured === true)
+  // Filter for featured articles with more debugging
+  const allArticles = Array.isArray(newsData?.data) ? newsData?.data : [];
+  console.log("FeaturedArticlesPage - Total articles:", allArticles.length);
+  
+  // Debug logging each article's featured status
+  allArticles.forEach((article, index) => {
+    if (article && typeof article === 'object') {
+      console.log(`Article ${index} (${article.title}) featured status:`, article.featured);
+    }
+  });
+  
+  const featuredArticles: Article[] = allArticles
+    .filter(article => {
+      // Explicit check for featured property
+      return article && typeof article === 'object' && article.featured === true;
+    })
     .sort((a, b) => {
       // Sort by published_at date, newest first
       const dateA = new Date(a.published_at || 0).getTime();

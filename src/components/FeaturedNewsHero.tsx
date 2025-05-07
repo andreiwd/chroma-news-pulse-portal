@@ -11,9 +11,14 @@ interface FeaturedNewsHeroProps {
 
 export default function FeaturedNewsHero({ featuredArticles }: FeaturedNewsHeroProps) {
   console.log("FeaturedNewsHero received articles:", featuredArticles);
+  console.log("Article types:", featuredArticles.map(a => typeof a.featured));
   
-  if (!featuredArticles || featuredArticles.length === 0) {
-    console.log("No featured articles available for hero section");
+  // Ensure we're checking if the array is empty or has invalid values
+  const hasValidArticles = Array.isArray(featuredArticles) && featuredArticles.length > 0 && 
+                          featuredArticles.every(article => article && typeof article === 'object');
+  
+  if (!hasValidArticles) {
+    console.log("No valid featured articles available for hero section");
     return (
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 animate-pulse">
         <div className="lg:col-span-2">
@@ -29,12 +34,16 @@ export default function FeaturedNewsHero({ featuredArticles }: FeaturedNewsHeroP
 
   console.log("Rendering hero with featured articles:", featuredArticles.length);
 
-  // Ensure we have valid articles
+  // Ensure we have valid articles with the main article
   const mainArticle = featuredArticles[0];
   
-  // Always create exactly two side articles - use placeholders if needed
-  const sideArticles = featuredArticles.slice(1, 3);
-  const needsPlaceholders = 3 - featuredArticles.length;
+  // Create exactly two side articles - use the available articles or placeholders
+  const sideArticles = [...featuredArticles.slice(1, 3)];
+  
+  // Fill with placeholders if we don't have enough
+  while (sideArticles.length < 2) {
+    sideArticles.push(null as any); // Add placeholders
+  }
   
   if (!mainArticle) return null;
 
@@ -134,18 +143,6 @@ export default function FeaturedNewsHero({ featuredArticles }: FeaturedNewsHeroP
             </Link>
           );
         })}
-        
-        {/* Add placeholder cards if we don't have enough articles */}
-        {needsPlaceholders > 0 && Array.from({ length: needsPlaceholders }).map((_, index) => (
-          <div 
-            key={`placeholder-${index}`}
-            className="flex flex-col h-[calc(48vh/2)] max-h-48 bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden relative group"
-          >
-            <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
-              <p>Mais destaques em breve</p>
-            </div>
-          </div>
-        ))}
         
         {/* See More Button - Always show this button */}
         <Button asChild className="w-full dark:bg-gray-700 dark:hover:bg-gray-600">

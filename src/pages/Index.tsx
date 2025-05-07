@@ -21,19 +21,32 @@ export default function Index() {
   const { data: newsData, isLoading: isNewsLoading } = useNews(1, "", "");
   const { data: latestNewsData, isLoading: isLatestNewsLoading } = useLatestNews();
   
-  const allNews: Article[] = newsData?.data || [];
+  const allNews: Article[] = Array.isArray(newsData?.data) ? newsData?.data : [];
+  console.log("Index - Total articles:", allNews.length);
+  
   const latestNewsItems: Article[] = Array.isArray(latestNewsData) ? latestNewsData.filter(Boolean) : [];
   
-  // Filter featured articles - with type checking
+  // Filter featured articles with better logging
+  console.log("Checking for featured articles in Index page...");
+  allNews.forEach((article, index) => {
+    if (article && typeof article === 'object') {
+      console.log(`Article ${index} (${article.title}) featured status:`, article.featured);
+    }
+  });
+  
   const featuredArticles = allNews
     .filter(article => {
       if (!article || typeof article !== 'object') return false;
+      // Explicitly check featured property
       return article.featured === true;
     })
     .slice(0, 5);
   
   // Debug log for featured articles
   console.log('Featured Articles Count:', featuredArticles.length);
+  featuredArticles.forEach((article, index) => {
+    console.log(`Featured article ${index}: ${article.title}`);
+  });
   
   const getNewsByCategory = () => {
     if (!allNews?.length) return {};
@@ -170,7 +183,7 @@ export default function Index() {
           </div>
         </div>
         
-        {/* Vídeos em Destaque - full width section before footer */}
+        {/* Vídeos em Destaque - moved to bottom full width section before footer */}
         <section className="w-full bg-gray-900 py-8">
           <div className="container">
             <h2 className="text-2xl font-bold text-white mb-6">Vídeos em Destaque</h2>

@@ -22,7 +22,7 @@ export interface Article {
   excerpt: string;
   content: string;
   featured_image: string;
-  featured?: boolean;
+  featured: boolean; // Explicitly defining this as boolean
   category: Category;
   tags: Tag[];
   published_at: string;
