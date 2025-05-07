@@ -164,13 +164,8 @@ export default function Index() {
           </div>
         </div>
         
-        {/* Vídeos em Destaque - moved to bottom full width section before footer */}
-        <section className="w-full bg-gray-900 py-8">
-          <div className="container">
-            <h2 className="text-2xl font-bold text-white mb-6">Vídeos em Destaque</h2>
-            <FeaturedYouTubeVideo className="w-full h-[480px]" />
-          </div>
-        </section>
+        {/* Vídeos em Destaque - full width with no container restrictions */}
+        <FeaturedYouTubeVideo />
       </main>
 
       <Footer />

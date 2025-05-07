@@ -31,7 +31,7 @@ interface VideoConfig {
 
 export default function FeaturedYouTubeVideo({ className = "" }: FeaturedVideoProps) {
   const [videos, setVideos] = useState<VideoConfig[]>([]);
-  const [accentColor, setAccentColor] = useState("#9b87f5");
+  const [accentColor, setAccentColor] = useState("#ea384c");
   const [isLoading, setIsLoading] = useState(true);
   const [selectedVideo, setSelectedVideo] = useState<VideoConfig | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -103,10 +103,10 @@ export default function FeaturedYouTubeVideo({ className = "" }: FeaturedVideoPr
 
   return (
     <section 
-      className={`py-8 relative ${className}`}
-      style={{ backgroundColor: accentColor }}
+      className={`w-full py-10 relative ${className}`}
+      style={{ backgroundColor: `${accentColor}4D` }} // 30% opacity (4D in hex)
     >
-      <div className="container">
+      <div className="container mx-auto">
         <div className="relative">
           {/* Badge centralizada */}
           <Badge 
@@ -117,7 +117,7 @@ export default function FeaturedYouTubeVideo({ className = "" }: FeaturedVideoPr
             <span className="font-medium">Vídeos em Destaque</span>
           </Badge>
 
-          {/* Carrossel de miniaturas - increased height and size */}
+          {/* Carrossel de miniaturas - increased size */}
           <div className="pt-6">
             <Carousel className="w-full">
               <CarouselContent className="-ml-2 md:-ml-4">
@@ -138,7 +138,7 @@ export default function FeaturedYouTubeVideo({ className = "" }: FeaturedVideoPr
                         />
                       </div>
                       <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Youtube size={50} className="text-white" />
+                        <Youtube size={60} className="text-white" />
                       </div>
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3">
                         <p className="text-sm text-white font-medium line-clamp-2">
