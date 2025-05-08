@@ -93,6 +93,20 @@ export default function Index() {
       });
     }
     
+    // Make sure all available categories have entries
+    if (categories && Array.isArray(categories)) {
+      categories.forEach(category => {
+        const categorySlug = typeof category === 'object' && category && typeof category.slug === 'string' 
+          ? category.slug 
+          : typeof category === 'string' ? category : null;
+          
+        if (categorySlug && !categoryMap[categorySlug]) {
+          categoryMap[categorySlug] = [];
+          console.log(`Created empty array for available category ${categorySlug}`);
+        }
+      });
+    }
+    
     return categoryMap;
   };
   
