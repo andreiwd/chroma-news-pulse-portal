@@ -18,7 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useCategories } from "@/hooks/useNews";
-import { LayoutBlock, LayoutConfig } from "@/types/layoutConfig";
+import { LayoutBlock, type LayoutConfig as LayoutConfigType } from "@/types/layoutConfig";
 import { 
   Dialog,
   DialogContent,
@@ -33,7 +33,7 @@ import { Label } from "@/components/ui/label";
 import { ChevronDown, ChevronUp, Plus, X } from "lucide-react";
 
 export default function LayoutConfig() {
-  const [config, setConfig] = useState<LayoutConfig>({ blocks: [] });
+  const [config, setConfig] = useState<LayoutConfigType>({ blocks: [] });
   const { data: categories } = useCategories();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
@@ -58,6 +58,7 @@ export default function LayoutConfig() {
       title: "Configuração salva",
       description: "As alterações foram salvas com sucesso e serão aplicadas na página inicial.",
     });
+    console.log("Layout config saved:", config);
   };
 
   const addBlock = () => {
@@ -285,6 +286,11 @@ export default function LayoutConfig() {
                   {/* Hero representation */}
                   <div className="h-16 bg-primary/20 w-full mb-2 rounded flex items-center justify-center">
                     Hero
+                  </div>
+                  
+                  {/* Main News Grid - Standard component */}
+                  <div className="h-20 bg-blue-50 border border-blue-200 w-full mb-2 rounded flex items-center justify-center text-xs">
+                    Últimas Notícias
                   </div>
                   
                   {/* Blocks representation */}

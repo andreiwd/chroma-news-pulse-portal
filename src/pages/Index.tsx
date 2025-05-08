@@ -35,15 +35,32 @@ export default function Index() {
 
   // Load layout configuration from localStorage
   useEffect(() => {
-    const savedConfig = localStorage.getItem('homepage_layout');
-    if (savedConfig) {
+    const loadConfig = () => {
       try {
-        const config = JSON.parse(savedConfig);
-        setLayoutConfig(config);
+        const savedConfig = localStorage.getItem('homepage_layout');
+        if (savedConfig) {
+          const config = JSON.parse(savedConfig);
+          console.log("Loaded layout config:", config);
+          setLayoutConfig(config);
+        }
       } catch (e) {
         console.error("Error parsing saved layout config:", e);
       }
-    }
+    };
+    
+    // Load immediately and also set up a storage event listener
+    loadConfig();
+    
+    // Setup storage event listener to react to changes from other tabs
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'homepage_layout') {
+        console.log("Layout config updated in another tab, reloading");
+        loadConfig();
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
   
   const getNewsByCategory = () => {
@@ -88,6 +105,7 @@ export default function Index() {
     
     if (!layoutConfig?.blocks?.length) {
       // Fallback to default blocks if no configuration
+      console.log("No custom layout config found, using defaults");
       return (
         <>
           {categoryEntries.slice(0, 2).map(([category, news], index) => {
@@ -115,12 +133,17 @@ export default function Index() {
       );
     }
     
+    console.log("Rendering custom layout blocks:", layoutConfig.blocks);
+    
     // Render blocks based on configuration
     return layoutConfig.blocks
       .sort((a, b) => a.order - b.order)
       .map((block) => {
         const news = categoryNews[block.categorySlug] || [];
-        if (!news.length) return null;
+        if (!news.length) {
+          console.log(`No news found for category ${block.categorySlug}`);
+          return null;
+        }
         
         if (block.type === 'carousel') {
           return (

@@ -4,7 +4,6 @@ import { Article } from "@/types/api";
 import { Card, CardContent } from "./ui/card";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "./ui/button";
-import { ScrollArea } from "./ui/scroll-area";
 import { Link } from "react-router-dom";
 
 interface CategoryNewsCarouselProps {
@@ -34,30 +33,55 @@ export default function CategoryNewsCarousel({ category, news }: CategoryNewsCar
   useEffect(() => {
     const updateMaxScroll = () => {
       if (scrollRef.current) {
-        setMaxScroll(scrollRef.current.scrollWidth - scrollRef.current.clientWidth);
+        const scrollWidth = scrollRef.current.scrollWidth;
+        const clientWidth = scrollRef.current.clientWidth;
+        setMaxScroll(Math.max(0, scrollWidth - clientWidth));
+        console.log(`Carousel ${categoryName}: scrollWidth=${scrollWidth}, clientWidth=${clientWidth}, maxScroll=${scrollWidth - clientWidth}`);
       }
     };
 
-    // Update on mount, resize, and when content changes
+    // Update on mount, resize, and when news content changes
     updateMaxScroll();
+    
     window.addEventListener('resize', updateMaxScroll);
-    return () => window.removeEventListener('resize', updateMaxScroll);
-  }, [news]);
+    
+    // Create a ResizeObserver to detect content size changes
+    const resizeObserver = new ResizeObserver(() => {
+      updateMaxScroll();
+    });
+    
+    if (scrollRef.current) {
+      resizeObserver.observe(scrollRef.current);
+    }
+    
+    return () => {
+      window.removeEventListener('resize', updateMaxScroll);
+      resizeObserver.disconnect();
+    };
+  }, [news, categoryName]);
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const newPosition = (e.target as HTMLDivElement).scrollLeft;
+    setScrollPosition(newPosition);
+    console.log(`Carousel ${categoryName} scrolled to: ${newPosition}/${maxScroll}`);
+  };
 
   const scroll = (direction: "left" | "right") => {
     if (!scrollRef.current) return;
 
-    const scrollAmount = 300;
+    const scrollAmount = 300; // Pixels to scroll
+    const currentPosition = scrollRef.current.scrollLeft;
+    
     const newPosition = direction === "left" 
-      ? Math.max(0, scrollPosition - scrollAmount)
-      : Math.min(maxScroll, scrollPosition + scrollAmount);
+      ? Math.max(0, currentPosition - scrollAmount)
+      : Math.min(maxScroll, currentPosition + scrollAmount);
+    
+    console.log(`Scrolling carousel ${categoryName} ${direction}: from ${currentPosition} to ${newPosition}`);
     
     scrollRef.current.scrollTo({
       left: newPosition,
       behavior: "smooth"
     });
-    
-    setScrollPosition(newPosition);
   };
 
   // If no news items, don't render anything
@@ -80,6 +104,7 @@ export default function CategoryNewsCarousel({ category, news }: CategoryNewsCar
             size="icon"
             className="h-8 w-8 rounded-full"
             onClick={() => scroll("left")}
+            disabled={scrollPosition <= 0}
           >
             <ChevronLeft className="h-4 w-4" />
             <span className="sr-only">Anterior</span>
@@ -89,6 +114,7 @@ export default function CategoryNewsCarousel({ category, news }: CategoryNewsCar
             size="icon"
             className="h-8 w-8 rounded-full"
             onClick={() => scroll("right")}
+            disabled={scrollPosition >= maxScroll}
           >
             <ChevronRight className="h-4 w-4" />
             <span className="sr-only">Próximo</span>
@@ -108,7 +134,7 @@ export default function CategoryNewsCarousel({ category, news }: CategoryNewsCar
         <div 
           ref={scrollRef}
           className="flex space-x-4 pb-4 pl-1 pr-10 overflow-x-auto scrollbar-hide"
-          onScroll={(e) => setScrollPosition((e.target as HTMLDivElement).scrollLeft)}
+          onScroll={handleScroll}
         >
           {news.map((article) => {
             if (!article) return null;
