@@ -5,7 +5,7 @@ import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import AdPlaceholder from "@/components/AdPlaceholder";
-import { useNews, useLatestNews, useFeaturedHeroNews } from "@/hooks/useNews";
+import { useNews, useLatestNews, useFeaturedHeroNews, useCategories } from "@/hooks/useNews";
 import { Article } from "@/types/api";
 import MainNewsGrid from "@/components/MainNewsGrid";
 import LatestNewsSidebar from "@/components/LatestNewsSidebar";
@@ -16,11 +16,13 @@ import TrendingTopics from "@/components/TrendingTopics";
 import CategoryNewsSection from "@/components/CategoryNewsSection";
 import WeatherWidget from "@/components/WeatherWidget";
 import FeaturedYouTubeVideo from "@/components/FeaturedYouTubeVideo";
+import CategoryNewsCarousel from "@/components/CategoryNewsCarousel";
 
 export default function Index() {
   const { data: newsData, isLoading: isNewsLoading } = useNews(1, "", "");
   const { data: latestNewsData, isLoading: isLatestNewsLoading } = useLatestNews();
   const { data: featuredArticles, isLoading: isFeaturedLoading } = useFeaturedHeroNews();
+  const { data: categories } = useCategories();
   
   const allNews: Article[] = Array.isArray(newsData?.data) ? newsData?.data : [];
   console.log("Index - Total articles:", allNews.length);
@@ -116,6 +118,18 @@ export default function Index() {
                 id="ad-main-banner-1"
                 className="my-8 bg-white rounded-lg shadow-sm" 
               />
+
+              {/* Categorias com layout diferente - substitui os blocos removidos */}
+              {categoryEntries.slice(0, 2).map(([category, news], index) => {
+                if (!category || !news || !news.length) return null;
+                return (
+                  <CategoryNewsCarousel 
+                    key={`cat-carousel-${category}-${index}`} 
+                    category={category} 
+                    news={news} 
+                  />
+                );
+              })}
 
               {/* Categorias */}
               {categoryEntries.slice(0, 4).map(([category, news], index) => {
