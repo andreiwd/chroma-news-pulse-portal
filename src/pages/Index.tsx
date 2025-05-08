@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import NewsTicker from "@/components/NewsTicker";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
@@ -18,6 +18,7 @@ import CategoryNewsSection from "@/components/CategoryNewsSection";
 import WeatherWidget from "@/components/WeatherWidget";
 import FeaturedYouTubeVideo from "@/components/FeaturedYouTubeVideo";
 import CategoryNewsCarousel from "@/components/CategoryNewsCarousel";
+import axios from "axios";
 
 export default function Index() {
   const { data: newsData, isLoading: isNewsLoading } = useNews(1, "", "");
@@ -25,6 +26,8 @@ export default function Index() {
   const { data: featuredArticles, isLoading: isFeaturedLoading } = useFeaturedHeroNews();
   const { data: categories } = useCategories();
   const [layoutConfig, setLayoutConfig] = useState<LayoutConfig>({ blocks: [] });
+  const [categoryNews, setCategoryNews] = useState<Record<string, Article[]>>({});
+  const [isLoadingCategories, setIsLoadingCategories] = useState(false);
   
   const allNews: Article[] = Array.isArray(newsData?.data) ? newsData?.data : [];
   console.log("Index - Total articles:", allNews.length);
@@ -62,52 +65,169 @@ export default function Index() {
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
-  
-  const getNewsByCategory = () => {
-    if (!allNews?.length) return {};
-    
-    const categoryMap: Record<string, Article[]> = {};
-    
-    // First pass: organize articles by category
-    allNews.forEach(article => {
-      if (!article || typeof article !== 'object') return;
-      if (!article.category || typeof article.category !== 'object') return;
+
+  // Fetch news for each category in the layout
+  useEffect(() => {
+    const fetchCategoryNews = async () => {
+      if (!layoutConfig.blocks || layoutConfig.blocks.length === 0) return;
       
-      const categorySlug = article.category.slug;
-      if (!categorySlug || typeof categorySlug !== 'string') return;
+      setIsLoadingCategories(true);
+      const API_BASE_URL = "https://taquaritinganoticias.criarsite.online/api";
+      const newCategoryNews: Record<string, Article[]> = {};
       
-      if (!categoryMap[categorySlug]) {
-        categoryMap[categorySlug] = [];
+      // Get unique category slugs from layout
+      const categorySlugSet = new Set<string>();
+      layoutConfig.blocks.forEach(block => {
+        if (block.categorySlug) {
+          categorySlugSet.add(block.categorySlug);
+        }
+      });
+      
+      // Add all available categories from the categories data
+      if (categories && Array.isArray(categories)) {
+        categories.forEach(category => {
+          if (category && typeof category === 'object' && typeof category.slug === 'string') {
+            categorySlugSet.add(category.slug);
+          } else if (typeof category === 'string') {
+            categorySlugSet.add(category);
+          }
+        });
       }
       
-      categoryMap[categorySlug].push(article);
-    });
-    
-    // Make sure all categories from layout config have entries
-    if (layoutConfig?.blocks?.length) {
-      layoutConfig.blocks.forEach(block => {
-        if (!categoryMap[block.categorySlug]) {
-          categoryMap[block.categorySlug] = [];
-          console.log(`Created empty array for missing category ${block.categorySlug}`);
-        }
-      });
-    }
-    
-    // Make sure all available categories have entries
-    if (categories && Array.isArray(categories)) {
-      categories.forEach(category => {
-        const categorySlug = typeof category === 'object' && category && typeof category.slug === 'string' 
-          ? category.slug 
-          : typeof category === 'string' ? category : null;
+      // Convert to array for processing
+      const categorySlugArray = Array.from(categorySlugSet);
+      console.log("Fetching news for categories:", categorySlugArray);
+      
+      // Function to sanitize article data
+      const sanitizeArticle = (article: any) => {
+        if (!article) return null;
+        
+        // Helper function to sanitize category
+        const sanitizeCategory = (category: any) => {
+          if (!category) return null;
           
-        if (categorySlug && !categoryMap[categorySlug]) {
-          categoryMap[categorySlug] = [];
-          console.log(`Created empty array for available category ${categorySlug}`);
+          if (typeof category === 'object') {
+            return {
+              id: Number(category.id) || 0,
+              name: String(category.name || ""),
+              slug: String(category.slug || ""),
+              description: String(category.description || ""),
+              color: String(category.color || "#333333"),
+              text_color: String(category.text_color || "#FFFFFF"),
+              active: Boolean(category.active),
+              order: Number(category.order) || 0
+            };
+          }
+          
+          if (typeof category === 'string') {
+            return {
+              id: 0,
+              name: category,
+              slug: category.toLowerCase().replace(/\s+/g, '-'),
+              description: '',
+              color: "#333333",
+              text_color: "#FFFFFF",
+              active: true,
+              order: 0
+            };
+          }
+          
+          return null;
+        };
+        
+        // Ensure category is properly formatted
+        const sanitizedCategory = sanitizeCategory(article.category);
+        
+        // Ensure tags are properly formatted
+        const sanitizedTags = Array.isArray(article.tags) 
+          ? article.tags.map((tag: any) => ({
+              id: Number(tag.id) || 0,
+              name: String(tag.name || "")
+            }))
+          : [];
+        
+        return {
+          id: Number(article.id) || 0,
+          title: String(article.title || ""),
+          slug: String(article.slug || ""),
+          excerpt: String(article.excerpt || ""),
+          content: String(article.content || ""),
+          featured_image: String(article.featured_image || ""),
+          featured: Boolean(article.featured),
+          category: sanitizedCategory,
+          tags: sanitizedTags,
+          published_at: String(article.published_at || ""),
+          created_at: String(article.created_at || ""),
+          updated_at: String(article.updated_at || "")
+        };
+      };
+      
+      // Fetch news for each category
+      const fetchPromises = categorySlugArray.map(async (slug) => {
+        try {
+          console.log(`Fetching news for category: ${slug}`);
+          const response = await axios.get(`${API_BASE_URL}/categories/${slug}/news`);
+          console.log(`Response for ${slug}:`, response.data);
+          
+          // Process the data based on its structure
+          let articleArray: Article[] = [];
+          
+          if (Array.isArray(response.data)) {
+            articleArray = response.data
+              .map(sanitizeArticle)
+              .filter(Boolean);
+          } else if (response.data && Array.isArray(response.data.data)) {
+            articleArray = response.data.data
+              .map(sanitizeArticle)
+              .filter(Boolean);
+          }
+          
+          newCategoryNews[slug] = articleArray;
+          console.log(`Processed ${articleArray.length} articles for ${slug}`);
+        } catch (error) {
+          console.error(`Error fetching news for category ${slug}:`, error);
+          // Try fallback method using the news endpoint with category filter
+          try {
+            console.log(`Using fallback method for ${slug}`);
+            const fallbackResponse = await axios.get(`${API_BASE_URL}/news?category=${slug}`);
+            
+            let articleArray: Article[] = [];
+            
+            if (Array.isArray(fallbackResponse.data)) {
+              articleArray = fallbackResponse.data
+                .map(sanitizeArticle)
+                .filter(Boolean);
+            } else if (fallbackResponse.data && Array.isArray(fallbackResponse.data.data)) {
+              articleArray = fallbackResponse.data.data
+                .map(sanitizeArticle)
+                .filter(Boolean);
+            }
+            
+            newCategoryNews[slug] = articleArray;
+            console.log(`Fallback: Processed ${articleArray.length} articles for ${slug}`);
+          } catch (fallbackError) {
+            console.error(`Fallback also failed for ${slug}:`, fallbackError);
+            newCategoryNews[slug] = [];
+          }
         }
       });
-    }
+      
+      try {
+        await Promise.all(fetchPromises);
+        console.log("All category news fetched:", newCategoryNews);
+        setCategoryNews(newCategoryNews);
+      } catch (error) {
+        console.error("Error processing category news:", error);
+      } finally {
+        setIsLoadingCategories(false);
+      }
+    };
     
-    return categoryMap;
+    fetchCategoryNews();
+  }, [layoutConfig.blocks, categories]);
+  
+  const getNewsByCategory = () => {
+    return categoryNews;
   };
   
   const getMostViewedNews = () => {
@@ -126,7 +246,7 @@ export default function Index() {
 
   // Render custom blocks from layout configuration
   const renderCustomBlocks = () => {
-    const categoryNews = getNewsByCategory();
+    const categoryNewsData = getNewsByCategory();
     
     if (!layoutConfig?.blocks?.length) {
       // Fallback to default blocks if no configuration
@@ -164,7 +284,7 @@ export default function Index() {
     return layoutConfig.blocks
       .sort((a, b) => a.order - b.order)
       .map((block) => {
-        const news = categoryNews[block.categorySlug] || [];
+        const news = categoryNewsData[block.categorySlug] || [];
         console.log(`Rendering block for category ${block.categorySlug} with ${news.length} news items`);
         
         if (block.type === 'carousel') {
@@ -239,8 +359,16 @@ export default function Index() {
                 className="my-8 bg-white rounded-lg shadow-sm" 
               />
 
-              {/* Custom blocks from layout configuration */}
-              {renderCustomBlocks()}
+              {isLoadingCategories ? (
+                <div className="text-center py-8">
+                  <div className="animate-pulse flex flex-col items-center">
+                    <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
+                    <div className="h-64 bg-gray-200 rounded w-full"></div>
+                  </div>
+                </div>
+              ) : (
+                renderCustomBlocks()
+              )}
               
               <AdPlaceholder 
                 size="banner" 
