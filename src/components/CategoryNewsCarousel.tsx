@@ -84,10 +84,8 @@ export default function CategoryNewsCarousel({ category, news }: CategoryNewsCar
     });
   };
 
-  // If no news items, don't render anything
-  if (!news || news.length === 0) {
-    return null;
-  }
+  // Even if no news items, still render the section with a placeholder message
+  const hasNews = news && news.length > 0;
 
   return (
     <div className="mb-8 bg-white rounded-lg shadow-sm p-4">
@@ -104,7 +102,7 @@ export default function CategoryNewsCarousel({ category, news }: CategoryNewsCar
             size="icon"
             className="h-8 w-8 rounded-full"
             onClick={() => scroll("left")}
-            disabled={scrollPosition <= 0}
+            disabled={scrollPosition <= 0 || !hasNews}
           >
             <ChevronLeft className="h-4 w-4" />
             <span className="sr-only">Anterior</span>
@@ -114,7 +112,7 @@ export default function CategoryNewsCarousel({ category, news }: CategoryNewsCar
             size="icon"
             className="h-8 w-8 rounded-full"
             onClick={() => scroll("right")}
-            disabled={scrollPosition >= maxScroll}
+            disabled={scrollPosition >= maxScroll || !hasNews}
           >
             <ChevronRight className="h-4 w-4" />
             <span className="sr-only">Próximo</span>
@@ -131,60 +129,76 @@ export default function CategoryNewsCarousel({ category, news }: CategoryNewsCar
       </div>
       
       <div className="relative">
-        <div 
-          ref={scrollRef}
-          className="flex space-x-4 pb-4 pl-1 pr-10 overflow-x-auto scrollbar-hide"
-          onScroll={handleScroll}
-        >
-          {news.map((article) => {
-            if (!article) return null;
-            
-            return (
-              <Card 
-                key={article.id} 
-                className="flex-shrink-0 w-[280px] overflow-hidden hover:shadow-lg transition-shadow" 
-                style={{ borderTop: `3px solid ${categoryColor}` }}
-              >
-                <div className="relative h-32">
-                  <img
-                    src={article.featured_image || `https://placehold.co/600x400/333/white?text=${encodeURIComponent(categoryName)}`}
-                    alt={article.title || ""}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.onerror = null;
-                      target.src = `https://placehold.co/600x400/333/white?text=${encodeURIComponent(categoryName)}`;
-                    }}
-                  />
-                </div>
-                <CardContent className="p-4">
-                  <h3 
-                    className="font-bold mb-2 line-clamp-2"
-                    style={{ color: categoryColor }}
-                  >
-                    <Link to={`/news/${article.slug}`} className="hover:underline">
-                      {article.title || 'Notícia sem título'}
-                    </Link>
-                  </h3>
-                  <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                    {article.excerpt || 'Sem descrição disponível'}
-                  </p>
-                  <Button 
-                    variant="link" 
-                    size="sm" 
-                    className="p-0 h-auto"
-                    style={{ color: categoryColor }}
-                    asChild
-                  >
-                    <Link to={`/news/${article.slug}`}>
-                      Leia mais <ArrowRight className="h-3 w-3 ml-1" />
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+        {hasNews ? (
+          <div 
+            ref={scrollRef}
+            className="flex space-x-4 pb-4 pl-1 pr-10 overflow-x-auto scrollbar-hide"
+            onScroll={handleScroll}
+          >
+            {news.map((article) => {
+              if (!article) return null;
+              
+              return (
+                <Card 
+                  key={article.id} 
+                  className="flex-shrink-0 w-[280px] overflow-hidden hover:shadow-lg transition-shadow" 
+                  style={{ borderTop: `3px solid ${categoryColor}` }}
+                >
+                  <div className="relative h-32">
+                    <img
+                      src={article.featured_image || `https://placehold.co/600x400/333/white?text=${encodeURIComponent(categoryName)}`}
+                      alt={article.title || ""}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.onerror = null;
+                        target.src = `https://placehold.co/600x400/333/white?text=${encodeURIComponent(categoryName)}`;
+                      }}
+                    />
+                  </div>
+                  <CardContent className="p-4">
+                    <h3 
+                      className="font-bold mb-2 line-clamp-2"
+                      style={{ color: categoryColor }}
+                    >
+                      <Link to={`/news/${article.slug}`} className="hover:underline">
+                        {article.title || 'Notícia sem título'}
+                      </Link>
+                    </h3>
+                    <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                      {article.excerpt || 'Sem descrição disponível'}
+                    </p>
+                    <Button 
+                      variant="link" 
+                      size="sm" 
+                      className="p-0 h-auto"
+                      style={{ color: categoryColor }}
+                      asChild
+                    >
+                      <Link to={`/news/${article.slug}`}>
+                        Leia mais <ArrowRight className="h-3 w-3 ml-1" />
+                      </Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="py-8 text-center">
+            <p className="text-muted-foreground">Não existem notícias para esta categoria no momento.</p>
+            <Button 
+              variant="outline" 
+              className="mt-4"
+              style={{ color: categoryColor, borderColor: categoryColor }}
+              asChild
+            >
+              <Link to={`/category/${categorySlug}`}>
+                Ver todas as notícias de {categoryName}
+              </Link>
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

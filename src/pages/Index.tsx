@@ -68,6 +68,7 @@ export default function Index() {
     
     const categoryMap: Record<string, Article[]> = {};
     
+    // First pass: organize articles by category
     allNews.forEach(article => {
       if (!article || typeof article !== 'object') return;
       if (!article.category || typeof article.category !== 'object') return;
@@ -81,6 +82,16 @@ export default function Index() {
       
       categoryMap[categorySlug].push(article);
     });
+    
+    // Make sure all categories from layout config have entries
+    if (layoutConfig?.blocks?.length) {
+      layoutConfig.blocks.forEach(block => {
+        if (!categoryMap[block.categorySlug]) {
+          categoryMap[block.categorySlug] = [];
+          console.log(`Created empty array for missing category ${block.categorySlug}`);
+        }
+      });
+    }
     
     return categoryMap;
   };
@@ -109,7 +120,7 @@ export default function Index() {
       return (
         <>
           {categoryEntries.slice(0, 2).map(([category, news], index) => {
-            if (!category || !news || !news.length) return null;
+            // Always render even if no news items
             return (
               <CategoryNewsCarousel 
                 key={`cat-carousel-${category}-${index}`} 
@@ -120,7 +131,7 @@ export default function Index() {
           })}
           
           {categoryEntries.slice(0, 4).map(([category, news], index) => {
-            if (!category || !news || !news.length) return null;
+            // Always render even if no news items  
             return (
               <CategoryNewsSection 
                 key={`cat-section-${category}-${index}`} 
@@ -140,10 +151,7 @@ export default function Index() {
       .sort((a, b) => a.order - b.order)
       .map((block) => {
         const news = categoryNews[block.categorySlug] || [];
-        if (!news.length) {
-          console.log(`No news found for category ${block.categorySlug}`);
-          return null;
-        }
+        console.log(`Rendering block for category ${block.categorySlug} with ${news.length} news items`);
         
         if (block.type === 'carousel') {
           return (
