@@ -1,5 +1,5 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import NewsTicker from "@/components/NewsTicker";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import AdPlaceholder from "@/components/AdPlaceholder";
 import { useNews, useLatestNews, useFeaturedHeroNews, useCategories } from "@/hooks/useNews";
 import { Article } from "@/types/api";
+import { LayoutConfig } from "@/types/layoutConfig";
 import MainNewsGrid from "@/components/MainNewsGrid";
 import LatestNewsSidebar from "@/components/LatestNewsSidebar";
 import MostViewedSidebar from "@/components/MostViewedSidebar";
@@ -23,6 +24,7 @@ export default function Index() {
   const { data: latestNewsData, isLoading: isLatestNewsLoading } = useLatestNews();
   const { data: featuredArticles, isLoading: isFeaturedLoading } = useFeaturedHeroNews();
   const { data: categories } = useCategories();
+  const [layoutConfig, setLayoutConfig] = useState<LayoutConfig>({ blocks: [] });
   
   const allNews: Article[] = Array.isArray(newsData?.data) ? newsData?.data : [];
   console.log("Index - Total articles:", allNews.length);
@@ -30,6 +32,19 @@ export default function Index() {
   const latestNewsItems: Article[] = Array.isArray(latestNewsData) ? latestNewsData.filter(Boolean) : [];
   
   console.log("Featured articles from new endpoint:", featuredArticles);
+
+  // Load layout configuration from localStorage
+  useEffect(() => {
+    const savedConfig = localStorage.getItem('homepage_layout');
+    if (savedConfig) {
+      try {
+        const config = JSON.parse(savedConfig);
+        setLayoutConfig(config);
+      } catch (e) {
+        console.error("Error parsing saved layout config:", e);
+      }
+    }
+  }, []);
   
   const getNewsByCategory = () => {
     if (!allNews?.length) return {};
@@ -66,6 +81,66 @@ export default function Index() {
   const mainLatestNews = allNews?.slice(0, 12) || [];
   const categoryEntries = Object.entries(getNewsByCategory() || {});
   const trendingNews = allNews?.slice(0, 6) || [];
+
+  // Render custom blocks from layout configuration
+  const renderCustomBlocks = () => {
+    const categoryNews = getNewsByCategory();
+    
+    if (!layoutConfig?.blocks?.length) {
+      // Fallback to default blocks if no configuration
+      return (
+        <>
+          {categoryEntries.slice(0, 2).map(([category, news], index) => {
+            if (!category || !news || !news.length) return null;
+            return (
+              <CategoryNewsCarousel 
+                key={`cat-carousel-${category}-${index}`} 
+                category={category} 
+                news={news} 
+              />
+            );
+          })}
+          
+          {categoryEntries.slice(0, 4).map(([category, news], index) => {
+            if (!category || !news || !news.length) return null;
+            return (
+              <CategoryNewsSection 
+                key={`cat-section-${category}-${index}`} 
+                category={category} 
+                news={news} 
+              />
+            );
+          })}
+        </>
+      );
+    }
+    
+    // Render blocks based on configuration
+    return layoutConfig.blocks
+      .sort((a, b) => a.order - b.order)
+      .map((block) => {
+        const news = categoryNews[block.categorySlug] || [];
+        if (!news.length) return null;
+        
+        if (block.type === 'carousel') {
+          return (
+            <CategoryNewsCarousel
+              key={`custom-carousel-${block.id}`}
+              category={block.categorySlug}
+              news={news}
+            />
+          );
+        } else {
+          return (
+            <CategoryNewsSection
+              key={`custom-section-${block.id}`}
+              category={block.categorySlug}
+              news={news}
+            />
+          );
+        }
+      });
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
@@ -119,29 +194,8 @@ export default function Index() {
                 className="my-8 bg-white rounded-lg shadow-sm" 
               />
 
-              {/* Categorias com layout diferente - substitui os blocos removidos */}
-              {categoryEntries.slice(0, 2).map(([category, news], index) => {
-                if (!category || !news || !news.length) return null;
-                return (
-                  <CategoryNewsCarousel 
-                    key={`cat-carousel-${category}-${index}`} 
-                    category={category} 
-                    news={news} 
-                  />
-                );
-              })}
-
-              {/* Categorias */}
-              {categoryEntries.slice(0, 4).map(([category, news], index) => {
-                if (!category || !news || !news.length) return null;
-                return (
-                  <CategoryNewsSection 
-                    key={`cat-section-${category}-${index}`} 
-                    category={category} 
-                    news={news} 
-                  />
-                );
-              })}
+              {/* Custom blocks from layout configuration */}
+              {renderCustomBlocks()}
               
               <AdPlaceholder 
                 size="banner" 

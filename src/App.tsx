@@ -19,6 +19,7 @@ import HtmlBlocksManager from "@/pages/admin/HtmlBlocksManager";
 import UsersManager from "@/pages/admin/UsersManager";
 import VideosManager from "@/pages/admin/VideosManager";
 import FrontendSettings from "@/pages/admin/FrontendSettings";
+import LayoutConfig from "@/pages/admin/LayoutConfig";
 import PrivateRoute from "@/components/admin/PrivateRoute";
 
 const queryClient = new QueryClient();
@@ -47,6 +48,7 @@ function App() {
               <Route path="videos" element={<VideosManager />} />
               <Route path="settings" element={<FrontendSettings />} />
               <Route path="weather" element={<WeatherConfig />} />
+              <Route path="layout" element={<LayoutConfig />} />
             </Route>
             
             <Route path="*" element={<NotFound />} />

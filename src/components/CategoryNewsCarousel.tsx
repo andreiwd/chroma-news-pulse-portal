@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Article } from "@/types/api";
 import { Card, CardContent } from "./ui/card";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
@@ -13,7 +13,9 @@ interface CategoryNewsCarouselProps {
 }
 
 export default function CategoryNewsCarousel({ category, news }: CategoryNewsCarouselProps) {
+  const scrollRef = useRef<HTMLDivElement>(null);
   const [scrollPosition, setScrollPosition] = useState(0);
+  const [maxScroll, setMaxScroll] = useState(0);
 
   // Get category details from the first news item, with safety checks
   let categorySlug = category;
@@ -29,16 +31,28 @@ export default function CategoryNewsCarousel({ category, news }: CategoryNewsCar
     }
   }
 
+  useEffect(() => {
+    const updateMaxScroll = () => {
+      if (scrollRef.current) {
+        setMaxScroll(scrollRef.current.scrollWidth - scrollRef.current.clientWidth);
+      }
+    };
+
+    // Update on mount, resize, and when content changes
+    updateMaxScroll();
+    window.addEventListener('resize', updateMaxScroll);
+    return () => window.removeEventListener('resize', updateMaxScroll);
+  }, [news]);
+
   const scroll = (direction: "left" | "right") => {
-    const container = document.getElementById(`scroll-${category}`);
-    if (!container) return;
+    if (!scrollRef.current) return;
 
     const scrollAmount = 300;
     const newPosition = direction === "left" 
       ? Math.max(0, scrollPosition - scrollAmount)
-      : Math.min(container.scrollWidth - container.clientWidth, scrollPosition + scrollAmount);
+      : Math.min(maxScroll, scrollPosition + scrollAmount);
     
-    container.scrollTo({
+    scrollRef.current.scrollTo({
       left: newPosition,
       behavior: "smooth"
     });
@@ -91,62 +105,60 @@ export default function CategoryNewsCarousel({ category, news }: CategoryNewsCar
       </div>
       
       <div className="relative">
-        <ScrollArea 
-          className="w-full" 
-          id={`scroll-${category}`}
+        <div 
+          ref={scrollRef}
+          className="flex space-x-4 pb-4 pl-1 pr-10 overflow-x-auto scrollbar-hide"
           onScroll={(e) => setScrollPosition((e.target as HTMLDivElement).scrollLeft)}
         >
-          <div className="flex space-x-4 pb-4 pl-1 pr-10">
-            {news.map((article) => {
-              if (!article) return null;
-              
-              return (
-                <Card 
-                  key={article.id} 
-                  className="flex-shrink-0 w-[280px] overflow-hidden hover:shadow-lg transition-shadow" 
-                  style={{ borderTop: `3px solid ${categoryColor}` }}
-                >
-                  <div className="relative h-32">
-                    <img
-                      src={article.featured_image || `https://placehold.co/600x400/333/white?text=${encodeURIComponent(categoryName)}`}
-                      alt={article.title || ""}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.onerror = null;
-                        target.src = `https://placehold.co/600x400/333/white?text=${encodeURIComponent(categoryName)}`;
-                      }}
-                    />
-                  </div>
-                  <CardContent className="p-4">
-                    <h3 
-                      className="font-bold mb-2 line-clamp-2"
-                      style={{ color: categoryColor }}
-                    >
-                      <Link to={`/news/${article.slug}`} className="hover:underline">
-                        {article.title || 'Notícia sem título'}
-                      </Link>
-                    </h3>
-                    <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                      {article.excerpt || 'Sem descrição disponível'}
-                    </p>
-                    <Button 
-                      variant="link" 
-                      size="sm" 
-                      className="p-0 h-auto"
-                      style={{ color: categoryColor }}
-                      asChild
-                    >
-                      <Link to={`/news/${article.slug}`}>
-                        Leia mais <ArrowRight className="h-3 w-3 ml-1" />
-                      </Link>
-                    </Button>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        </ScrollArea>
+          {news.map((article) => {
+            if (!article) return null;
+            
+            return (
+              <Card 
+                key={article.id} 
+                className="flex-shrink-0 w-[280px] overflow-hidden hover:shadow-lg transition-shadow" 
+                style={{ borderTop: `3px solid ${categoryColor}` }}
+              >
+                <div className="relative h-32">
+                  <img
+                    src={article.featured_image || `https://placehold.co/600x400/333/white?text=${encodeURIComponent(categoryName)}`}
+                    alt={article.title || ""}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.onerror = null;
+                      target.src = `https://placehold.co/600x400/333/white?text=${encodeURIComponent(categoryName)}`;
+                    }}
+                  />
+                </div>
+                <CardContent className="p-4">
+                  <h3 
+                    className="font-bold mb-2 line-clamp-2"
+                    style={{ color: categoryColor }}
+                  >
+                    <Link to={`/news/${article.slug}`} className="hover:underline">
+                      {article.title || 'Notícia sem título'}
+                    </Link>
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                    {article.excerpt || 'Sem descrição disponível'}
+                  </p>
+                  <Button 
+                    variant="link" 
+                    size="sm" 
+                    className="p-0 h-auto"
+                    style={{ color: categoryColor }}
+                    asChild
+                  >
+                    <Link to={`/news/${article.slug}`}>
+                      Leia mais <ArrowRight className="h-3 w-3 ml-1" />
+                    </Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

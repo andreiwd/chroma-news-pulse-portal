@@ -1,7 +1,7 @@
 
 import { Outlet } from "react-router-dom";
 import AdminHeader from "@/components/admin/AdminHeader";
-import AdminSidebar from "@/components/admin/AdminSidebar";
+import AdminSidebarWithLayout from "@/components/admin/AdminSidebarWithLayout";
 
 export default function AdminLayout() {
   return (
@@ -9,7 +9,7 @@ export default function AdminLayout() {
       <AdminHeader />
       <div className="flex flex-1 container py-6 gap-6">
         <aside className="w-64 hidden md:block">
-          <AdminSidebar />
+          <AdminSidebarWithLayout />
         </aside>
         <main className="flex-1">
           <Outlet />

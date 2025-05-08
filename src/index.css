@@ -1,360 +1,107 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
+ 
 @layer base {
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
+
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
+ 
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
+ 
+    --primary: 222.2 47.4% 11.2%;
     --primary-foreground: 210 40% 98%;
+ 
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
+ 
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
+ 
     --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
+ 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
+
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-    --radius: 0.75rem;
-    
-    /* Category colors */
-    --category-tech: #6366f1;
-    --category-tech-light: #e0e7ff;
-    --category-sports: #22c55e;
-    --category-sports-light: #dcfce7;
-    --category-politics: #ef4444;
-    --category-politics-light: #fee2e2;
-    --category-economy: #f59e0b;
-    --category-economy-light: #fef3c7;
-    --category-entertainment: #ec4899;
-    --category-entertainment-light: #fce7f3;
-    --category-science: #8b5cf6;
-    --category-science-light: #ede9fe;
-    --category-health: #06b6d4;
-    --category-health-light: #cffafe;
-    --category-environment: #10b981;
-    --category-environment-light: #d1fae5;
+    --ring: 222.2 84% 4.9%;
+ 
+    --radius: 0.5rem;
   }
-
+ 
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
+ 
     --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
+ 
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
+ 
+    --primary: 210 40% 98%;
     --primary-foreground: 222.2 47.4% 11.2%;
+ 
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
+ 
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
+ 
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
+ 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
+ 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
-    
-    /* Category colors for dark mode - brighter versions */
-    --category-tech: #818cf8;
-    --category-tech-light: rgba(129, 140, 248, 0.2);
-    --category-sports: #4ade80;
-    --category-sports-light: rgba(74, 222, 128, 0.2);
-    --category-politics: #f87171;
-    --category-politics-light: rgba(248, 113, 113, 0.2);
-    --category-economy: #fbbf24;
-    --category-economy-light: rgba(251, 191, 36, 0.2);
-    --category-entertainment: #f472b6;
-    --category-entertainment-light: rgba(244, 114, 182, 0.2);
-    --category-science: #a78bfa;
-    --category-science-light: rgba(167, 139, 250, 0.2);
-    --category-health: #22d3ee;
-    --category-health-light: rgba(34, 211, 238, 0.2);
-    --category-environment: #34d399;
-    --category-environment-light: rgba(52, 211, 153, 0.2);
+    --ring: 212.7 26.8% 83.9%;
   }
-
+}
+ 
+@layer base {
   * {
     @apply border-border;
   }
-
   body {
-    @apply bg-background text-foreground font-inter antialiased;
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Custom classes */
+@layer utilities {
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
 
-  @keyframes tickerFade {
-    0% { opacity: 0; transform: translateY(10px); }
-    10% { opacity: 1; transform: translateY(0); }
-    90% { opacity: 1; transform: translateY(0); }
-    100% { opacity: 0; transform: translateY(-10px); }
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
   }
   
-  /* Weather widget animations */
+  /* Animation utilities */
+  .animate-fadeInUp {
+    animation: fadeInUp 0.6s ease-out forwards;
+  }
+
   @keyframes fadeInUp {
     from {
       opacity: 0;
-      transform: translateY(10px);
+      transform: translateY(20px);
     }
     to {
       opacity: 1;
       transform: translateY(0);
     }
   }
-
-  @keyframes float {
-    0% {
-      transform: translateY(0px);
-    }
-    50% {
-      transform: translateY(-10px);
-    }
-    100% {
-      transform: translateY(0px);
-    }
-  }
-}
-
-.animate-fadeInUp {
-  animation: fadeInUp 0.5s ease-out forwards;
-}
-
-.animate-float {
-  animation: float 3s ease-in-out infinite;
-}
-
-.prose {
-  @apply text-foreground max-w-none;
-}
-
-.prose p {
-  @apply leading-7;
-}
-
-.prose .lead {
-  @apply text-xl font-normal text-muted-foreground;
-}
-
-/* Permitir formatações HTML no conteúdo da notícia */
-.prose h1 {
-  @apply text-2xl font-bold mt-6 mb-4;
-}
-
-.prose h2 {
-  @apply text-xl font-bold mt-5 mb-3;
-}
-
-.prose h3 {
-  @apply text-lg font-semibold mt-4 mb-2;
-}
-
-.prose ul {
-  @apply list-disc pl-5 my-4;
-}
-
-.prose ol {
-  @apply list-decimal pl-5 my-4;
-}
-
-.prose blockquote {
-  @apply border-l-4 border-muted pl-4 italic my-4;
-}
-
-.prose img {
-  @apply max-w-full h-auto my-4 rounded-md;
-}
-
-.prose a {
-  @apply text-primary underline;
-}
-
-.prose pre {
-  @apply bg-muted p-4 rounded overflow-x-auto my-4;
-}
-
-.prose code {
-  @apply bg-muted px-1 py-0.5 rounded text-sm;
-}
-
-.prose table {
-  @apply w-full border-collapse my-4;
-}
-
-.prose table td, .prose table th {
-  @apply border border-muted p-2;
-}
-
-.prose table th {
-  @apply bg-muted;
-}
-
-/* Classe para texto justificado */
-.text-justify {
-  text-align: justify;
-}
-
-.text-balance {
-  text-wrap: balance;
-}
-
-/* Hide scrollbar for Chrome, Safari and Opera */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-
-/* Hide scrollbar for IE, Edge and Firefox */
-.no-scrollbar {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
-}
-
-/* Ad placeholders */
-.ad-placeholder {
-  @apply border-2 border-dashed border-muted flex items-center justify-center bg-muted/30 text-muted-foreground;
-}
-
-/* Hover effects for cards */
-.card-hover-effect {
-  @apply transition-all duration-300;
-}
-.card-hover-effect:hover {
-  @apply shadow-lg -translate-y-1;
-}
-
-/* Animation for news items */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Container adjustments */
-.container {
-  @apply px-4 sm:px-6 max-w-6xl mx-auto;
-}
-
-/* Card and section shadows */
-.shadow-sm {
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1);
-}
-
-/* Modern magazine layout styles */
-.article-title-large {
-  @apply font-bold text-2xl md:text-3xl lg:text-4xl leading-tight;
-}
-
-.article-title-medium {
-  @apply font-bold text-xl md:text-2xl leading-snug;
-}
-
-.article-title-small {
-  @apply font-bold text-lg leading-snug;
-}
-
-/* Category badges */
-.category-badge {
-  @apply inline-block text-xs font-medium px-2 py-1 rounded-full;
-}
-
-/* Link element with hover animation */
-.link-hover {
-  @apply relative inline-block;
-}
-
-.link-hover::after {
-  content: '';
-  @apply absolute left-0 bottom-0 w-full h-0.5 bg-current transform scale-x-0 transition-transform duration-300 origin-bottom-right;
-}
-
-.link-hover:hover::after {
-  @apply transform scale-x-100 origin-bottom-left;
-}
-
-/* Image hover effects */
-.img-zoom-container {
-  @apply overflow-hidden;
-}
-
-.img-zoom {
-  @apply transition-transform duration-500;
-}
-
-.img-zoom:hover {
-  @apply transform scale-110;
-}
-
-/* Grid layouts */
-.featured-grid {
-  @apply grid grid-cols-1 md:grid-cols-12 gap-4;
-}
-
-.featured-grid-main {
-  @apply md:col-span-8;
-}
-
-.featured-grid-side {
-  @apply md:col-span-4;
-}
-
-/* Sticky sidebars */
-.sticky-sidebar {
-  @apply sticky top-20;
-}
-
-/* Dark mode specific overrides */
-.dark .bg-white {
-  @apply bg-gray-800;
-}
-
-.dark .bg-gray-100 {
-  @apply bg-gray-900;
-}
-
-.dark .text-gray-800 {
-  @apply text-gray-200;
-}
-
-.dark .text-gray-700 {
-  @apply text-gray-300;
-}
-
-.dark .text-gray-600 {
-  @apply text-gray-400;
-}
-
-/* Fix for circular dependency - directly use colors instead of @apply */
-.dark .text-gray-500 {
-  color: #6b7280; /* This is the hex equivalent of text-gray-500 */
-}
-
-.dark .border-gray-200 {
-  @apply border-gray-700;
-}
-
-.dark .shadow-md, 
-.dark .shadow-sm,
-.dark .shadow-lg {
-  --tw-shadow-color: rgba(0,0,0,0.5);
-}
-
-.dark .ad-placeholder {
-  @apply border-gray-700 bg-gray-800/30;
-  color: #6b7280; /* Using hex instead of text-gray-500 to avoid circular dependency */
 }
