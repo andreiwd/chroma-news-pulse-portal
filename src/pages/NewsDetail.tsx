@@ -138,9 +138,9 @@ export default function NewsDetail() {
             
             <div className="prose prose-lg max-w-none">
               {/* Excerpt com estilo de barra lateral */}
-              <div className="flex my-6">
-                <div className="w-1 bg-blue-500 mr-3"></div>
-                <p className="lead text-xl italic text-gray-700">{article.excerpt}</p>
+              <div className="flex my-6 bg-gray-100 rounded">
+                <div className="w-1 bg-blue-500 mr-3 rounded-l"></div>
+                <p className="lead text-xl italic text-gray-700 py-3 pr-3">{article.excerpt}</p>
               </div>
               
               <div 
