@@ -74,6 +74,38 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Ensure all main elements respect dark mode */
+  .dark body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+  
+  .dark main {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+  
+  .dark .bg-gray-100 {
+    background-color: hsl(var(--background)) !important;
+  }
+  
+  .dark .bg-white {
+    background-color: hsl(var(--card)) !important;
+    color: hsl(var(--card-foreground)) !important;
+  }
+  
+  .dark .text-gray-700 {
+    color: hsl(var(--foreground)) !important;
+  }
+  
+  .dark .text-gray-600 {
+    color: hsl(var(--muted-foreground)) !important;
+  }
+  
+  .dark .border-gray-200 {
+    border-color: hsl(var(--border)) !important;
+  }
 }
 
 /* Custom classes */
@@ -103,5 +135,11 @@
       opacity: 1;
       transform: translateY(0);
     }
+  }
+  
+  @keyframes tickerFade {
+    0%, 20% { opacity: 1; transform: translateY(0); }
+    25%, 75% { opacity: 1; transform: translateY(0); }
+    80%, 100% { opacity: 0; transform: translateY(-10px); }
   }
 }

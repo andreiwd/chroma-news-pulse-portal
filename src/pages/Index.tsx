@@ -1,3 +1,4 @@
+
 import { useEffect, useState, useMemo } from "react";
 import NewsTicker from "@/components/NewsTicker";
 import Header from "@/components/Header";
@@ -219,7 +220,7 @@ export default function Index() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-100">
+    <div className="min-h-screen flex flex-col bg-background">
       {/* HTML Blocks - Topo do cabeçalho */}
       <HtmlBlockRenderer position="top-header" />
       
@@ -240,7 +241,7 @@ export default function Index() {
         </section>
 
         {/* Trending Topics Bar */}
-        <section className="bg-white py-3 border-y shadow-sm mb-6">
+        <section className="bg-card py-3 border-y shadow-sm mb-6">
           <div className="container">
             <TrendingTopics trendingNews={trendingNews} />
           </div>
@@ -255,7 +256,7 @@ export default function Index() {
                 <AdPlaceholder 
                   size="sidebar" 
                   id="ad-left-sidebar-1" 
-                  className="bg-white rounded-lg shadow-sm"
+                  className="bg-card rounded-lg shadow-sm"
                 />
                 
                 <LatestNewsSidebar latestNewsItems={latestNewsItems} />
@@ -277,7 +278,7 @@ export default function Index() {
               <AdPlaceholder 
                 size="banner" 
                 id="ad-main-banner-1"
-                className="my-8 bg-white rounded-lg shadow-sm" 
+                className="my-8 bg-card rounded-lg shadow-sm" 
               />
 
               {/* HTML Blocks - Conteúdo principal */}
@@ -286,8 +287,8 @@ export default function Index() {
               {isLoadingBlocks || isLoadingCategories ? (
                 <div className="text-center py-8">
                   <div className="animate-pulse flex flex-col items-center">
-                    <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
-                    <div className="h-64 bg-gray-200 rounded w-full"></div>
+                    <div className="h-8 bg-muted rounded w-1/3 mb-4"></div>
+                    <div className="h-64 bg-muted rounded w-full"></div>
                   </div>
                 </div>
               ) : (
@@ -297,7 +298,7 @@ export default function Index() {
               <AdPlaceholder 
                 size="banner" 
                 id="ad-main-banner-2"
-                className="my-8 bg-white rounded-lg shadow-sm" 
+                className="my-8 bg-card rounded-lg shadow-sm" 
               />
             </div>
 
@@ -312,7 +313,7 @@ export default function Index() {
                   <AdPlaceholder 
                     size="rectangle" 
                     id="ad-sidebar-rect-1"
-                    className="bg-white rounded-lg shadow-sm" 
+                    className="bg-card rounded-lg shadow-sm" 
                   />
                   
                   <NewsletterSignup />
@@ -320,7 +321,7 @@ export default function Index() {
                   <AdPlaceholder 
                     size="sidebar" 
                     id="ad-sidebar-tall-1"
-                    className="bg-white rounded-lg shadow-sm" 
+                    className="bg-card rounded-lg shadow-sm" 
                   />
                 </div>
               </div>

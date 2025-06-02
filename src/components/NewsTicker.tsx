@@ -41,7 +41,9 @@ export default function NewsTicker() {
   }
 
   return (
-    <div className="bg-gradient-to-r from-primary/90 to-primary py-2 text-white">
+    <div className="bg-gradient-to-r from-primary/90 to-primary py-2 text-white" style={{
+      background: `linear-gradient(to right, hsl(var(--primary) / 0.9), hsl(var(--primary)))`
+    }}>
       <div className="container flex items-center space-x-4 overflow-hidden">
         <span className="font-semibold whitespace-nowrap">Últimas Notícias:</span>
         <div className="overflow-hidden h-6">
@@ -49,12 +51,12 @@ export default function NewsTicker() {
             <Link
               to={`/news/${latestNews[currentNewsIndex].slug}`}
               key={`ticker-${latestNews[currentNewsIndex].id}`}
-              className="block animate-[tickerFade_4s_ease-in-out_infinite] hover:underline"
+              className="block animate-[tickerFade_4s_ease-in-out_infinite] hover:underline text-white"
             >
               {latestNews[currentNewsIndex].title || "Notícia sem título"}
             </Link>
           ) : (
-            <p>Nenhuma notícia encontrada</p>
+            <p className="text-white">Nenhuma notícia encontrada</p>
           )}
         </div>
       </div>

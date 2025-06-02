@@ -2,117 +2,141 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
-import WeatherWidget from "@/components/WeatherWidget";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/components/ui/use-toast";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useSupabaseConfig } from "@/hooks/useSupabaseConfig";
 
-interface WeatherConfigData {
-  city: string;
+interface WeatherConfig {
   apiKey: string;
-  isEnabled: boolean;
+  city: string;
+  enabled: boolean;
 }
 
 export default function WeatherConfig() {
   const { toast } = useToast();
   const { getConfig, setConfig, loading } = useSupabaseConfig();
-  const [city, setCity] = useState("");
-  const [apiKey, setApiKey] = useState("");
-  const [isEnabled, setIsEnabled] = useState(false);
+  const [config, setConfigState] = useState<WeatherConfig>({
+    apiKey: '',
+    city: '',
+    enabled: true
+  });
 
+  // Load config from Supabase
   useEffect(() => {
     const loadConfig = async () => {
       try {
-        const config = await getConfig('weather_config');
-        if (config) {
-          const weatherConfig = config as unknown as WeatherConfigData;
-          setCity(weatherConfig.city || "");
-          setApiKey(weatherConfig.apiKey || "");
-          setIsEnabled(weatherConfig.isEnabled || false);
+        const weatherConfig = await getConfig('weather_config');
+        if (weatherConfig) {
+          setConfigState({
+            apiKey: weatherConfig.apiKey || '',
+            city: weatherConfig.city || '',
+            enabled: weatherConfig.enabled !== false
+          });
         }
       } catch (error) {
         console.error("Error loading weather config:", error);
       }
     };
-    
+
     loadConfig();
   }, [getConfig]);
 
-  const handleSave = async () => {
-    const config: WeatherConfigData = {
-      city,
-      apiKey,
-      isEnabled
-    };
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
+    setConfigState(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     
     const success = await setConfig('weather_config', config);
+    
     if (success) {
       toast({
-        title: "Configurações salvas",
-        description: "As configurações do widget de previsão do tempo foram atualizadas."
+        title: "Configuração salva",
+        description: "As configurações do clima foram salvas com sucesso.",
       });
     }
   };
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold mb-6">Configurar Widget de Previsão do Tempo</h1>
-      
-      <Card className="p-6">
-        <div className="space-y-4">
-          <div>
-            <label className="text-sm font-medium mb-1 block">
-              Cidade (formato: cidade,código_do_país)
-            </label>
-            <Input
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              placeholder="Ex: Taquaritinga,BR"
-            />
-            <p className="text-sm text-muted-foreground mt-1">
-              Use o formato cidade,código_do_país (Ex: Taquaritinga,BR)
-            </p>
-          </div>
-          
-          <div>
-            <label className="text-sm font-medium mb-1 block">
-              API Key do OpenWeatherMap
-            </label>
-            <Input
-              type="password"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              placeholder="Sua API Key do OpenWeatherMap"
-            />
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="enabled"
-              checked={isEnabled}
-              onChange={(e) => setIsEnabled(e.target.checked)}
-              className="rounded border-gray-300"
-            />
-            <label htmlFor="enabled" className="text-sm font-medium">
-              Exibir widget no site
-            </label>
-          </div>
-          
-          <div className="pt-4">
-            <Button onClick={handleSave} disabled={loading}>
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Configurações do Clima</h1>
+        <p className="text-muted-foreground">
+          Configure as informações do widget de clima
+        </p>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Widget de Clima</CardTitle>
+          <CardDescription>
+            Configure a API do OpenWeatherMap para exibir informações do clima
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="apiKey">Chave da API OpenWeatherMap</Label>
+              <Input
+                id="apiKey"
+                name="apiKey"
+                type="text"
+                value={config.apiKey}
+                onChange={handleInputChange}
+                placeholder="Digite sua chave da API"
+              />
+              <p className="text-sm text-muted-foreground">
+                Obtenha sua chave gratuita em{" "}
+                <a 
+                  href="https://openweathermap.org/api" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="underline"
+                >
+                  OpenWeatherMap
+                </a>
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="city">Cidade</Label>
+              <Input
+                id="city"
+                name="city"
+                type="text"
+                value={config.city}
+                onChange={handleInputChange}
+                placeholder="Ex: São Paulo, BR"
+              />
+              <p className="text-sm text-muted-foreground">
+                Use o formato: Cidade, Código do País (ex: São Paulo, BR)
+              </p>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <input
+                id="enabled"
+                name="enabled"
+                type="checkbox"
+                checked={config.enabled}
+                onChange={handleInputChange}
+                className="h-4 w-4 rounded border-gray-300"
+              />
+              <Label htmlFor="enabled">Habilitar widget de clima</Label>
+            </div>
+
+            <Button type="submit" disabled={loading}>
               {loading ? "Salvando..." : "Salvar Configurações"}
             </Button>
-          </div>
-        </div>
+          </form>
+        </CardContent>
       </Card>
-      
-      {isEnabled && city && apiKey && (
-        <div>
-          <h2 className="text-lg font-semibold mb-3">Preview</h2>
-          <WeatherWidget city={city} apiKey={apiKey} />
-        </div>
-      )}
     </div>
   );
 }

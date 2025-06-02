@@ -41,9 +41,11 @@ export default function Header() {
     const loadConfig = async () => {
       try {
         const config = await getConfig('frontend_settings');
+        console.log("Header - Loaded config:", config);
         if (config) {
           const settings = config as unknown as SiteSettings;
           if (settings.logo) {
+            console.log("Header - Setting logo:", settings.logo.url);
             setLogo(settings.logo.url || "");
             setLogoHeight(settings.logo.height || 60);
           }
@@ -71,6 +73,7 @@ export default function Header() {
 
   // Apply custom colors to CSS variables
   useEffect(() => {
+    console.log("Header - Applying colors:", colors);
     if (colors.primary) {
       document.documentElement.style.setProperty('--primary', colors.primary);
     }
