@@ -16,6 +16,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel';
+import { useSupabaseConfig } from '@/hooks/useSupabaseConfig';
 
 interface FeaturedVideoProps {
   className?: string;
@@ -29,7 +30,13 @@ interface VideoConfig {
   order: number;
 }
 
+interface VideoSettings {
+  youtubeVideos: VideoConfig[];
+  youtubeAccentColor: string;
+}
+
 export default function FeaturedYouTubeVideo({ className = "" }: FeaturedVideoProps) {
+  const { getConfig } = useSupabaseConfig();
   const [videos, setVideos] = useState<VideoConfig[]>([]);
   const [accentColor, setAccentColor] = useState("#ea384c");
   const [isLoading, setIsLoading] = useState(true);
@@ -37,26 +44,30 @@ export default function FeaturedYouTubeVideo({ className = "" }: FeaturedVideoPr
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
-    // Carregar configurações salvas
-    const storedSettings = localStorage.getItem('siteSettings');
-    if (storedSettings) {
+    const loadConfig = async () => {
       try {
-        const settings = JSON.parse(storedSettings);
-        if (settings.youtubeVideos && Array.isArray(settings.youtubeVideos)) {
-          const visibleVideos = settings.youtubeVideos
-            .filter((video: VideoConfig) => video.showOnHome)
-            .sort((a: VideoConfig, b: VideoConfig) => a.order - b.order);
-          setVideos(visibleVideos);
-        }
-        if (settings.youtubeAccentColor) {
-          setAccentColor(settings.youtubeAccentColor);
+        const config = await getConfig('video_settings');
+        if (config) {
+          const videoSettings = config as unknown as VideoSettings;
+          if (videoSettings.youtubeVideos && Array.isArray(videoSettings.youtubeVideos)) {
+            const visibleVideos = videoSettings.youtubeVideos
+              .filter((video: VideoConfig) => video.showOnHome)
+              .sort((a: VideoConfig, b: VideoConfig) => a.order - b.order);
+            setVideos(visibleVideos);
+          }
+          if (videoSettings.youtubeAccentColor) {
+            setAccentColor(videoSettings.youtubeAccentColor);
+          }
         }
       } catch (error) {
-        console.error("Error parsing site settings:", error);
+        console.error("Error loading video settings:", error);
+      } finally {
+        setIsLoading(false);
       }
-    }
-    setIsLoading(false);
-  }, []);
+    };
+
+    loadConfig();
+  }, [getConfig]);
 
   // Se não houver vídeos configurados ou isLoading, não renderizar nada
   if (isLoading) {

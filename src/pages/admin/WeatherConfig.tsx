@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import WeatherWidget from "@/components/WeatherWidget";
 import { useSupabaseConfig } from "@/hooks/useSupabaseConfig";
 
@@ -22,13 +22,16 @@ export default function WeatherConfig() {
 
   useEffect(() => {
     const loadConfig = async () => {
-      const config = await getConfig('weather_config');
-      if (config) {
-        // Safely cast the config data to our expected interface
-        const weatherConfig = config as unknown as WeatherConfigData;
-        setCity(weatherConfig.city || "");
-        setApiKey(weatherConfig.apiKey || "");
-        setIsEnabled(weatherConfig.isEnabled || false);
+      try {
+        const config = await getConfig('weather_config');
+        if (config) {
+          const weatherConfig = config as unknown as WeatherConfigData;
+          setCity(weatherConfig.city || "");
+          setApiKey(weatherConfig.apiKey || "");
+          setIsEnabled(weatherConfig.isEnabled || false);
+        }
+      } catch (error) {
+        console.error("Error loading weather config:", error);
       }
     };
     

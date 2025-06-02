@@ -4,34 +4,56 @@ import ThemeToggle from "./ThemeToggle";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useEffect, useState } from "react";
+import { useSupabaseConfig } from "@/hooks/useSupabaseConfig";
+
+interface SiteSettings {
+  logo: {
+    url: string;
+    height: number;
+  };
+  socialLinks: {
+    facebook: string;
+    twitter: string;
+    instagram: string;
+  };
+}
 
 export default function Header() {
-  const [logo, setLogo] = useState<string>("/logo.png");
+  const { getConfig } = useSupabaseConfig();
+  const [logo, setLogo] = useState<string>("");
+  const [logoHeight, setLogoHeight] = useState<number>(60);
   const [socialLinks, setSocialLinks] = useState({
     facebook: "https://facebook.com",
     instagram: "https://instagram.com",
-    tiktok: "https://tiktok.com"
+    twitter: "https://twitter.com"
   });
 
-  // Load settings from localStorage if available
+  // Load settings from Supabase
   useEffect(() => {
-    const storedSettings = localStorage.getItem('siteSettings');
-    if (storedSettings) {
+    const loadConfig = async () => {
       try {
-        const settings = JSON.parse(storedSettings);
-        if (settings.logo) setLogo(settings.logo);
-        if (settings.socialLinks) {
-          setSocialLinks({
-            facebook: settings.socialLinks.facebook || "https://facebook.com",
-            instagram: settings.socialLinks.instagram || "https://instagram.com",
-            tiktok: settings.socialLinks.youtube || "https://tiktok.com"
-          });
+        const config = await getConfig('frontend_settings');
+        if (config) {
+          const settings = config as unknown as SiteSettings;
+          if (settings.logo) {
+            setLogo(settings.logo.url || "");
+            setLogoHeight(settings.logo.height || 60);
+          }
+          if (settings.socialLinks) {
+            setSocialLinks({
+              facebook: settings.socialLinks.facebook || "https://facebook.com",
+              instagram: settings.socialLinks.instagram || "https://instagram.com",
+              twitter: settings.socialLinks.twitter || "https://twitter.com"
+            });
+          }
         }
       } catch (error) {
-        console.error("Error parsing site settings:", error);
+        console.error("Error loading site settings:", error);
       }
-    }
-  }, []);
+    };
+
+    loadConfig();
+  }, [getConfig]);
 
   return (
     <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -39,20 +61,25 @@ export default function Header() {
         <div className="flex items-center justify-between gap-6">
           <div className="flex-1">
             <a href="/" className="inline-block">
-              <img 
-                src={logo} 
-                alt="ChromaNews" 
-                className="max-h-16 w-auto"
-                onError={(e) => {
-                  e.currentTarget.onerror = null;
-                  e.currentTarget.style.display = "none";
-                  e.currentTarget.parentElement!.innerHTML += `
-                    <span class="text-2xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-                      ChromaNews
-                    </span>
-                  `;
-                }}
-              />
+              {logo ? (
+                <img 
+                  src={logo} 
+                  alt="ChromaNews" 
+                  style={{ height: `${logoHeight}px` }}
+                  className="w-auto"
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                    const fallback = document.createElement('span');
+                    fallback.className = "text-2xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent";
+                    fallback.textContent = "ChromaNews";
+                    e.currentTarget.parentElement?.appendChild(fallback);
+                  }}
+                />
+              ) : (
+                <span className="text-2xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+                  ChromaNews
+                </span>
+              )}
             </a>
           </div>
           
@@ -79,7 +106,7 @@ export default function Header() {
                 </a>
               </Button>
               <Button variant="ghost" size="icon" asChild>
-                <a href={socialLinks.tiktok} target="_blank" rel="noopener noreferrer">
+                <a href={socialLinks.twitter} target="_blank" rel="noopener noreferrer">
                   <svg 
                     xmlns="http://www.w3.org/2000/svg" 
                     width="20" 
@@ -92,11 +119,7 @@ export default function Header() {
                     strokeLinejoin="round" 
                     className="h-5 w-5"
                   >
-                    <path d="M9 12a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/>
-                    <path d="M16 8v8"/>
-                    <path d="M12 16v-8"/>
-                    <path d="M20 12V8a4 4 0 0 0-4-4h-1"/>
-                    <path d="M13 5.1v0"/>
+                    <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5 0-.278-.028-.556-.08-.83A7.72 7.72 0 0 0 23 3z"/>
                   </svg>
                 </a>
               </Button>

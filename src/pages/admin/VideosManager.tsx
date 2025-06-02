@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Youtube, Pencil, Trash2, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useSupabaseConfig } from "@/hooks/useSupabaseConfig";
 
 import {
   Dialog,
@@ -37,7 +38,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
 
 interface YoutubeVideo {
   id: string;
@@ -47,8 +47,14 @@ interface YoutubeVideo {
   order: number;
 }
 
+interface VideoSettings {
+  youtubeVideos: YoutubeVideo[];
+  youtubeAccentColor: string;
+}
+
 export default function VideosManager() {
   const { toast } = useToast();
+  const { getConfig, setConfig, loading } = useSupabaseConfig();
   const [videos, setVideos] = useState<YoutubeVideo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -67,45 +73,46 @@ export default function VideosManager() {
 
   // Carregar vídeos salvos
   useEffect(() => {
-    const storedSettings = localStorage.getItem("siteSettings");
-    if (storedSettings) {
+    const loadConfig = async () => {
       try {
-        const settings = JSON.parse(storedSettings);
-        if (settings.youtubeVideos && Array.isArray(settings.youtubeVideos)) {
-          setVideos(settings.youtubeVideos);
-        }
-        if (settings.youtubeAccentColor) {
-          setAccentColor(settings.youtubeAccentColor);
+        const config = await getConfig('video_settings');
+        if (config) {
+          const videoSettings = config as unknown as VideoSettings;
+          if (videoSettings.youtubeVideos && Array.isArray(videoSettings.youtubeVideos)) {
+            setVideos(videoSettings.youtubeVideos);
+          }
+          if (videoSettings.youtubeAccentColor) {
+            setAccentColor(videoSettings.youtubeAccentColor);
+          }
         }
       } catch (error) {
-        console.error("Erro ao carregar configurações:", error);
+        console.error("Erro ao carregar configurações de vídeos:", error);
+      } finally {
+        setIsLoading(false);
       }
-    }
-    setIsLoading(false);
-  }, []);
+    };
+
+    loadConfig();
+  }, [getConfig]);
 
   // Salvar vídeos
-  const saveVideos = (updatedVideos: YoutubeVideo[]) => {
-    const storedSettings = localStorage.getItem("siteSettings") || "{}";
-    try {
-      const settings = JSON.parse(storedSettings);
-      settings.youtubeVideos = updatedVideos;
-      localStorage.setItem("siteSettings", JSON.stringify(settings));
-    } catch (error) {
-      console.error("Erro ao salvar configurações:", error);
-    }
+  const saveVideos = async (updatedVideos: YoutubeVideo[]) => {
+    const videoSettings: VideoSettings = {
+      youtubeVideos: updatedVideos,
+      youtubeAccentColor: accentColor
+    };
+    
+    await setConfig('video_settings', videoSettings);
   };
 
   // Salvar cor de destaque
-  const saveAccentColor = (color: string) => {
-    const storedSettings = localStorage.getItem("siteSettings") || "{}";
-    try {
-      const settings = JSON.parse(storedSettings);
-      settings.youtubeAccentColor = color;
-      localStorage.setItem("siteSettings", JSON.stringify(settings));
-    } catch (error) {
-      console.error("Erro ao salvar cor de destaque:", error);
-    }
+  const saveAccentColor = async (color: string) => {
+    const videoSettings: VideoSettings = {
+      youtubeVideos: videos,
+      youtubeAccentColor: color
+    };
+    
+    await setConfig('video_settings', videoSettings);
   };
 
   // Editar vídeo
@@ -135,10 +142,10 @@ export default function VideosManager() {
   };
 
   // Excluir vídeo
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     const updatedVideos = videos.filter((video) => video.id !== id);
     setVideos(updatedVideos);
-    saveVideos(updatedVideos);
+    await saveVideos(updatedVideos);
     toast({
       title: "Vídeo excluído",
       description: "O vídeo foi excluído com sucesso.",
@@ -146,23 +153,23 @@ export default function VideosManager() {
   };
 
   // Alternar visibilidade do vídeo
-  const toggleVideoVisibility = (id: string) => {
+  const toggleVideoVisibility = async (id: string) => {
     const updatedVideos = videos.map((video) =>
       video.id === id ? { ...video, showOnHome: !video.showOnHome } : video
     );
     setVideos(updatedVideos);
-    saveVideos(updatedVideos);
+    await saveVideos(updatedVideos);
   };
 
   // Salvar formulário
-  const onSubmit = (data: any) => {
+  const onSubmit = async (data: any) => {
     if (editingVideo) {
       // Atualizar vídeo existente
       const updatedVideos = videos.map((video) =>
         video.id === data.id ? { ...data } : video
       );
       setVideos(updatedVideos);
-      saveVideos(updatedVideos);
+      await saveVideos(updatedVideos);
       toast({
         title: "Vídeo atualizado",
         description: "O vídeo foi atualizado com sucesso.",
@@ -171,7 +178,7 @@ export default function VideosManager() {
       // Adicionar novo vídeo
       const newVideos = [...videos, data];
       setVideos(newVideos);
-      saveVideos(newVideos);
+      await saveVideos(newVideos);
       toast({
         title: "Vídeo adicionado",
         description: "O vídeo foi adicionado com sucesso.",
@@ -181,10 +188,10 @@ export default function VideosManager() {
   };
 
   // Atualizar cor de destaque
-  const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleColorChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const newColor = e.target.value;
     setAccentColor(newColor);
-    saveAccentColor(newColor);
+    await saveAccentColor(newColor);
   };
 
   return (
@@ -403,7 +410,7 @@ export default function VideosManager() {
                 <DialogClose asChild>
                   <Button variant="outline" type="button">Cancelar</Button>
                 </DialogClose>
-                <Button type="submit">
+                <Button type="submit" disabled={loading}>
                   {editingVideo ? "Salvar alterações" : "Adicionar vídeo"}
                 </Button>
               </DialogFooter>

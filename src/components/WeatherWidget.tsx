@@ -1,7 +1,7 @@
-
-import { RefreshCw, Thermometer, Wind } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Card } from "./ui/card";
+import { useSupabaseConfig } from "@/hooks/useSupabaseConfig";
 
 interface WeatherData {
   temp: number;
@@ -23,10 +23,36 @@ interface WeatherWidgetProps {
   apiKey?: string;
 }
 
-export default function WeatherWidget({ city = "Taquaritinga,BR", apiKey }: WeatherWidgetProps) {
+interface WeatherConfigData {
+  city: string;
+  apiKey: string;
+  isEnabled: boolean;
+}
+
+export default function WeatherWidget({ city: propCity, apiKey: propApiKey }: WeatherWidgetProps) {
+  const { getConfig } = useSupabaseConfig();
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
+  const [config, setConfig] = useState<WeatherConfigData | null>(null);
+
+  // Carregar configurações do Supabase se não foram passadas como props
+  useEffect(() => {
+    if (!propCity || !propApiKey) {
+      const loadConfig = async () => {
+        try {
+          const weatherConfig = await getConfig('weather_config');
+          if (weatherConfig) {
+            const configData = weatherConfig as unknown as WeatherConfigData;
+            setConfig(configData);
+          }
+        } catch (error) {
+          console.error("Error loading weather config:", error);
+        }
+      };
+      loadConfig();
+    }
+  }, [getConfig, propCity, propApiKey]);
 
   const formatDate = (timestamp: number) => {
     const date = new Date(timestamp * 1000);
@@ -46,6 +72,9 @@ export default function WeatherWidget({ city = "Taquaritinga,BR", apiKey }: Weat
   };
 
   const fetchWeather = async () => {
+    const city = propCity || config?.city || "Taquaritinga,BR";
+    const apiKey = propApiKey || config?.apiKey;
+
     if (!apiKey) {
       // Use mock data when API key is not provided
       const mockData = {
@@ -105,11 +134,29 @@ export default function WeatherWidget({ city = "Taquaritinga,BR", apiKey }: Weat
   };
 
   useEffect(() => {
-    fetchWeather();
-    const interval = setInterval(fetchWeather, 1800000); // Update every 30 minutes
-    
-    return () => clearInterval(interval);
-  }, [city, apiKey]);
+    // Só carrega se tem configuração ou props
+    if (propCity && propApiKey || config?.isEnabled) {
+      fetchWeather();
+      const interval = setInterval(fetchWeather, 1800000); // Update every 30 minutes
+      
+      return () => clearInterval(interval);
+    } else if (!propCity && !propApiKey && config && !config.isEnabled) {
+      setLoading(false);
+    }
+  }, [propCity, propApiKey, config]);
+
+  // Se está carregando ou não há configuração habilitada, não renderizar
+  if (loading && !weather) {
+    return null;
+  }
+
+  if (!propCity && !propApiKey && config && !config.isEnabled) {
+    return null;
+  }
+
+  if (error) {
+    return null;
+  }
 
   const getWeatherIcon = () => {
     if (!weather) return null;
@@ -188,7 +235,7 @@ export default function WeatherWidget({ city = "Taquaritinga,BR", apiKey }: Weat
               <path fill="#ffce47" d="M46.9,30h-9.4c-1,0-1.8,0.8-1.8,1.8s0.8,1.8,1.8,1.8h9.4c1,0,1.8-0.8,1.8-1.8S47.9,30,46.9,30z"/>
               <path fill="#ffce47" d="M14.5,17.6l-6.6-6.6c-0.7-0.7-0.7-1.8,0-2.5s1.8-0.7,2.5,0l6.6,6.6c0.7,0.7,0.7,1.8,0,2.5S15.2,18.3,14.5,17.6z"/>
               <path fill="#ffce47" d="M44.5,47.6l-6.6-6.6c-0.7-0.7-0.7-1.8,0-2.5s1.8-0.7,2.5,0l6.6,6.6c0.7,0.7,0.7,1.8,0,2.5S45.2,48.3,44.5,47.6z"/>
-              <path fill="#ffce47" d="M17.6,44.5l-6.6,6.6c-0.7,0.7-1.8,0.7-2.5,0s-0.7-1.8,0-2.5l6.6-6.6c0.7-0.7,1.8-0.7,2.5,0S18.3,43.8,17.6,44.5z"/>
+              <path fill="#ffce47" d="M17.6,44.5l-6.6,6.6c-0.7,0.7-1.8,0.7-2.5,0s-0.7-1.8,0-2.5l6.6-6.6c0.7,0.7,1.8,0.7,2.5,0S18.3,43.8,17.6,44.5z"/>
               <path fill="#ffce47" d="M47.6,14.5l-6.6,6.6c-0.7,0.7-1.8,0.7-2.5,0s-0.7-1.8,0-2.5l6.6-6.6c0.7-0.7,1.8-0.7,2.5,0S48.3,13.8,47.6,14.5z"/>
             </g>
           </svg>
@@ -204,7 +251,7 @@ export default function WeatherWidget({ city = "Taquaritinga,BR", apiKey }: Weat
               <path fill="#ffce47" d="M46.9,30h-9.4c-1,0-1.8,0.8-1.8,1.8s0.8,1.8,1.8,1.8h9.4c1,0,1.8-0.8,1.8-1.8S47.9,30,46.9,30z"/>
               <path fill="#ffce47" d="M14.5,17.6l-6.6-6.6c-0.7-0.7-0.7-1.8,0-2.5s1.8-0.7,2.5,0l6.6,6.6c0.7,0.7,0.7,1.8,0,2.5S15.2,18.3,14.5,17.6z"/>
               <path fill="#ffce47" d="M44.5,47.6l-6.6-6.6c-0.7-0.7-0.7-1.8,0-2.5s1.8-0.7,2.5,0l6.6,6.6c0.7,0.7,0.7,1.8,0,2.5S45.2,48.3,44.5,47.6z"/>
-              <path fill="#ffce47" d="M17.6,44.5l-6.6,6.6c-0.7,0.7-1.8,0.7-2.5,0s-0.7-1.8,0-2.5l6.6-6.6c0.7-0.7,1.8-0.7,2.5,0S18.3,43.8,17.6,44.5z"/>
+              <path fill="#ffce47" d="M17.6,44.5l-6.6,6.6c-0.7,0.7-1.8,0.7-2.5,0s-0.7-1.8,0-2.5l6.6-6.6c0.7,0.7,1.8,0.7,2.5,0S18.3,43.8,17.6,44.5z"/>
               <path fill="#ffce47" d="M47.6,14.5l-6.6,6.6c-0.7,0.7-1.8,0.7-2.5,0s-0.7-1.8,0-2.5l6.6-6.6c0.7-0.7,1.8-0.7,2.5,0S48.3,13.8,47.6,14.5z"/>
             </g>
           </svg>
@@ -251,9 +298,7 @@ export default function WeatherWidget({ city = "Taquaritinga,BR", apiKey }: Weat
     }
   };
 
-  if (error) {
-    return null;
-  }
+  const effectiveCity = propCity || config?.city || "Taquaritinga,BR";
 
   return (
     <Card className={`${getBackgroundGradient()} text-white overflow-hidden transition-all hover:-translate-y-1 hover:shadow-lg`}>
@@ -261,7 +306,7 @@ export default function WeatherWidget({ city = "Taquaritinga,BR", apiKey }: Weat
       <div className="p-4 flex justify-between items-center border-b border-white/20">
         <div>
           <h2 className="text-lg md:text-xl font-medium mb-1 animate-fadeInUp">
-            {weather?.city || city.split(',')[0]}
+            {weather?.city || effectiveCity.split(',')[0]}
           </h2>
           <p className="text-sm text-white/80 animate-fadeInUp" style={{animationDelay: "0.2s"}}>
             {loading ? "Atualizando dados..." : weather?.dt ? formatDate(weather.dt) : "Sem dados"}
