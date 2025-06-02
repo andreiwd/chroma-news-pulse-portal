@@ -16,6 +16,10 @@ interface SiteSettings {
     twitter: string;
     instagram: string;
   };
+  colors: {
+    primary: string;
+    secondary: string;
+  };
 }
 
 export default function Header() {
@@ -26,6 +30,10 @@ export default function Header() {
     facebook: "https://facebook.com",
     instagram: "https://instagram.com",
     twitter: "https://twitter.com"
+  });
+  const [colors, setColors] = useState({
+    primary: "#1a73e8",
+    secondary: "#f8f9fa"
   });
 
   // Load settings from Supabase
@@ -46,6 +54,12 @@ export default function Header() {
               twitter: settings.socialLinks.twitter || "https://twitter.com"
             });
           }
+          if (settings.colors) {
+            setColors({
+              primary: settings.colors.primary || "#1a73e8",
+              secondary: settings.colors.secondary || "#f8f9fa"
+            });
+          }
         }
       } catch (error) {
         console.error("Error loading site settings:", error);
@@ -54,6 +68,16 @@ export default function Header() {
 
     loadConfig();
   }, [getConfig]);
+
+  // Apply custom colors to CSS variables
+  useEffect(() => {
+    if (colors.primary) {
+      document.documentElement.style.setProperty('--primary', colors.primary);
+    }
+    if (colors.secondary) {
+      document.documentElement.style.setProperty('--secondary', colors.secondary);
+    }
+  }, [colors]);
 
   return (
     <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -68,11 +92,15 @@ export default function Header() {
                   style={{ height: `${logoHeight}px` }}
                   className="w-auto"
                   onError={(e) => {
+                    console.error("Erro ao carregar logo:", e);
                     e.currentTarget.style.display = "none";
-                    const fallback = document.createElement('span');
-                    fallback.className = "text-2xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent";
-                    fallback.textContent = "ChromaNews";
-                    e.currentTarget.parentElement?.appendChild(fallback);
+                    const fallback = e.currentTarget.parentElement?.querySelector('.fallback-logo');
+                    if (!fallback) {
+                      const span = document.createElement('span');
+                      span.className = "text-2xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent fallback-logo";
+                      span.textContent = "ChromaNews";
+                      e.currentTarget.parentElement?.appendChild(span);
+                    }
                   }}
                 />
               ) : (

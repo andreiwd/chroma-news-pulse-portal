@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Eye, Edit, Plus, Trash } from "lucide-react";
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import CustomHtmlBlock from "@/components/CustomHtmlBlock";
+import { useSupabaseConfig } from "@/hooks/useSupabaseConfig";
 
 interface HtmlBlock {
   id: string;
@@ -21,29 +22,8 @@ interface HtmlBlock {
 
 export default function HtmlBlocksManager() {
   const { toast } = useToast();
-  const [blocks, setBlocks] = useState<HtmlBlock[]>([
-    {
-      id: '1',
-      name: 'Aviso Importante',
-      position: 'top-header',
-      content: '<div class="bg-red-500 text-white p-2 text-center">Aviso importante para todos os leitores</div>',
-      active: true
-    },
-    {
-      id: '2',
-      name: 'Caixa de apoio',
-      position: 'sidebar',
-      content: '<div class="bg-blue-100 p-4 rounded"><h3 class="font-bold">Apoie nosso trabalho</h3><p>Sua contribuição é importante.</p></div>',
-      active: true
-    },
-    {
-      id: '3',
-      name: 'Informações de contato',
-      position: 'footer',
-      content: '<div class="text-center"><p>Contato: (16) 99999-9999</p><p>Email: contato@exemplo.com</p></div>',
-      active: true
-    }
-  ]);
+  const { getConfig, setConfig, loading } = useSupabaseConfig();
+  const [blocks, setBlocks] = useState<HtmlBlock[]>([]);
   
   const [formData, setFormData] = useState<Omit<HtmlBlock, 'id'>>({
     name: '',
@@ -55,6 +35,31 @@ export default function HtmlBlocksManager() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [previewBlock, setPreviewBlock] = useState<HtmlBlock | null>(null);
+
+  // Load blocks from Supabase
+  useEffect(() => {
+    const loadBlocks = async () => {
+      try {
+        const config = await getConfig('html_blocks');
+        if (config && Array.isArray(config)) {
+          setBlocks(config as HtmlBlock[]);
+        }
+      } catch (error) {
+        console.error("Error loading HTML blocks:", error);
+      }
+    };
+
+    loadBlocks();
+  }, [getConfig]);
+
+  // Save blocks to Supabase
+  const saveBlocks = async (newBlocks: HtmlBlock[]) => {
+    const success = await setConfig('html_blocks', newBlocks);
+    if (success) {
+      setBlocks(newBlocks);
+    }
+    return success;
+  };
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -71,19 +76,24 @@ export default function HtmlBlocksManager() {
     }
   };
   
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    let newBlocks: HtmlBlock[];
     
     if (editingId) {
       // Editar bloco existente
-      setBlocks(blocks.map(block => 
+      newBlocks = blocks.map(block => 
         block.id === editingId ? { ...formData, id: editingId } : block
-      ));
+      );
       
-      toast({
-        title: "Bloco HTML atualizado",
-        description: `O bloco "${formData.name}" foi atualizado com sucesso.`
-      });
+      const success = await saveBlocks(newBlocks);
+      if (success) {
+        toast({
+          title: "Bloco HTML atualizado",
+          description: `O bloco "${formData.name}" foi atualizado com sucesso.`
+        });
+      }
     } else {
       // Adicionar novo bloco
       const newBlock = {
@@ -91,12 +101,15 @@ export default function HtmlBlocksManager() {
         id: Date.now().toString()
       };
       
-      setBlocks([...blocks, newBlock]);
+      newBlocks = [...blocks, newBlock];
       
-      toast({
-        title: "Bloco HTML adicionado",
-        description: `O bloco "${formData.name}" foi adicionado com sucesso.`
-      });
+      const success = await saveBlocks(newBlocks);
+      if (success) {
+        toast({
+          title: "Bloco HTML adicionado",
+          description: `O bloco "${formData.name}" foi adicionado com sucesso.`
+        });
+      }
     }
     
     resetForm();
@@ -114,13 +127,16 @@ export default function HtmlBlocksManager() {
     setDialogOpen(true);
   };
   
-  const handleDelete = (id: string) => {
-    setBlocks(blocks.filter(block => block.id !== id));
+  const handleDelete = async (id: string) => {
+    const newBlocks = blocks.filter(block => block.id !== id);
+    const success = await saveBlocks(newBlocks);
     
-    toast({
-      title: "Bloco HTML removido",
-      description: "O bloco foi removido com sucesso."
-    });
+    if (success) {
+      toast({
+        title: "Bloco HTML removido",
+        description: "O bloco foi removido com sucesso."
+      });
+    }
   };
   
   const resetForm = () => {
@@ -138,18 +154,22 @@ export default function HtmlBlocksManager() {
     if (!open) resetForm();
   };
   
-  const toggleBlockStatus = (id: string) => {
-    setBlocks(blocks.map(block => 
+  const toggleBlockStatus = async (id: string) => {
+    const newBlocks = blocks.map(block => 
       block.id === id ? { ...block, active: !block.active } : block
-    ));
+    );
     
-    const block = blocks.find(block => block.id === id);
-    const status = block?.active ? "desativado" : "ativado";
+    const success = await saveBlocks(newBlocks);
     
-    toast({
-      title: `Bloco HTML ${status}`,
-      description: `O bloco "${block?.name}" foi ${status} com sucesso.`
-    });
+    if (success) {
+      const block = blocks.find(block => block.id === id);
+      const status = block?.active ? "desativado" : "ativado";
+      
+      toast({
+        title: `Bloco HTML ${status}`,
+        description: `O bloco "${block?.name}" foi ${status} com sucesso.`
+      });
+    }
   };
   
   return (
@@ -192,14 +212,23 @@ export default function HtmlBlocksManager() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="block-position">Posição</Label>
-                <Input
+                <select
                   id="block-position"
                   name="position"
                   value={formData.position}
                   onChange={handleInputChange}
-                  placeholder="Ex: header, sidebar, footer"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                   required
-                />
+                >
+                  <option value="">Selecione uma posição</option>
+                  <option value="top-header">Topo do cabeçalho</option>
+                  <option value="header">Cabeçalho</option>
+                  <option value="after-header">Após cabeçalho</option>
+                  <option value="sidebar">Barra lateral</option>
+                  <option value="main-content">Conteúdo principal</option>
+                  <option value="footer">Rodapé</option>
+                  <option value="before-footer">Antes do rodapé</option>
+                </select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="block-content">Código HTML</Label>
@@ -231,8 +260,8 @@ export default function HtmlBlocksManager() {
                 <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
                   Cancelar
                 </Button>
-                <Button type="submit">
-                  {editingId ? "Salvar alterações" : "Adicionar bloco"}
+                <Button type="submit" disabled={loading}>
+                  {loading ? "Salvando..." : editingId ? "Salvar alterações" : "Adicionar bloco"}
                 </Button>
               </DialogFooter>
             </form>
@@ -270,13 +299,16 @@ export default function HtmlBlocksManager() {
                     <TableCell className="font-medium">{block.name}</TableCell>
                     <TableCell>{block.position}</TableCell>
                     <TableCell>
-                      <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        block.active
-                          ? "bg-green-100 text-green-800"
-                          : "bg-gray-100 text-gray-800"
-                      }`}>
+                      <button
+                        onClick={() => toggleBlockStatus(block.id)}
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium cursor-pointer ${
+                          block.active
+                            ? "bg-green-100 text-green-800 hover:bg-green-200"
+                            : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                        }`}
+                      >
                         {block.active ? "Ativo" : "Inativo"}
-                      </div>
+                      </button>
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">

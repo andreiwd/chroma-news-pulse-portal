@@ -16,6 +16,7 @@ import CategoryNewsSection from "@/components/CategoryNewsSection";
 import WeatherWidget from "@/components/WeatherWidget";
 import FeaturedYouTubeVideo from "@/components/FeaturedYouTubeVideo";
 import CategoryNewsCarousel from "@/components/CategoryNewsCarousel";
+import HtmlBlockRenderer from "@/components/HtmlBlockRenderer";
 import { useLayoutBlocks } from "@/hooks/useLayoutBlocks";
 import axios from "axios";
 
@@ -219,8 +220,15 @@ export default function Index() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
+      {/* HTML Blocks - Topo do cabeçalho */}
+      <HtmlBlockRenderer position="top-header" />
+      
       <NewsTicker />
       <Header />
+      
+      {/* HTML Blocks - Após cabeçalho */}
+      <HtmlBlockRenderer position="after-header" />
+      
       <Navigation />
       
       <main className="flex-1">
@@ -254,8 +262,11 @@ export default function Index() {
                 
                 {/* Weather Widget */}
                 <div className="mt-6">
-                  <WeatherWidget city="Taquaritinga,BR" />
+                  <WeatherWidget />
                 </div>
+                
+                {/* HTML Blocks - Sidebar */}
+                <HtmlBlockRenderer position="sidebar" />
               </div>
             </div>
             
@@ -268,6 +279,9 @@ export default function Index() {
                 id="ad-main-banner-1"
                 className="my-8 bg-white rounded-lg shadow-sm" 
               />
+
+              {/* HTML Blocks - Conteúdo principal */}
+              <HtmlBlockRenderer position="main-content" className="my-8" />
 
               {isLoadingBlocks || isLoadingCategories ? (
                 <div className="text-center py-8">
@@ -314,10 +328,16 @@ export default function Index() {
           </div>
         </div>
         
+        {/* HTML Blocks - Antes do rodapé */}
+        <HtmlBlockRenderer position="before-footer" />
+        
         <FeaturedYouTubeVideo />
       </main>
 
       <Footer />
+      
+      {/* HTML Blocks - Rodapé */}
+      <HtmlBlockRenderer position="footer" />
     </div>
   );
 }
