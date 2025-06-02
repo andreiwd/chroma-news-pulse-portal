@@ -27,7 +27,16 @@ export function useLayoutBlocks() {
 
       if (error) throw error;
 
-      setBlocks(data || []);
+      // Type cast the data from Supabase to our LayoutBlock interface
+      const typedBlocks: LayoutBlock[] = (data || []).map(block => ({
+        id: block.id,
+        type: block.type as 'carousel' | 'section',
+        category_slug: block.category_slug,
+        order_position: block.order_position,
+        active: block.active
+      }));
+
+      setBlocks(typedBlocks);
     } catch (error) {
       console.error('Error fetching layout blocks:', error);
     } finally {
@@ -51,13 +60,22 @@ export function useLayoutBlocks() {
 
       if (error) throw error;
 
-      setBlocks(prev => [...prev, data]);
+      // Type cast the returned data
+      const newBlock: LayoutBlock = {
+        id: data.id,
+        type: data.type as 'carousel' | 'section',
+        category_slug: data.category_slug,
+        order_position: data.order_position,
+        active: data.active
+      };
+
+      setBlocks(prev => [...prev, newBlock]);
       toast({
         title: "Bloco adicionado",
         description: "Bloco adicionado com sucesso.",
       });
 
-      return data;
+      return newBlock;
     } catch (error) {
       console.error('Error adding block:', error);
       toast({
