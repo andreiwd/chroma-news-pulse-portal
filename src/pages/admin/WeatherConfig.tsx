@@ -5,37 +5,42 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import WeatherWidget from "@/components/WeatherWidget";
+import { useSupabaseConfig } from "@/hooks/useSupabaseConfig";
 
 export default function WeatherConfig() {
   const { toast } = useToast();
+  const { getConfig, setConfig, loading } = useSupabaseConfig();
   const [city, setCity] = useState("");
   const [apiKey, setApiKey] = useState("");
   const [isEnabled, setIsEnabled] = useState(false);
 
   useEffect(() => {
-    // Carregar configurações salvas
-    const savedConfig = localStorage.getItem('weatherConfig');
-    if (savedConfig) {
-      const config = JSON.parse(savedConfig);
-      setCity(config.city || "");
-      setApiKey(config.apiKey || "");
-      setIsEnabled(config.isEnabled || false);
-    }
-  }, []);
+    const loadConfig = async () => {
+      const config = await getConfig('weather_config');
+      if (config) {
+        setCity(config.city || "");
+        setApiKey(config.apiKey || "");
+        setIsEnabled(config.isEnabled || false);
+      }
+    };
+    
+    loadConfig();
+  }, [getConfig]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const config = {
       city,
       apiKey,
       isEnabled
     };
     
-    localStorage.setItem('weatherConfig', JSON.stringify(config));
-    
-    toast({
-      title: "Configurações salvas",
-      description: "As configurações do widget de previsão do tempo foram atualizadas."
-    });
+    const success = await setConfig('weather_config', config);
+    if (success) {
+      toast({
+        title: "Configurações salvas",
+        description: "As configurações do widget de previsão do tempo foram atualizadas."
+      });
+    }
   };
 
   return (
@@ -84,7 +89,9 @@ export default function WeatherConfig() {
           </div>
           
           <div className="pt-4">
-            <Button onClick={handleSave}>Salvar Configurações</Button>
+            <Button onClick={handleSave} disabled={loading}>
+              {loading ? "Salvando..." : "Salvar Configurações"}
+            </Button>
           </div>
         </div>
       </Card>

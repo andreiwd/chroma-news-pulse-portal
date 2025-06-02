@@ -18,7 +18,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useCategories } from "@/hooks/useNews";
-import { LayoutBlock, type LayoutConfig as LayoutConfigType } from "@/types/layoutConfig";
 import { 
   Dialog,
   DialogContent,
@@ -28,40 +27,19 @@ import {
   DialogTrigger,
   DialogFooter
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ChevronDown, ChevronUp, Plus, X } from "lucide-react";
+import { useLayoutBlocks } from "@/hooks/useLayoutBlocks";
 
 export default function LayoutConfig() {
-  const [config, setConfig] = useState<LayoutConfigType>({ blocks: [] });
+  const { blocks, loading, addBlock, removeBlock, moveBlock } = useLayoutBlocks();
   const { data: categories } = useCategories();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [newBlockType, setNewBlockType] = useState<'carousel' | 'section'>('section');
   const [newBlockCategory, setNewBlockCategory] = useState("");
 
-  // Load saved configuration from localStorage on component mount
-  useEffect(() => {
-    const savedConfig = localStorage.getItem('homepage_layout');
-    if (savedConfig) {
-      try {
-        setConfig(JSON.parse(savedConfig));
-      } catch (e) {
-        console.error("Error parsing saved layout config:", e);
-      }
-    }
-  }, []);
-
-  const saveConfig = () => {
-    localStorage.setItem('homepage_layout', JSON.stringify(config));
-    toast({
-      title: "Configuração salva",
-      description: "As alterações foram salvas com sucesso e serão aplicadas na página inicial.",
-    });
-    console.log("Layout config saved:", config);
-  };
-
-  const addBlock = () => {
+  const handleAddBlock = async () => {
     if (!newBlockCategory) {
       toast({
         title: "Erro",
@@ -71,54 +49,11 @@ export default function LayoutConfig() {
       return;
     }
 
-    const newBlock: LayoutBlock = {
-      id: `block-${Date.now()}`,
-      type: newBlockType,
-      categorySlug: newBlockCategory,
-      order: config.blocks.length,
-    };
-
-    setConfig(prev => ({
-      blocks: [...prev.blocks, newBlock]
-    }));
-
-    setOpen(false);
-    toast({
-      title: "Bloco adicionado",
-      description: "Clique em Salvar para aplicar as alterações.",
-    });
-  };
-
-  const removeBlock = (id: string) => {
-    setConfig(prev => ({
-      blocks: prev.blocks.filter(block => block.id !== id)
-    }));
-  };
-
-  const moveBlock = (id: string, direction: 'up' | 'down') => {
-    const blockIndex = config.blocks.findIndex(block => block.id === id);
-    if (blockIndex === -1) return;
-
-    const newBlocks = [...config.blocks];
-    const block = newBlocks[blockIndex];
-
-    // Remove the block from its current position
-    newBlocks.splice(blockIndex, 1);
-
-    // Insert it at the new position
-    const newIndex = direction === 'up' 
-      ? Math.max(0, blockIndex - 1) 
-      : Math.min(newBlocks.length, blockIndex + 1);
-
-    newBlocks.splice(newIndex, 0, block);
-
-    // Update order values for all blocks
-    const updatedBlocks = newBlocks.map((block, index) => ({
-      ...block,
-      order: index
-    }));
-
-    setConfig({ blocks: updatedBlocks });
+    const result = await addBlock(newBlockType, newBlockCategory);
+    if (result) {
+      setOpen(false);
+      setNewBlockCategory("");
+    }
   };
 
   const getCategoryName = (slug: string): string => {
@@ -187,12 +122,10 @@ export default function LayoutConfig() {
                 </div>
               </div>
               <DialogFooter>
-                <Button onClick={addBlock}>Adicionar</Button>
+                <Button onClick={handleAddBlock}>Adicionar</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
-          
-          <Button onClick={saveConfig}>Salvar Configuração</Button>
         </div>
       </div>
       
@@ -207,61 +140,69 @@ export default function LayoutConfig() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {config.blocks.length === 0 && (
+              {loading ? (
+                <div className="text-center py-8">
+                  <div className="animate-pulse flex flex-col items-center">
+                    <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
+                    <div className="h-64 bg-gray-200 rounded w-full"></div>
+                  </div>
+                </div>
+              ) : blocks.length === 0 ? (
                 <div className="text-center py-8 border border-dashed rounded-md">
                   <p className="text-muted-foreground">
                     Nenhum bloco adicionado. Clique em "Adicionar Bloco" para começar.
                   </p>
                 </div>
+              ) : (
+                <ul className="space-y-2">
+                  {blocks.map((block) => (
+                    <li 
+                      key={block.id} 
+                      className="flex items-center justify-between p-3 bg-muted/40 rounded-md border"
+                    >
+                      <div className="flex items-center">
+                        <div className="bg-primary/10 w-10 h-10 flex items-center justify-center rounded mr-3">
+                          {block.type === 'carousel' ? '🎠' : '📰'}
+                        </div>
+                        <div>
+                          <p className="font-medium">
+                            {block.type === 'carousel' ? 'Carrossel' : 'Seção'}: {getCategoryName(block.category_slug)}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {block.category_slug} • Posição: {block.order_position + 1}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex space-x-1">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => moveBlock(block.id, 'up')}
+                          disabled={block.order_position === 0}
+                        >
+                          <ChevronUp className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => moveBlock(block.id, 'down')}
+                          disabled={block.order_position === blocks.length - 1}
+                        >
+                          <ChevronDown className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => removeBlock(block.id)}
+                          className="text-destructive"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
               )}
-              <ul className="space-y-2">
-                {config.blocks.map((block) => (
-                  <li 
-                    key={block.id} 
-                    className="flex items-center justify-between p-3 bg-muted/40 rounded-md border"
-                  >
-                    <div className="flex items-center">
-                      <div className="bg-primary/10 w-10 h-10 flex items-center justify-center rounded mr-3">
-                        {block.type === 'carousel' ? '🎠' : '📰'}
-                      </div>
-                      <div>
-                        <p className="font-medium">
-                          {block.type === 'carousel' ? 'Carrossel' : 'Seção'}: {getCategoryName(block.categorySlug)}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {block.categorySlug} • Posição: {block.order + 1}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex space-x-1">
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={() => moveBlock(block.id, 'up')}
-                        disabled={block.order === 0}
-                      >
-                        <ChevronUp className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => moveBlock(block.id, 'down')}
-                        disabled={block.order === config.blocks.length - 1}
-                      >
-                        <ChevronDown className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => removeBlock(block.id)}
-                        className="text-destructive"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
             </CardContent>
             <CardFooter>
               <p className="text-sm text-muted-foreground">
@@ -294,7 +235,7 @@ export default function LayoutConfig() {
                   </div>
                   
                   {/* Blocks representation */}
-                  {config.blocks.map((block, index) => (
+                  {blocks.map((block) => (
                     <div 
                       key={block.id}
                       className={`h-10 w-full mb-2 rounded flex items-center justify-center text-xs ${
@@ -303,7 +244,7 @@ export default function LayoutConfig() {
                           : 'bg-green-100 text-green-800 border border-green-300'
                       }`}
                     >
-                      {block.type === 'carousel' ? 'Carrossel' : 'Seção'}: {getCategoryName(block.categorySlug)}
+                      {block.type === 'carousel' ? 'Carrossel' : 'Seção'}: {getCategoryName(block.category_slug)}
                     </div>
                   ))}
                   

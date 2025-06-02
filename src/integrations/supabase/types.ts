@@ -9,253 +9,189 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      api_keys: {
+      admin_users: {
         Row: {
-          active: boolean
-          created_at: string
-          id: string
-          key: string
-          last_used: string | null
-          name: string
-        }
-        Insert: {
-          active?: boolean
-          created_at?: string
-          id?: string
-          key: string
-          last_used?: string | null
-          name: string
-        }
-        Update: {
-          active?: boolean
-          created_at?: string
-          id?: string
-          key?: string
-          last_used?: string | null
-          name?: string
-        }
-        Relationships: []
-      }
-      categories: {
-        Row: {
-          color: string | null
-          created_at: string
-          id: string
-          name: string
-          slug: string
-        }
-        Insert: {
-          color?: string | null
-          created_at?: string
-          id?: string
-          name: string
-          slug: string
-        }
-        Update: {
-          color?: string | null
-          created_at?: string
-          id?: string
-          name?: string
-          slug?: string
-        }
-        Relationships: []
-      }
-      feeds: {
-        Row: {
-          active: boolean
-          auto_publish: boolean
-          category_id: string | null
-          created_at: string
-          id: string
-          last_fetch: string | null
-          name: string
-          updated_at: string
-          url: string
-        }
-        Insert: {
-          active?: boolean
-          auto_publish?: boolean
-          category_id?: string | null
-          created_at?: string
-          id?: string
-          last_fetch?: string | null
-          name: string
-          updated_at?: string
-          url: string
-        }
-        Update: {
-          active?: boolean
-          auto_publish?: boolean
-          category_id?: string | null
-          created_at?: string
-          id?: string
-          last_fetch?: string | null
-          name?: string
-          updated_at?: string
-          url?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "feeds_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "categories"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      news: {
-        Row: {
-          category_id: string
-          content: string
-          created_at: string
-          excerpt: string
-          featured: boolean
-          feed_id: string | null
-          id: string
-          image: string
-          origin: Database["public"]["Enums"]["news_origin"]
-          published: boolean
-          published_at: string | null
-          slug: string
-          source_url: string | null
-          title: string
-          updated_at: string
-        }
-        Insert: {
-          category_id: string
-          content: string
-          created_at?: string
-          excerpt: string
-          featured?: boolean
-          feed_id?: string | null
-          id?: string
-          image: string
-          origin?: Database["public"]["Enums"]["news_origin"]
-          published?: boolean
-          published_at?: string | null
-          slug: string
-          source_url?: string | null
-          title: string
-          updated_at?: string
-        }
-        Update: {
-          category_id?: string
-          content?: string
-          created_at?: string
-          excerpt?: string
-          featured?: boolean
-          feed_id?: string | null
-          id?: string
-          image?: string
-          origin?: Database["public"]["Enums"]["news_origin"]
-          published?: boolean
-          published_at?: string | null
-          slug?: string
-          source_url?: string | null
-          title?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "news_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "categories"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      news_tags: {
-        Row: {
-          news_id: string
-          tag_id: string
-        }
-        Insert: {
-          news_id: string
-          tag_id: string
-        }
-        Update: {
-          news_id?: string
-          tag_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "news_tags_news_id_fkey"
-            columns: ["news_id"]
-            isOneToOne: false
-            referencedRelation: "news"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "news_tags_tag_id_fkey"
-            columns: ["tag_id"]
-            isOneToOne: false
-            referencedRelation: "tags"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      site_settings: {
-        Row: {
-          ads_id: string | null
-          analytics_id: string | null
-          contact_email: string | null
+          active: boolean | null
           created_at: string | null
+          email: string
           id: string
-          logo_url: string | null
-          primary_color: string | null
-          site_description: string
-          site_name: string
-          theme: string | null
+          role: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string | null
+          email: string
+          id?: string
+          role?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          role?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      advertisements: {
+        Row: {
+          active: boolean | null
+          content: string | null
+          created_at: string | null
+          end_date: string | null
+          id: string
+          image_url: string | null
+          link_url: string | null
+          position: string
+          start_date: string | null
+          title: string
           updated_at: string | null
         }
         Insert: {
-          ads_id?: string | null
-          analytics_id?: string | null
-          contact_email?: string | null
+          active?: boolean | null
+          content?: string | null
           created_at?: string | null
+          end_date?: string | null
           id?: string
-          logo_url?: string | null
-          primary_color?: string | null
-          site_description?: string
-          site_name?: string
-          theme?: string | null
+          image_url?: string | null
+          link_url?: string | null
+          position: string
+          start_date?: string | null
+          title: string
           updated_at?: string | null
         }
         Update: {
-          ads_id?: string | null
-          analytics_id?: string | null
-          contact_email?: string | null
+          active?: boolean | null
+          content?: string | null
           created_at?: string | null
+          end_date?: string | null
           id?: string
-          logo_url?: string | null
-          primary_color?: string | null
-          site_description?: string
-          site_name?: string
-          theme?: string | null
+          image_url?: string | null
+          link_url?: string | null
+          position?: string
+          start_date?: string | null
+          title?: string
           updated_at?: string | null
         }
         Relationships: []
       }
-      tags: {
+      html_blocks: {
         Row: {
-          created_at: string
+          active: boolean | null
+          content: string
+          created_at: string | null
           id: string
           name: string
-          slug: string
+          position: string | null
+          updated_at: string | null
         }
         Insert: {
-          created_at?: string
+          active?: boolean | null
+          content: string
+          created_at?: string | null
           id?: string
           name: string
-          slug: string
+          position?: string | null
+          updated_at?: string | null
         }
         Update: {
-          created_at?: string
+          active?: boolean | null
+          content?: string
+          created_at?: string | null
           id?: string
           name?: string
-          slug?: string
+          position?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      layout_blocks: {
+        Row: {
+          active: boolean | null
+          category_slug: string
+          created_at: string | null
+          id: string
+          order_position: number
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          category_slug: string
+          created_at?: string | null
+          id?: string
+          order_position: number
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          category_slug?: string
+          created_at?: string | null
+          id?: string
+          order_position?: number
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      site_config: {
+        Row: {
+          created_at: string | null
+          id: string
+          key: string
+          updated_at: string | null
+          value: Json
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          key: string
+          updated_at?: string | null
+          value: Json
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          key?: string
+          updated_at?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
+      youtube_videos: {
+        Row: {
+          created_at: string | null
+          id: string
+          order_position: number | null
+          show_on_home: boolean | null
+          title: string
+          updated_at: string | null
+          url: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          order_position?: number | null
+          show_on_home?: boolean | null
+          title: string
+          updated_at?: string | null
+          url: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          order_position?: number | null
+          show_on_home?: boolean | null
+          title?: string
+          updated_at?: string | null
+          url?: string
         }
         Relationships: []
       }

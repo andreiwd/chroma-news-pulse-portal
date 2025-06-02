@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useMemo } from "react";
 import NewsTicker from "@/components/NewsTicker";
 import Header from "@/components/Header";
@@ -7,7 +6,6 @@ import Footer from "@/components/Footer";
 import AdPlaceholder from "@/components/AdPlaceholder";
 import { useNews, useLatestNews, useFeaturedHeroNews, useCategories } from "@/hooks/useNews";
 import { Article } from "@/types/api";
-import { LayoutConfig } from "@/types/layoutConfig";
 import MainNewsGrid from "@/components/MainNewsGrid";
 import LatestNewsSidebar from "@/components/LatestNewsSidebar";
 import MostViewedSidebar from "@/components/MostViewedSidebar";
@@ -18,6 +16,7 @@ import CategoryNewsSection from "@/components/CategoryNewsSection";
 import WeatherWidget from "@/components/WeatherWidget";
 import FeaturedYouTubeVideo from "@/components/FeaturedYouTubeVideo";
 import CategoryNewsCarousel from "@/components/CategoryNewsCarousel";
+import { useLayoutBlocks } from "@/hooks/useLayoutBlocks";
 import axios from "axios";
 
 export default function Index() {
@@ -25,7 +24,7 @@ export default function Index() {
   const { data: latestNewsData, isLoading: isLatestNewsLoading } = useLatestNews();
   const { data: featuredArticles, isLoading: isFeaturedLoading } = useFeaturedHeroNews();
   const { data: categories } = useCategories();
-  const [layoutConfig, setLayoutConfig] = useState<LayoutConfig>({ blocks: [] });
+  const { blocks, loading: isLoadingBlocks } = useLayoutBlocks();
   const [categoryNews, setCategoryNews] = useState<Record<string, Article[]>>({});
   const [isLoadingCategories, setIsLoadingCategories] = useState(false);
   
@@ -36,63 +35,22 @@ export default function Index() {
   
   console.log("Featured articles from new endpoint:", featuredArticles);
 
-  // Load layout configuration from localStorage
-  useEffect(() => {
-    const loadConfig = () => {
-      try {
-        const savedConfig = localStorage.getItem('homepage_layout');
-        if (savedConfig) {
-          const config = JSON.parse(savedConfig);
-          console.log("Loaded layout config:", config);
-          setLayoutConfig(config);
-        }
-      } catch (e) {
-        console.error("Error parsing saved layout config:", e);
-      }
-    };
-    
-    // Load immediately and also set up a storage event listener
-    loadConfig();
-    
-    // Setup storage event listener to react to changes from other tabs
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'homepage_layout') {
-        console.log("Layout config updated in another tab, reloading");
-        loadConfig();
-      }
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
-
-  // Fetch news for each category in the layout
+  // Fetch news for each category in the layout blocks
   useEffect(() => {
     const fetchCategoryNews = async () => {
-      if (!layoutConfig.blocks || layoutConfig.blocks.length === 0) return;
+      if (!blocks || blocks.length === 0) return;
       
       setIsLoadingCategories(true);
       const API_BASE_URL = "https://taquaritinganoticias.criarsite.online/api";
       const newCategoryNews: Record<string, Article[]> = {};
       
-      // Get unique category slugs from layout
+      // Get unique category slugs from layout blocks
       const categorySlugSet = new Set<string>();
-      layoutConfig.blocks.forEach(block => {
-        if (block.categorySlug) {
-          categorySlugSet.add(block.categorySlug);
+      blocks.forEach(block => {
+        if (block.category_slug) {
+          categorySlugSet.add(block.category_slug);
         }
       });
-      
-      // Add all available categories from the categories data
-      if (categories && Array.isArray(categories)) {
-        categories.forEach(category => {
-          if (category && typeof category === 'object' && typeof category.slug === 'string') {
-            categorySlugSet.add(category.slug);
-          } else if (typeof category === 'string') {
-            categorySlugSet.add(category);
-          }
-        });
-      }
       
       // Convert to array for processing
       const categorySlugArray = Array.from(categorySlugSet);
@@ -186,29 +144,7 @@ export default function Index() {
           console.log(`Processed ${articleArray.length} articles for ${slug}`);
         } catch (error) {
           console.error(`Error fetching news for category ${slug}:`, error);
-          // Try fallback method using the news endpoint with category filter
-          try {
-            console.log(`Using fallback method for ${slug}`);
-            const fallbackResponse = await axios.get(`${API_BASE_URL}/news?category=${slug}`);
-            
-            let articleArray: Article[] = [];
-            
-            if (Array.isArray(fallbackResponse.data)) {
-              articleArray = fallbackResponse.data
-                .map(sanitizeArticle)
-                .filter(Boolean);
-            } else if (fallbackResponse.data && Array.isArray(fallbackResponse.data.data)) {
-              articleArray = fallbackResponse.data.data
-                .map(sanitizeArticle)
-                .filter(Boolean);
-            }
-            
-            newCategoryNews[slug] = articleArray;
-            console.log(`Fallback: Processed ${articleArray.length} articles for ${slug}`);
-          } catch (fallbackError) {
-            console.error(`Fallback also failed for ${slug}:`, fallbackError);
-            newCategoryNews[slug] = [];
-          }
+          newCategoryNews[slug] = [];
         }
       });
       
@@ -224,7 +160,7 @@ export default function Index() {
     };
     
     fetchCategoryNews();
-  }, [layoutConfig.blocks, categories]);
+  }, [blocks]);
   
   const getNewsByCategory = () => {
     return categoryNews;
@@ -241,65 +177,39 @@ export default function Index() {
   };
   
   const mainLatestNews = allNews?.slice(0, 12) || [];
-  const categoryEntries = Object.entries(getNewsByCategory() || {});
   const trendingNews = allNews?.slice(0, 6) || [];
 
-  // Render custom blocks from layout configuration
+  // Render custom blocks from Supabase
   const renderCustomBlocks = () => {
     const categoryNewsData = getNewsByCategory();
     
-    if (!layoutConfig?.blocks?.length) {
-      // Fallback to default blocks if no configuration
-      console.log("No custom layout config found, using defaults");
-      return (
-        <>
-          {categoryEntries.slice(0, 2).map(([category, news], index) => {
-            // Always render even if no news items
-            return (
-              <CategoryNewsCarousel 
-                key={`cat-carousel-${category}-${index}`} 
-                category={category} 
-                news={news} 
-              />
-            );
-          })}
-          
-          {categoryEntries.slice(0, 4).map(([category, news], index) => {
-            // Always render even if no news items  
-            return (
-              <CategoryNewsSection 
-                key={`cat-section-${category}-${index}`} 
-                category={category} 
-                news={news} 
-              />
-            );
-          })}
-        </>
-      );
+    if (!blocks?.length) {
+      console.log("No layout blocks found in Supabase");
+      return null;
     }
     
-    console.log("Rendering custom layout blocks:", layoutConfig.blocks);
+    console.log("Rendering Supabase layout blocks:", blocks);
     
-    // Render blocks based on configuration
-    return layoutConfig.blocks
-      .sort((a, b) => a.order - b.order)
+    // Render blocks based on Supabase configuration
+    return blocks
+      .sort((a, b) => a.order_position - b.order_position)
       .map((block) => {
-        const news = categoryNewsData[block.categorySlug] || [];
-        console.log(`Rendering block for category ${block.categorySlug} with ${news.length} news items`);
+        const news = categoryNewsData[block.category_slug] || [];
+        console.log(`Rendering block for category ${block.category_slug} with ${news.length} news items`);
         
         if (block.type === 'carousel') {
           return (
             <CategoryNewsCarousel
-              key={`custom-carousel-${block.id}`}
-              category={block.categorySlug}
+              key={`supabase-carousel-${block.id}`}
+              category={block.category_slug}
               news={news}
             />
           );
         } else {
           return (
             <CategoryNewsSection
-              key={`custom-section-${block.id}`}
-              category={block.categorySlug}
+              key={`supabase-section-${block.id}`}
+              category={block.category_slug}
               news={news}
             />
           );
@@ -359,7 +269,7 @@ export default function Index() {
                 className="my-8 bg-white rounded-lg shadow-sm" 
               />
 
-              {isLoadingCategories ? (
+              {isLoadingBlocks || isLoadingCategories ? (
                 <div className="text-center py-8">
                   <div className="animate-pulse flex flex-col items-center">
                     <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
@@ -380,7 +290,6 @@ export default function Index() {
             {/* Right Sidebar */}
             <div className="lg:col-span-3">
               <div className="sticky top-24 space-y-6">
-                {/* Use sticky for the sidebar with proper top offset */}
                 <div className="mb-6">
                   <MostViewedSidebar mostViewedNews={getMostViewedNews()} />
                 </div>
@@ -405,7 +314,6 @@ export default function Index() {
           </div>
         </div>
         
-        {/* Vídeos em Destaque - full width with no container restrictions */}
         <FeaturedYouTubeVideo />
       </main>
 
