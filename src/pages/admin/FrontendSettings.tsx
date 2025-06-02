@@ -1,7 +1,9 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { useSupabaseConfig } from "@/hooks/useSupabaseConfig";
 
 interface SiteSettings {
   logo: {
@@ -24,40 +26,53 @@ interface SiteSettings {
   };
 }
 
+const defaultSettings: SiteSettings = {
+  logo: {
+    url: "",
+    height: 60
+  },
+  ogImage: {
+    url: "",
+    width: 1200,
+    height: 630
+  },
+  socialLinks: {
+    facebook: "",
+    twitter: "",
+    instagram: ""
+  },
+  colors: {
+    primary: "#1a73e8",
+    secondary: "#f8f9fa"
+  }
+};
+
 export default function FrontendSettings() {
   const { toast } = useToast();
-  const [settings, setSettings] = useState<SiteSettings>({
-    logo: {
-      url: "",
-      height: 60
-    },
-    ogImage: {
-      url: "",
-      width: 1200,
-      height: 630
-    },
-    socialLinks: {
-      facebook: "",
-      twitter: "",
-      instagram: ""
-    },
-    colors: {
-      primary: "#1a73e8",
-      secondary: "#f8f9fa"
-    }
-  });
+  const { getConfig, setConfig, loading } = useSupabaseConfig();
+  const [settings, setSettings] = useState<SiteSettings>(defaultSettings);
 
   useEffect(() => {
-    // Carregar configurações salvas
-    const storedSettings = localStorage.getItem('siteSettings');
-    if (storedSettings) {
+    const loadConfig = async () => {
       try {
-        setSettings(JSON.parse(storedSettings));
+        const config = await getConfig('frontend_settings');
+        if (config) {
+          // Safely merge with defaults to ensure all properties exist
+          const savedSettings = config as unknown as Partial<SiteSettings>;
+          setSettings({
+            logo: { ...defaultSettings.logo, ...savedSettings.logo },
+            ogImage: { ...defaultSettings.ogImage, ...savedSettings.ogImage },
+            socialLinks: { ...defaultSettings.socialLinks, ...savedSettings.socialLinks },
+            colors: { ...defaultSettings.colors, ...savedSettings.colors }
+          });
+        }
       } catch (error) {
-        console.error("Error parsing stored settings:", error);
+        console.error("Error loading frontend settings:", error);
       }
-    }
-  }, []);
+    };
+
+    loadConfig();
+  }, [getConfig]);
 
   // Generic type-safe handleInputChange function
   const handleInputChange = <K extends keyof SiteSettings>(
@@ -74,14 +89,14 @@ export default function FrontendSettings() {
     }));
   };
 
-  const handleSaveSettings = () => {
-    // Salvar as configurações no localStorage
-    localStorage.setItem('siteSettings', JSON.stringify(settings));
-    
-    toast({
-      title: "Configurações salvas",
-      description: "As alterações foram aplicadas com sucesso."
-    });
+  const handleSaveSettings = async () => {
+    const success = await setConfig('frontend_settings', settings);
+    if (success) {
+      toast({
+        title: "Configurações salvas",
+        description: "As alterações foram aplicadas com sucesso."
+      });
+    }
   };
 
   return (
@@ -147,8 +162,6 @@ export default function FrontendSettings() {
                   className="hidden"
                   onChange={(e) => {
                     if (e.target.files && e.target.files[0]) {
-                      // Aqui você faria o upload para um servidor e obteria a URL
-                      // Por enquanto, vamos simular com uma URL local
                       const fileUrl = URL.createObjectURL(e.target.files[0]);
                       handleInputChange('logo', 'url', fileUrl);
                     }
@@ -222,7 +235,6 @@ export default function FrontendSettings() {
                   className="hidden"
                   onChange={(e) => {
                     if (e.target.files && e.target.files[0]) {
-                      // Aqui você faria o upload para um servidor e obteria a URL
                       const fileUrl = URL.createObjectURL(e.target.files[0]);
                       handleInputChange('ogImage', 'url', fileUrl);
                     }
@@ -331,9 +343,10 @@ export default function FrontendSettings() {
       <div className="mt-6 flex justify-end">
         <button 
           onClick={handleSaveSettings}
-          className="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600 transition-colors"
+          disabled={loading}
+          className="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600 transition-colors disabled:opacity-50"
         >
-          Salvar Alterações
+          {loading ? "Salvando..." : "Salvar Alterações"}
         </button>
       </div>
     </div>
