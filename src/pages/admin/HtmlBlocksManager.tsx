@@ -42,7 +42,16 @@ export default function HtmlBlocksManager() {
       try {
         const config = await getConfig('html_blocks');
         if (config && Array.isArray(config)) {
-          setBlocks(config as HtmlBlock[]);
+          // Safely convert Json array to HtmlBlock array
+          const htmlBlocks = (config as unknown as HtmlBlock[]).filter(block => 
+            block && 
+            typeof block.id === 'string' &&
+            typeof block.name === 'string' &&
+            typeof block.position === 'string' &&
+            typeof block.content === 'string' &&
+            typeof block.active === 'boolean'
+          );
+          setBlocks(htmlBlocks);
         }
       } catch (error) {
         console.error("Error loading HTML blocks:", error);
@@ -74,6 +83,14 @@ export default function HtmlBlocksManager() {
         [name]: value
       });
     }
+  };
+
+  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value
+    });
   };
   
   const handleFormSubmit = async (e: React.FormEvent) => {
@@ -216,7 +233,7 @@ export default function HtmlBlocksManager() {
                   id="block-position"
                   name="position"
                   value={formData.position}
-                  onChange={handleInputChange}
+                  onChange={handleSelectChange}
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                   required
                 >

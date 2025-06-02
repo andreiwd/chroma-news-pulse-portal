@@ -20,7 +20,16 @@ export function useHtmlBlocks() {
       try {
         const config = await getConfig('html_blocks');
         if (config && Array.isArray(config)) {
-          setBlocks(config as HtmlBlock[]);
+          // Safely convert Json array to HtmlBlock array
+          const htmlBlocks = (config as unknown as HtmlBlock[]).filter(block => 
+            block && 
+            typeof block.id === 'string' &&
+            typeof block.name === 'string' &&
+            typeof block.position === 'string' &&
+            typeof block.content === 'string' &&
+            typeof block.active === 'boolean'
+          );
+          setBlocks(htmlBlocks);
         }
       } catch (error) {
         console.error("Error loading HTML blocks:", error);
