@@ -28,9 +28,8 @@ export default function WeatherConfig() {
     const loadConfig = async () => {
       try {
         const weatherConfig = await getConfig('weather_config');
-        console.log("Carregando config do clima:", weatherConfig);
-        if (weatherConfig && typeof weatherConfig === 'object') {
-          const configData = weatherConfig as Record<string, any>;
+        if (weatherConfig) {
+          const configData = weatherConfig as any;
           setConfigState({
             apiKey: configData.apiKey || '',
             city: configData.city || '',
@@ -54,7 +53,6 @@ export default function WeatherConfig() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Salvando config do clima:", config);
     
     try {
       const success = await setConfig('weather_config', config);
@@ -64,8 +62,6 @@ export default function WeatherConfig() {
           title: "Configuração salva",
           description: "As configurações do clima foram salvas com sucesso.",
         });
-      } else {
-        throw new Error("Falha ao salvar");
       }
     } catch (error) {
       console.error("Erro ao salvar config do clima:", error);
@@ -78,10 +74,10 @@ export default function WeatherConfig() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-2xl mx-auto p-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Configurações do Clima</h1>
-        <p className="text-muted-foreground">
+        <p className="text-muted-foreground mt-2">
           Configure o widget de clima que aparece na lateral do site
         </p>
       </div>
@@ -95,9 +91,11 @@ export default function WeatherConfig() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label htmlFor="enabled">Habilitar widget de clima</Label>
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="space-y-1">
+                <Label htmlFor="enabled" className="text-base font-medium">
+                  Habilitar widget de clima
+                </Label>
                 <p className="text-sm text-muted-foreground">
                   Ativa ou desativa o widget de clima no site
                 </p>
@@ -109,8 +107,10 @@ export default function WeatherConfig() {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="apiKey">Chave da API OpenWeatherMap</Label>
+            <div className="space-y-3">
+              <Label htmlFor="apiKey" className="text-base font-medium">
+                Chave da API OpenWeatherMap
+              </Label>
               <Input
                 id="apiKey"
                 type="text"
@@ -132,8 +132,10 @@ export default function WeatherConfig() {
               </p>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="city">Cidade</Label>
+            <div className="space-y-3">
+              <Label htmlFor="city" className="text-base font-medium">
+                Cidade
+              </Label>
               <Input
                 id="city"
                 type="text"
@@ -150,7 +152,8 @@ export default function WeatherConfig() {
             <Button 
               type="submit" 
               disabled={loading}
-              className="w-full"
+              className="w-full py-4 text-lg font-semibold"
+              size="lg"
             >
               {loading ? "Salvando..." : "Salvar Configurações"}
             </Button>
