@@ -48,19 +48,20 @@ export default function FrontendSettings() {
       try {
         const config = await getConfig('frontend_settings');
         if (config) {
+          const typedConfig = config as SiteSettings;
           setSettings({
             logo: {
-              url: config.logo?.url || '',
-              height: config.logo?.height || 60
+              url: typedConfig.logo?.url || '',
+              height: typedConfig.logo?.height || 60
             },
             socialLinks: {
-              facebook: config.socialLinks?.facebook || 'https://facebook.com',
-              twitter: config.socialLinks?.twitter || 'https://twitter.com',
-              instagram: config.socialLinks?.instagram || 'https://instagram.com'
+              facebook: typedConfig.socialLinks?.facebook || 'https://facebook.com',
+              twitter: typedConfig.socialLinks?.twitter || 'https://twitter.com',
+              instagram: typedConfig.socialLinks?.instagram || 'https://instagram.com'
             },
             colors: {
-              primary: config.colors?.primary || '#1a73e8',
-              secondary: config.colors?.secondary || '#f8f9fa'
+              primary: typedConfig.colors?.primary || '#1a73e8',
+              secondary: typedConfig.colors?.secondary || '#f8f9fa'
             }
           });
         }

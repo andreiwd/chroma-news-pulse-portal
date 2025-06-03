@@ -28,10 +28,11 @@ export default function WeatherConfig() {
       try {
         const weatherConfig = await getConfig('weather_config');
         if (weatherConfig) {
+          const typedConfig = weatherConfig as WeatherConfig;
           setConfigState({
-            apiKey: weatherConfig.apiKey || '',
-            city: weatherConfig.city || '',
-            enabled: weatherConfig.enabled !== false
+            apiKey: typedConfig.apiKey || '',
+            city: typedConfig.city || '',
+            enabled: typedConfig.enabled !== false
           });
         }
       } catch (error) {
