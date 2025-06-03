@@ -3,7 +3,7 @@ import { Facebook, Instagram, Search } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useSupabaseConfig } from "@/hooks/useSupabaseConfig";
 
 interface SiteSettings {
@@ -22,64 +22,69 @@ interface SiteSettings {
   };
 }
 
+const DEFAULT_SETTINGS: SiteSettings = {
+  logo: { url: "", height: 60 },
+  socialLinks: {
+    facebook: "https://facebook.com",
+    instagram: "https://instagram.com",
+    twitter: "https://twitter.com"
+  },
+  colors: {
+    primary: "#1a73e8",
+    secondary: "#f8f9fa"
+  }
+};
+
 export default function Header() {
   const { getConfig } = useSupabaseConfig();
-  const [settings, setSettings] = useState<SiteSettings>({
-    logo: { url: "", height: 60 },
-    socialLinks: {
-      facebook: "https://facebook.com",
-      instagram: "https://instagram.com",
-      twitter: "https://twitter.com"
-    },
-    colors: {
-      primary: "#1a73e8",
-      secondary: "#f8f9fa"
-    }
-  });
+  const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SETTINGS);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   // Load settings from Supabase
-  useEffect(() => {
-    const loadConfig = async () => {
-      try {
-        const config = await getConfig('frontend_settings');
-        console.log("Header - Configuração carregada:", config);
+  const loadConfig = useCallback(async () => {
+    if (isLoaded) return; // Evita recarregamentos desnecessários
+    
+    try {
+      const config = await getConfig('frontend_settings');
+      
+      if (config && typeof config === 'object') {
+        const configData = config as Record<string, any>;
+        const newSettings: SiteSettings = {
+          logo: {
+            url: configData.logo?.url || "",
+            height: Number(configData.logo?.height) || 60
+          },
+          socialLinks: {
+            facebook: configData.socialLinks?.facebook || "https://facebook.com",
+            instagram: configData.socialLinks?.instagram || "https://instagram.com",
+            twitter: configData.socialLinks?.twitter || "https://twitter.com"
+          },
+          colors: {
+            primary: configData.colors?.primary || "#1a73e8",
+            secondary: configData.colors?.secondary || "#f8f9fa"
+          }
+        };
         
-        if (config && typeof config === 'object') {
-          const configData = config as Record<string, any>;
-          const newSettings = {
-            logo: {
-              url: configData.logo?.url || "",
-              height: Number(configData.logo?.height) || 60
-            },
-            socialLinks: {
-              facebook: configData.socialLinks?.facebook || "https://facebook.com",
-              instagram: configData.socialLinks?.instagram || "https://instagram.com",
-              twitter: configData.socialLinks?.twitter || "https://twitter.com"
-            },
-            colors: {
-              primary: configData.colors?.primary || "#1a73e8",
-              secondary: configData.colors?.secondary || "#f8f9fa"
-            }
-          };
-          
-          console.log("Header - Aplicando configurações:", newSettings);
-          setSettings(newSettings);
-          
-          // Apply colors immediately
-          if (newSettings.colors.primary) {
-            document.documentElement.style.setProperty('--primary', newSettings.colors.primary);
-          }
-          if (newSettings.colors.secondary) {
-            document.documentElement.style.setProperty('--secondary', newSettings.colors.secondary);
-          }
+        setSettings(newSettings);
+        
+        // Apply colors to CSS variables
+        if (newSettings.colors.primary) {
+          document.documentElement.style.setProperty('--primary', newSettings.colors.primary);
         }
-      } catch (error) {
-        console.error("Erro ao carregar configurações do site:", error);
+        if (newSettings.colors.secondary) {
+          document.documentElement.style.setProperty('--secondary', newSettings.colors.secondary);
+        }
       }
-    };
+      setIsLoaded(true);
+    } catch (error) {
+      console.error("Erro ao carregar configurações do site:", error);
+      setIsLoaded(true);
+    }
+  }, [getConfig, isLoaded]);
 
+  useEffect(() => {
     loadConfig();
-  }, [getConfig]);
+  }, [loadConfig]);
 
   return (
     <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -95,13 +100,14 @@ export default function Header() {
                   className="w-auto max-h-20"
                   onError={(e) => {
                     console.error("Erro ao carregar logo:", e);
-                    e.currentTarget.style.display = "none";
-                    const fallback = e.currentTarget.parentElement?.querySelector('.fallback-logo');
+                    const target = e.currentTarget as HTMLImageElement;
+                    target.style.display = "none";
+                    const fallback = target.parentElement?.querySelector('.fallback-logo') as HTMLElement;
                     if (!fallback) {
                       const span = document.createElement('span');
                       span.className = "text-2xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent fallback-logo";
                       span.textContent = "ChromaNews";
-                      e.currentTarget.parentElement?.appendChild(span);
+                      target.parentElement?.appendChild(span);
                     }
                   }}
                 />

@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -12,7 +12,7 @@ export function useSupabaseConfig() {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  const getConfig = async (key: string) => {
+  const getConfig = useCallback(async (key: string) => {
     try {
       console.log(`Buscando configuração: ${key}`);
       const { data, error } = await supabase
@@ -23,7 +23,7 @@ export function useSupabaseConfig() {
 
       if (error && error.code !== 'PGRST116') {
         console.error('Erro ao buscar config:', error);
-        throw error;
+        return null;
       }
 
       console.log(`Config encontrada para ${key}:`, data?.value);
@@ -32,9 +32,9 @@ export function useSupabaseConfig() {
       console.error('Erro ao buscar configuração:', error);
       return null;
     }
-  };
+  }, []);
 
-  const setConfig = async (key: string, value: any) => {
+  const setConfig = useCallback(async (key: string, value: any) => {
     setLoading(true);
     try {
       console.log(`Salvando configuração ${key}:`, value);
@@ -67,7 +67,7 @@ export function useSupabaseConfig() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
   return { getConfig, setConfig, loading };
 }

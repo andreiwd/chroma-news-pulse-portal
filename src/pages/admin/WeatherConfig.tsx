@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,35 +14,42 @@ interface WeatherConfig {
   enabled: boolean;
 }
 
+const DEFAULT_CONFIG: WeatherConfig = {
+  apiKey: '',
+  city: 'São Paulo, BR',
+  enabled: false
+};
+
 export default function WeatherConfig() {
   const { toast } = useToast();
   const { getConfig, setConfig, loading } = useSupabaseConfig();
-  const [config, setConfigState] = useState<WeatherConfig>({
-    apiKey: '',
-    city: '',
-    enabled: true
-  });
+  const [config, setConfigState] = useState<WeatherConfig>(DEFAULT_CONFIG);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   // Load config from Supabase
-  useEffect(() => {
-    const loadConfig = async () => {
-      try {
-        const weatherConfig = await getConfig('weather_config');
-        if (weatherConfig) {
-          const configData = weatherConfig as any;
-          setConfigState({
-            apiKey: configData.apiKey || '',
-            city: configData.city || '',
-            enabled: configData.enabled !== false
-          });
-        }
-      } catch (error) {
-        console.error("Erro ao carregar config do clima:", error);
+  const loadConfig = useCallback(async () => {
+    if (isLoaded) return; // Evita recarregamentos desnecessários
+    
+    try {
+      const weatherConfig = await getConfig('weather_config');
+      if (weatherConfig && typeof weatherConfig === 'object') {
+        const configData = weatherConfig as any;
+        setConfigState({
+          apiKey: configData.apiKey || '',
+          city: configData.city || 'São Paulo, BR',
+          enabled: configData.enabled === true
+        });
       }
-    };
+      setIsLoaded(true);
+    } catch (error) {
+      console.error("Erro ao carregar config do clima:", error);
+      setIsLoaded(true);
+    }
+  }, [getConfig, isLoaded]);
 
+  useEffect(() => {
     loadConfig();
-  }, [getConfig]);
+  }, [loadConfig]);
 
   const updateConfig = (field: keyof WeatherConfig, value: string | boolean) => {
     setConfigState(prev => ({
@@ -72,6 +79,17 @@ export default function WeatherConfig() {
       });
     }
   };
+
+  if (!isLoaded) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p>Carregando configurações...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 max-w-2xl mx-auto p-6">

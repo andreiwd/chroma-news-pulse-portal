@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useLatestNews } from "@/hooks/useNews";
 import { Link } from "react-router-dom";
 import { Article } from "@/types/api";
@@ -10,28 +10,33 @@ export default function NewsTicker() {
   const { getConfig } = useSupabaseConfig();
   const [currentNewsIndex, setCurrentNewsIndex] = useState(0);
   const [primaryColor, setPrimaryColor] = useState('#1a73e8');
+  const [isConfigLoaded, setIsConfigLoaded] = useState(false);
   
   // Ensure latestNews is always a valid array
   const latestNews: Article[] = Array.isArray(latestNewsData) ? latestNewsData.filter(Boolean) : [];
   
   // Load primary color from config
-  useEffect(() => {
-    const loadColors = async () => {
-      try {
-        const config = await getConfig('frontend_settings');
-        if (config && typeof config === 'object') {
-          const configData = config as Record<string, any>;
-          if (configData.colors?.primary) {
-            setPrimaryColor(configData.colors.primary);
-          }
+  const loadColors = useCallback(async () => {
+    if (isConfigLoaded) return; // Evita recarregamentos desnecessários
+    
+    try {
+      const config = await getConfig('frontend_settings');
+      if (config && typeof config === 'object') {
+        const configData = config as Record<string, any>;
+        if (configData.colors?.primary) {
+          setPrimaryColor(configData.colors.primary);
         }
-      } catch (error) {
-        console.error("Erro ao carregar cores para o ticker:", error);
       }
-    };
+      setIsConfigLoaded(true);
+    } catch (error) {
+      console.error("Erro ao carregar cores para o ticker:", error);
+      setIsConfigLoaded(true);
+    }
+  }, [getConfig, isConfigLoaded]);
 
+  useEffect(() => {
     loadColors();
-  }, [getConfig]);
+  }, [loadColors]);
   
   // Reset index if it's out of bounds
   useEffect(() => {

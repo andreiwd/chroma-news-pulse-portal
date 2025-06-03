@@ -1,12 +1,12 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useSupabaseConfig } from "@/hooks/useSupabaseConfig";
-import { Upload, X } from "lucide-react";
+import { Upload, X, Eye } from "lucide-react";
 
 interface SiteSettings {
   logo: {
@@ -24,65 +24,92 @@ interface SiteSettings {
   };
 }
 
+const DEFAULT_SETTINGS: SiteSettings = {
+  logo: {
+    url: '',
+    height: 60
+  },
+  socialLinks: {
+    facebook: 'https://facebook.com',
+    twitter: 'https://twitter.com',
+    instagram: 'https://instagram.com'
+  },
+  colors: {
+    primary: '#1a73e8',
+    secondary: '#f8f9fa'
+  }
+};
+
 export default function FrontendSettings() {
   const { toast } = useToast();
   const { getConfig, setConfig, loading } = useSupabaseConfig();
-  const [settings, setSettings] = useState<SiteSettings>({
-    logo: {
-      url: '',
-      height: 60
-    },
-    socialLinks: {
-      facebook: 'https://facebook.com',
-      twitter: 'https://twitter.com',
-      instagram: 'https://instagram.com'
-    },
-    colors: {
-      primary: '#1a73e8',
-      secondary: '#f8f9fa'
-    }
-  });
-  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SETTINGS);
   const [logoPreview, setLogoPreview] = useState<string>('');
+  const [isLoaded, setIsLoaded] = useState(false);
 
   // Load settings from Supabase
-  useEffect(() => {
-    const loadSettings = async () => {
-      try {
-        const config = await getConfig('frontend_settings');
-        if (config) {
-          const configData = config as any;
-          setSettings({
-            logo: {
-              url: configData.logo?.url || '',
-              height: Number(configData.logo?.height) || 60
-            },
-            socialLinks: {
-              facebook: configData.socialLinks?.facebook || 'https://facebook.com',
-              twitter: configData.socialLinks?.twitter || 'https://twitter.com',
-              instagram: configData.socialLinks?.instagram || 'https://instagram.com'
-            },
-            colors: {
-              primary: configData.colors?.primary || '#1a73e8',
-              secondary: configData.colors?.secondary || '#f8f9fa'
-            }
-          });
-          if (configData.logo?.url) {
-            setLogoPreview(configData.logo.url);
+  const loadSettings = useCallback(async () => {
+    if (isLoaded) return; // Evita recarregamentos desnecessários
+    
+    try {
+      const config = await getConfig('frontend_settings');
+      if (config && typeof config === 'object') {
+        const configData = config as any;
+        const loadedSettings: SiteSettings = {
+          logo: {
+            url: configData.logo?.url || '',
+            height: Number(configData.logo?.height) || 60
+          },
+          socialLinks: {
+            facebook: configData.socialLinks?.facebook || 'https://facebook.com',
+            twitter: configData.socialLinks?.twitter || 'https://twitter.com',
+            instagram: configData.socialLinks?.instagram || 'https://instagram.com'
+          },
+          colors: {
+            primary: configData.colors?.primary || '#1a73e8',
+            secondary: configData.colors?.secondary || '#f8f9fa'
           }
+        };
+        
+        setSettings(loadedSettings);
+        if (loadedSettings.logo.url) {
+          setLogoPreview(loadedSettings.logo.url);
         }
-      } catch (error) {
-        console.error("Erro ao carregar configurações:", error);
       }
-    };
+      setIsLoaded(true);
+    } catch (error) {
+      console.error("Erro ao carregar configurações:", error);
+      setIsLoaded(true);
+    }
+  }, [getConfig, isLoaded]);
 
+  useEffect(() => {
     loadSettings();
-  }, [getConfig]);
+  }, [loadSettings]);
 
   const handleLogoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setLogoFile(file);
+      // Validar tipo de arquivo
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Erro",
+          description: "Por favor, selecione apenas arquivos de imagem.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validar tamanho (máximo 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        toast({
+          title: "Erro",
+          description: "A imagem deve ter no máximo 2MB.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = (e) => {
         const result = e.target?.result as string;
@@ -100,7 +127,6 @@ export default function FrontendSettings() {
   };
 
   const removeLogo = () => {
-    setLogoFile(null);
     setLogoPreview('');
     setSettings(prev => ({
       ...prev,
@@ -119,7 +145,9 @@ export default function FrontendSettings() {
         url: url
       }
     }));
-    setLogoPreview(url);
+    if (url) {
+      setLogoPreview(url);
+    }
   };
 
   const updateLogoHeight = (height: number) => {
@@ -127,7 +155,7 @@ export default function FrontendSettings() {
       ...prev,
       logo: {
         ...prev.logo,
-        height: height
+        height: Math.max(20, Math.min(200, height))
       }
     }));
   };
@@ -150,9 +178,6 @@ export default function FrontendSettings() {
         [colorType]: color
       }
     }));
-    
-    // Apply color immediately to preview
-    document.documentElement.style.setProperty(`--${colorType}`, color);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -164,17 +189,13 @@ export default function FrontendSettings() {
       if (success) {
         toast({
           title: "Configurações salvas",
-          description: "As configurações foram salvas com sucesso!",
+          description: "As configurações foram salvas com sucesso! A página será recarregada para aplicar as mudanças.",
         });
         
-        // Apply colors to CSS variables
-        document.documentElement.style.setProperty('--primary', settings.colors.primary);
-        document.documentElement.style.setProperty('--secondary', settings.colors.secondary);
-        
-        // Reload page after a short delay to ensure changes are applied
+        // Recarregar após um breve delay
         setTimeout(() => {
           window.location.reload();
-        }, 1000);
+        }, 1500);
       }
     } catch (error) {
       console.error("Erro ao salvar:", error);
@@ -185,6 +206,17 @@ export default function FrontendSettings() {
       });
     }
   };
+
+  if (!isLoaded) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p>Carregando configurações...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto p-6">
@@ -235,6 +267,9 @@ export default function FrontendSettings() {
                   </Button>
                 )}
               </div>
+              <p className="text-sm text-muted-foreground">
+                Formatos aceitos: JPG, PNG, GIF, SVG. Tamanho máximo: 2MB
+              </p>
             </div>
 
             {/* URL Input */}
@@ -263,23 +298,30 @@ export default function FrontendSettings() {
                 placeholder="60"
                 className="w-full max-w-[200px]"
               />
+              <p className="text-sm text-muted-foreground">
+                Entre 20 e 200 pixels
+              </p>
             </div>
 
             {/* Logo Preview */}
             {logoPreview && (
               <div className="mt-4 p-4 border rounded-lg bg-muted/50">
-                <Label className="text-sm font-medium block mb-2">Preview do Logo:</Label>
+                <Label className="text-sm font-medium block mb-2 flex items-center gap-2">
+                  <Eye className="h-4 w-4" />
+                  Preview do Logo:
+                </Label>
                 <img 
                   src={logoPreview} 
                   alt="Preview do logo" 
                   style={{ height: `${settings.logo.height}px` }}
-                  className="w-auto max-w-full border rounded"
+                  className="w-auto max-w-full border rounded bg-white p-2"
                   onError={() => {
                     toast({
                       title: "Erro",
                       description: "Não foi possível carregar a imagem do logo.",
                       variant: "destructive",
                     });
+                    setLogoPreview('');
                   }}
                 />
               </div>
@@ -315,6 +357,10 @@ export default function FrontendSettings() {
                     className="flex-1"
                   />
                 </div>
+                <div 
+                  className="h-8 rounded border"
+                  style={{ backgroundColor: settings.colors.primary }}
+                />
               </div>
               
               <div className="space-y-3">
@@ -335,6 +381,10 @@ export default function FrontendSettings() {
                     className="flex-1"
                   />
                 </div>
+                <div 
+                  className="h-8 rounded border"
+                  style={{ backgroundColor: settings.colors.secondary }}
+                />
               </div>
             </div>
           </CardContent>
