@@ -27,8 +27,9 @@ export default function WeatherConfig() {
     const loadConfig = async () => {
       try {
         const weatherConfig = await getConfig('weather_config');
-        if (weatherConfig) {
-          const typedConfig = weatherConfig as unknown as WeatherConfig;
+        console.log("Loaded weather config:", weatherConfig);
+        if (weatherConfig && typeof weatherConfig === 'object') {
+          const typedConfig = weatherConfig as any;
           setConfigState({
             apiKey: typedConfig.apiKey || '',
             city: typedConfig.city || '',
@@ -45,6 +46,7 @@ export default function WeatherConfig() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
+    console.log("Weather config change:", name, type === 'checkbox' ? checked : value);
     setConfigState(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value
@@ -53,6 +55,7 @@ export default function WeatherConfig() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Submitting weather config:", config);
     
     const success = await setConfig('weather_config', config);
     
@@ -60,6 +63,12 @@ export default function WeatherConfig() {
       toast({
         title: "Configuração salva",
         description: "As configurações do clima foram salvas com sucesso.",
+      });
+    } else {
+      toast({
+        title: "Erro",
+        description: "Erro ao salvar configuração do clima.",
+        variant: "destructive",
       });
     }
   };
@@ -121,13 +130,13 @@ export default function WeatherConfig() {
             </div>
 
             <div className="flex items-center space-x-2">
-              <input
+              <Input
                 id="enabled"
                 name="enabled"
                 type="checkbox"
                 checked={config.enabled}
                 onChange={handleInputChange}
-                className="h-4 w-4 rounded border-gray-300"
+                className="h-4 w-4"
               />
               <Label htmlFor="enabled">Habilitar widget de clima</Label>
             </div>

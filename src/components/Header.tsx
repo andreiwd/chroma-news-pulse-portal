@@ -24,16 +24,17 @@ interface SiteSettings {
 
 export default function Header() {
   const { getConfig } = useSupabaseConfig();
-  const [logo, setLogo] = useState<string>("");
-  const [logoHeight, setLogoHeight] = useState<number>(60);
-  const [socialLinks, setSocialLinks] = useState({
-    facebook: "https://facebook.com",
-    instagram: "https://instagram.com",
-    twitter: "https://twitter.com"
-  });
-  const [colors, setColors] = useState({
-    primary: "#1a73e8",
-    secondary: "#f8f9fa"
+  const [settings, setSettings] = useState<SiteSettings>({
+    logo: { url: "", height: 60 },
+    socialLinks: {
+      facebook: "https://facebook.com",
+      instagram: "https://instagram.com",
+      twitter: "https://twitter.com"
+    },
+    colors: {
+      primary: "#1a73e8",
+      secondary: "#f8f9fa"
+    }
   });
 
   // Load settings from Supabase
@@ -42,26 +43,25 @@ export default function Header() {
       try {
         const config = await getConfig('frontend_settings');
         console.log("Header - Loaded config:", config);
-        if (config) {
-          const settings = config as unknown as SiteSettings;
-          if (settings.logo) {
-            console.log("Header - Setting logo:", settings.logo.url);
-            setLogo(settings.logo.url || "");
-            setLogoHeight(settings.logo.height || 60);
-          }
-          if (settings.socialLinks) {
-            setSocialLinks({
-              facebook: settings.socialLinks.facebook || "https://facebook.com",
-              instagram: settings.socialLinks.instagram || "https://instagram.com",
-              twitter: settings.socialLinks.twitter || "https://twitter.com"
-            });
-          }
-          if (settings.colors) {
-            setColors({
-              primary: settings.colors.primary || "#1a73e8",
-              secondary: settings.colors.secondary || "#f8f9fa"
-            });
-          }
+        if (config && typeof config === 'object') {
+          const typedSettings = config as any;
+          const newSettings = {
+            logo: {
+              url: typedSettings.logo?.url || "",
+              height: typedSettings.logo?.height || 60
+            },
+            socialLinks: {
+              facebook: typedSettings.socialLinks?.facebook || "https://facebook.com",
+              instagram: typedSettings.socialLinks?.instagram || "https://instagram.com",
+              twitter: typedSettings.socialLinks?.twitter || "https://twitter.com"
+            },
+            colors: {
+              primary: typedSettings.colors?.primary || "#1a73e8",
+              secondary: typedSettings.colors?.secondary || "#f8f9fa"
+            }
+          };
+          console.log("Header - Setting new settings:", newSettings);
+          setSettings(newSettings);
         }
       } catch (error) {
         console.error("Error loading site settings:", error);
@@ -73,14 +73,14 @@ export default function Header() {
 
   // Apply custom colors to CSS variables
   useEffect(() => {
-    console.log("Header - Applying colors:", colors);
-    if (colors.primary) {
-      document.documentElement.style.setProperty('--primary', colors.primary);
+    console.log("Header - Applying colors:", settings.colors);
+    if (settings.colors.primary) {
+      document.documentElement.style.setProperty('--primary', settings.colors.primary);
     }
-    if (colors.secondary) {
-      document.documentElement.style.setProperty('--secondary', colors.secondary);
+    if (settings.colors.secondary) {
+      document.documentElement.style.setProperty('--secondary', settings.colors.secondary);
     }
-  }, [colors]);
+  }, [settings.colors]);
 
   return (
     <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -88,11 +88,11 @@ export default function Header() {
         <div className="flex items-center justify-between gap-6">
           <div className="flex-1">
             <a href="/" className="inline-block">
-              {logo ? (
+              {settings.logo.url ? (
                 <img 
-                  src={logo} 
+                  src={settings.logo.url} 
                   alt="ChromaNews" 
-                  style={{ height: `${logoHeight}px` }}
+                  style={{ height: `${settings.logo.height}px` }}
                   className="w-auto"
                   onError={(e) => {
                     console.error("Erro ao carregar logo:", e);
@@ -127,17 +127,17 @@ export default function Header() {
           <div className="flex items-center gap-4">
             <div className="flex gap-2">
               <Button variant="ghost" size="icon" asChild>
-                <a href={socialLinks.facebook} target="_blank" rel="noopener noreferrer">
+                <a href={settings.socialLinks.facebook} target="_blank" rel="noopener noreferrer">
                   <Facebook className="h-5 w-5" />
                 </a>
               </Button>
               <Button variant="ghost" size="icon" asChild>
-                <a href={socialLinks.instagram} target="_blank" rel="noopener noreferrer">
+                <a href={settings.socialLinks.instagram} target="_blank" rel="noopener noreferrer">
                   <Instagram className="h-5 w-5" />
                 </a>
               </Button>
               <Button variant="ghost" size="icon" asChild>
-                <a href={socialLinks.twitter} target="_blank" rel="noopener noreferrer">
+                <a href={settings.socialLinks.twitter} target="_blank" rel="noopener noreferrer">
                   <svg 
                     xmlns="http://www.w3.org/2000/svg" 
                     width="20" 

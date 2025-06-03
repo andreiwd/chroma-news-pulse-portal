@@ -47,8 +47,9 @@ export default function FrontendSettings() {
     const loadSettings = async () => {
       try {
         const config = await getConfig('frontend_settings');
-        if (config) {
-          const typedConfig = config as unknown as SiteSettings;
+        console.log("Loaded config:", config);
+        if (config && typeof config === 'object') {
+          const typedConfig = config as any;
           setSettings({
             logo: {
               url: typedConfig.logo?.url || '',
@@ -75,17 +76,19 @@ export default function FrontendSettings() {
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    console.log("Logo change:", name, value);
     setSettings(prev => ({
       ...prev,
       logo: {
         ...prev.logo,
-        [name]: name === 'height' ? Number(value) : value
+        [name]: name === 'height' ? parseInt(value) || 60 : value
       }
     }));
   };
 
   const handleSocialLinksChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    console.log("Social link change:", name, value);
     setSettings(prev => ({
       ...prev,
       socialLinks: {
@@ -97,6 +100,7 @@ export default function FrontendSettings() {
 
   const handleColorsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    console.log("Color change:", name, value);
     setSettings(prev => ({
       ...prev,
       colors: {
@@ -105,7 +109,7 @@ export default function FrontendSettings() {
       }
     }));
     
-    // Apply color immediately to CSS variables for preview
+    // Apply color immediately for preview
     if (name === 'primary') {
       document.documentElement.style.setProperty('--primary', value);
     } else if (name === 'secondary') {
@@ -115,6 +119,7 @@ export default function FrontendSettings() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Submitting settings:", settings);
     
     const success = await setConfig('frontend_settings', settings);
     
@@ -122,6 +127,15 @@ export default function FrontendSettings() {
       toast({
         title: "Configurações salvas",
         description: "As configurações do frontend foram salvas com sucesso.",
+      });
+      
+      // Force reload to apply changes
+      window.location.reload();
+    } else {
+      toast({
+        title: "Erro",
+        description: "Erro ao salvar configurações.",
+        variant: "destructive",
       });
     }
   };
@@ -179,6 +193,7 @@ export default function FrontendSettings() {
                     style={{ height: `${settings.logo.height}px` }}
                     className="w-auto"
                     onError={(e) => {
+                      console.error("Erro ao carregar logo preview");
                       e.currentTarget.style.display = 'none';
                     }}
                   />
@@ -206,7 +221,7 @@ export default function FrontendSettings() {
                   type="color"
                   value={settings.colors.primary}
                   onChange={handleColorsChange}
-                  className="w-20 h-10"
+                  className="w-20 h-10 p-1 border rounded"
                 />
                 <Input
                   name="primary"
@@ -227,7 +242,7 @@ export default function FrontendSettings() {
                   type="color"
                   value={settings.colors.secondary}
                   onChange={handleColorsChange}
-                  className="w-20 h-10"
+                  className="w-20 h-10 p-1 border rounded"
                 />
                 <Input
                   name="secondary"
