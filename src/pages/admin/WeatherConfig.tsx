@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
 import { useSupabaseConfig } from "@/hooks/useSupabaseConfig";
 
 interface WeatherConfig {
@@ -27,44 +28,47 @@ export default function WeatherConfig() {
     const loadConfig = async () => {
       try {
         const weatherConfig = await getConfig('weather_config');
-        console.log("Loaded weather config:", weatherConfig);
+        console.log("Carregando config do clima:", weatherConfig);
         if (weatherConfig && typeof weatherConfig === 'object') {
-          const typedConfig = weatherConfig as any;
+          const configData = weatherConfig as Record<string, any>;
           setConfigState({
-            apiKey: typedConfig.apiKey || '',
-            city: typedConfig.city || '',
-            enabled: typedConfig.enabled !== false
+            apiKey: configData.apiKey || '',
+            city: configData.city || '',
+            enabled: configData.enabled !== false
           });
         }
       } catch (error) {
-        console.error("Error loading weather config:", error);
+        console.error("Erro ao carregar config do clima:", error);
       }
     };
 
     loadConfig();
   }, [getConfig]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
-    console.log("Weather config change:", name, type === 'checkbox' ? checked : value);
+  const updateConfig = (field: keyof WeatherConfig, value: string | boolean) => {
     setConfigState(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [field]: value
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Submitting weather config:", config);
+    console.log("Salvando config do clima:", config);
     
-    const success = await setConfig('weather_config', config);
-    
-    if (success) {
-      toast({
-        title: "Configuração salva",
-        description: "As configurações do clima foram salvas com sucesso.",
-      });
-    } else {
+    try {
+      const success = await setConfig('weather_config', config);
+      
+      if (success) {
+        toast({
+          title: "Configuração salva",
+          description: "As configurações do clima foram salvas com sucesso.",
+        });
+      } else {
+        throw new Error("Falha ao salvar");
+      }
+    } catch (error) {
+      console.error("Erro ao salvar config do clima:", error);
       toast({
         title: "Erro",
         description: "Erro ao salvar configuração do clima.",
@@ -78,7 +82,7 @@ export default function WeatherConfig() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Configurações do Clima</h1>
         <p className="text-muted-foreground">
-          Configure as informações do widget de clima
+          Configure o widget de clima que aparece na lateral do site
         </p>
       </div>
 
@@ -90,16 +94,30 @@ export default function WeatherConfig() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="enabled">Habilitar widget de clima</Label>
+                <p className="text-sm text-muted-foreground">
+                  Ativa ou desativa o widget de clima no site
+                </p>
+              </div>
+              <Switch
+                id="enabled"
+                checked={config.enabled}
+                onCheckedChange={(checked) => updateConfig('enabled', checked)}
+              />
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="apiKey">Chave da API OpenWeatherMap</Label>
               <Input
                 id="apiKey"
-                name="apiKey"
                 type="text"
                 value={config.apiKey}
-                onChange={handleInputChange}
+                onChange={(e) => updateConfig('apiKey', e.target.value)}
                 placeholder="Digite sua chave da API"
+                className="w-full"
               />
               <p className="text-sm text-muted-foreground">
                 Obtenha sua chave gratuita em{" "}
@@ -107,7 +125,7 @@ export default function WeatherConfig() {
                   href="https://openweathermap.org/api" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="underline"
+                  className="underline text-primary hover:text-primary/80"
                 >
                   OpenWeatherMap
                 </a>
@@ -118,30 +136,22 @@ export default function WeatherConfig() {
               <Label htmlFor="city">Cidade</Label>
               <Input
                 id="city"
-                name="city"
                 type="text"
                 value={config.city}
-                onChange={handleInputChange}
+                onChange={(e) => updateConfig('city', e.target.value)}
                 placeholder="Ex: São Paulo, BR"
+                className="w-full"
               />
               <p className="text-sm text-muted-foreground">
                 Use o formato: Cidade, Código do País (ex: São Paulo, BR)
               </p>
             </div>
 
-            <div className="flex items-center space-x-2">
-              <Input
-                id="enabled"
-                name="enabled"
-                type="checkbox"
-                checked={config.enabled}
-                onChange={handleInputChange}
-                className="h-4 w-4"
-              />
-              <Label htmlFor="enabled">Habilitar widget de clima</Label>
-            </div>
-
-            <Button type="submit" disabled={loading}>
+            <Button 
+              type="submit" 
+              disabled={loading}
+              className="w-full"
+            >
               {loading ? "Salvando..." : "Salvar Configurações"}
             </Button>
           </form>

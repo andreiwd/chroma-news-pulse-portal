@@ -42,58 +42,57 @@ export default function Header() {
     const loadConfig = async () => {
       try {
         const config = await getConfig('frontend_settings');
-        console.log("Header - Loaded config:", config);
+        console.log("Header - Configuração carregada:", config);
+        
         if (config && typeof config === 'object') {
-          const typedSettings = config as any;
+          const configData = config as Record<string, any>;
           const newSettings = {
             logo: {
-              url: typedSettings.logo?.url || "",
-              height: typedSettings.logo?.height || 60
+              url: configData.logo?.url || "",
+              height: Number(configData.logo?.height) || 60
             },
             socialLinks: {
-              facebook: typedSettings.socialLinks?.facebook || "https://facebook.com",
-              instagram: typedSettings.socialLinks?.instagram || "https://instagram.com",
-              twitter: typedSettings.socialLinks?.twitter || "https://twitter.com"
+              facebook: configData.socialLinks?.facebook || "https://facebook.com",
+              instagram: configData.socialLinks?.instagram || "https://instagram.com",
+              twitter: configData.socialLinks?.twitter || "https://twitter.com"
             },
             colors: {
-              primary: typedSettings.colors?.primary || "#1a73e8",
-              secondary: typedSettings.colors?.secondary || "#f8f9fa"
+              primary: configData.colors?.primary || "#1a73e8",
+              secondary: configData.colors?.secondary || "#f8f9fa"
             }
           };
-          console.log("Header - Setting new settings:", newSettings);
+          
+          console.log("Header - Aplicando configurações:", newSettings);
           setSettings(newSettings);
+          
+          // Apply colors immediately
+          if (newSettings.colors.primary) {
+            document.documentElement.style.setProperty('--primary', newSettings.colors.primary);
+          }
+          if (newSettings.colors.secondary) {
+            document.documentElement.style.setProperty('--secondary', newSettings.colors.secondary);
+          }
         }
       } catch (error) {
-        console.error("Error loading site settings:", error);
+        console.error("Erro ao carregar configurações do site:", error);
       }
     };
 
     loadConfig();
   }, [getConfig]);
 
-  // Apply custom colors to CSS variables
-  useEffect(() => {
-    console.log("Header - Applying colors:", settings.colors);
-    if (settings.colors.primary) {
-      document.documentElement.style.setProperty('--primary', settings.colors.primary);
-    }
-    if (settings.colors.secondary) {
-      document.documentElement.style.setProperty('--secondary', settings.colors.secondary);
-    }
-  }, [settings.colors]);
-
   return (
     <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container py-2">
+      <div className="container py-4">
         <div className="flex items-center justify-between gap-6">
           <div className="flex-1">
             <a href="/" className="inline-block">
               {settings.logo.url ? (
                 <img 
                   src={settings.logo.url} 
-                  alt="ChromaNews" 
+                  alt="Logo do Site" 
                   style={{ height: `${settings.logo.height}px` }}
-                  className="w-auto"
+                  className="w-auto max-h-20"
                   onError={(e) => {
                     console.error("Erro ao carregar logo:", e);
                     e.currentTarget.style.display = "none";

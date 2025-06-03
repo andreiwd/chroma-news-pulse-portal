@@ -47,94 +47,72 @@ export default function FrontendSettings() {
     const loadSettings = async () => {
       try {
         const config = await getConfig('frontend_settings');
-        console.log("Loaded config:", config);
+        console.log("Carregando configurações:", config);
         if (config && typeof config === 'object') {
-          const typedConfig = config as any;
+          const configData = config as Record<string, any>;
           setSettings({
             logo: {
-              url: typedConfig.logo?.url || '',
-              height: typedConfig.logo?.height || 60
+              url: configData.logo?.url || '',
+              height: Number(configData.logo?.height) || 60
             },
             socialLinks: {
-              facebook: typedConfig.socialLinks?.facebook || 'https://facebook.com',
-              twitter: typedConfig.socialLinks?.twitter || 'https://twitter.com',
-              instagram: typedConfig.socialLinks?.instagram || 'https://instagram.com'
+              facebook: configData.socialLinks?.facebook || 'https://facebook.com',
+              twitter: configData.socialLinks?.twitter || 'https://twitter.com',
+              instagram: configData.socialLinks?.instagram || 'https://instagram.com'
             },
             colors: {
-              primary: typedConfig.colors?.primary || '#1a73e8',
-              secondary: typedConfig.colors?.secondary || '#f8f9fa'
+              primary: configData.colors?.primary || '#1a73e8',
+              secondary: configData.colors?.secondary || '#f8f9fa'
             }
           });
         }
       } catch (error) {
-        console.error("Error loading frontend settings:", error);
+        console.error("Erro ao carregar configurações:", error);
       }
     };
 
     loadSettings();
   }, [getConfig]);
 
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    console.log("Logo change:", name, value);
+  const updateSettings = (section: keyof SiteSettings, field: string, value: string | number) => {
     setSettings(prev => ({
       ...prev,
-      logo: {
-        ...prev.logo,
-        [name]: name === 'height' ? parseInt(value) || 60 : value
+      [section]: {
+        ...prev[section],
+        [field]: value
       }
     }));
-  };
-
-  const handleSocialLinksChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    console.log("Social link change:", name, value);
-    setSettings(prev => ({
-      ...prev,
-      socialLinks: {
-        ...prev.socialLinks,
-        [name]: value
-      }
-    }));
-  };
-
-  const handleColorsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    console.log("Color change:", name, value);
-    setSettings(prev => ({
-      ...prev,
-      colors: {
-        ...prev.colors,
-        [name]: value
-      }
-    }));
-    
-    // Apply color immediately for preview
-    if (name === 'primary') {
-      document.documentElement.style.setProperty('--primary', value);
-    } else if (name === 'secondary') {
-      document.documentElement.style.setProperty('--secondary', value);
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Submitting settings:", settings);
+    console.log("Salvando configurações:", settings);
     
-    const success = await setConfig('frontend_settings', settings);
-    
-    if (success) {
-      toast({
-        title: "Configurações salvas",
-        description: "As configurações do frontend foram salvas com sucesso.",
-      });
+    try {
+      const success = await setConfig('frontend_settings', settings);
       
-      // Force reload to apply changes
-      window.location.reload();
-    } else {
+      if (success) {
+        toast({
+          title: "Configurações salvas",
+          description: "As configurações foram salvas com sucesso!",
+        });
+        
+        // Aplicar cores imediatamente
+        document.documentElement.style.setProperty('--primary', settings.colors.primary);
+        document.documentElement.style.setProperty('--secondary', settings.colors.secondary);
+        
+        // Recarregar página após 1 segundo para aplicar mudanças
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      } else {
+        throw new Error("Falha ao salvar");
+      }
+    } catch (error) {
+      console.error("Erro ao salvar:", error);
       toast({
         title: "Erro",
-        description: "Erro ao salvar configurações.",
+        description: "Erro ao salvar configurações. Tente novamente.",
         variant: "destructive",
       });
     }
@@ -143,9 +121,9 @@ export default function FrontendSettings() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Configurações do Frontend</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Configurações do Site</h1>
         <p className="text-muted-foreground">
-          Personalize a aparência e configurações visuais do site
+          Personalize a aparência e configurações visuais do seu site
         </p>
       </div>
 
@@ -153,9 +131,9 @@ export default function FrontendSettings() {
         {/* Logo Settings */}
         <Card>
           <CardHeader>
-            <CardTitle>Logo</CardTitle>
+            <CardTitle>Logo do Site</CardTitle>
             <CardDescription>
-              Configure o logo que será exibido no cabeçalho do site
+              Configure o logo que será exibido no cabeçalho
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -163,37 +141,41 @@ export default function FrontendSettings() {
               <Label htmlFor="logo-url">URL do Logo</Label>
               <Input
                 id="logo-url"
-                name="url"
                 type="url"
                 value={settings.logo.url}
-                onChange={handleLogoChange}
+                onChange={(e) => updateSettings('logo', 'url', e.target.value)}
                 placeholder="https://exemplo.com/logo.png"
+                className="w-full"
               />
+              <p className="text-sm text-muted-foreground">
+                Cole aqui a URL da imagem do seu logo
+              </p>
             </div>
+            
             <div className="space-y-2">
-              <Label htmlFor="logo-height">Altura do Logo (px)</Label>
+              <Label htmlFor="logo-height">Altura do Logo (pixels)</Label>
               <Input
                 id="logo-height"
-                name="height"
                 type="number"
                 min="20"
                 max="200"
                 value={settings.logo.height}
-                onChange={handleLogoChange}
+                onChange={(e) => updateSettings('logo', 'height', Number(e.target.value))}
                 placeholder="60"
+                className="w-full"
               />
             </div>
+
             {settings.logo.url && (
-              <div className="mt-4">
-                <Label>Preview:</Label>
-                <div className="mt-2 p-4 border rounded-lg bg-gray-50">
+              <div className="mt-4 p-4 border rounded-lg bg-muted/50">
+                <Label className="text-sm font-medium">Preview do Logo:</Label>
+                <div className="mt-2">
                   <img 
                     src={settings.logo.url} 
-                    alt="Logo preview" 
+                    alt="Preview do logo" 
                     style={{ height: `${settings.logo.height}px` }}
-                    className="w-auto"
+                    className="w-auto max-w-full"
                     onError={(e) => {
-                      console.error("Erro ao carregar logo preview");
                       e.currentTarget.style.display = 'none';
                     }}
                   />
@@ -206,52 +188,57 @@ export default function FrontendSettings() {
         {/* Colors */}
         <Card>
           <CardHeader>
-            <CardTitle>Cores</CardTitle>
+            <CardTitle>Cores do Tema</CardTitle>
             <CardDescription>
-              Personalize as cores principais do tema
+              Personalize as cores principais do seu site
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="primary-color">Cor Primária</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="primary-color"
-                  name="primary"
-                  type="color"
-                  value={settings.colors.primary}
-                  onChange={handleColorsChange}
-                  className="w-20 h-10 p-1 border rounded"
-                />
-                <Input
-                  name="primary"
-                  type="text"
-                  value={settings.colors.primary}
-                  onChange={handleColorsChange}
-                  placeholder="#1a73e8"
-                  className="flex-1"
-                />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="primary-color">Cor Primária</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="primary-color"
+                    type="color"
+                    value={settings.colors.primary}
+                    onChange={(e) => {
+                      updateSettings('colors', 'primary', e.target.value);
+                      document.documentElement.style.setProperty('--primary', e.target.value);
+                    }}
+                    className="w-16 h-10 p-1 border rounded cursor-pointer"
+                  />
+                  <Input
+                    type="text"
+                    value={settings.colors.primary}
+                    onChange={(e) => updateSettings('colors', 'primary', e.target.value)}
+                    placeholder="#1a73e8"
+                    className="flex-1"
+                  />
+                </div>
               </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="secondary-color">Cor Secundária</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="secondary-color"
-                  name="secondary"
-                  type="color"
-                  value={settings.colors.secondary}
-                  onChange={handleColorsChange}
-                  className="w-20 h-10 p-1 border rounded"
-                />
-                <Input
-                  name="secondary"
-                  type="text"
-                  value={settings.colors.secondary}
-                  onChange={handleColorsChange}
-                  placeholder="#f8f9fa"
-                  className="flex-1"
-                />
+              
+              <div className="space-y-2">
+                <Label htmlFor="secondary-color">Cor Secundária</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="secondary-color"
+                    type="color"
+                    value={settings.colors.secondary}
+                    onChange={(e) => {
+                      updateSettings('colors', 'secondary', e.target.value);
+                      document.documentElement.style.setProperty('--secondary', e.target.value);
+                    }}
+                    className="w-16 h-10 p-1 border rounded cursor-pointer"
+                  />
+                  <Input
+                    type="text"
+                    value={settings.colors.secondary}
+                    onChange={(e) => updateSettings('colors', 'secondary', e.target.value)}
+                    placeholder="#f8f9fa"
+                    className="flex-1"
+                  />
+                </div>
               </div>
             </div>
           </CardContent>
@@ -262,7 +249,7 @@ export default function FrontendSettings() {
           <CardHeader>
             <CardTitle>Redes Sociais</CardTitle>
             <CardDescription>
-              Configure os links das redes sociais que aparecerão no cabeçalho
+              Configure os links das redes sociais do cabeçalho
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -270,40 +257,47 @@ export default function FrontendSettings() {
               <Label htmlFor="facebook">Facebook</Label>
               <Input
                 id="facebook"
-                name="facebook"
                 type="url"
                 value={settings.socialLinks.facebook}
-                onChange={handleSocialLinksChange}
+                onChange={(e) => updateSettings('socialLinks', 'facebook', e.target.value)}
                 placeholder="https://facebook.com/seusite"
+                className="w-full"
               />
             </div>
+            
             <div className="space-y-2">
               <Label htmlFor="twitter">Twitter/X</Label>
               <Input
                 id="twitter"
-                name="twitter"
                 type="url"
                 value={settings.socialLinks.twitter}
-                onChange={handleSocialLinksChange}
+                onChange={(e) => updateSettings('socialLinks', 'twitter', e.target.value)}
                 placeholder="https://twitter.com/seusite"
+                className="w-full"
               />
             </div>
+            
             <div className="space-y-2">
               <Label htmlFor="instagram">Instagram</Label>
               <Input
                 id="instagram"
-                name="instagram"
                 type="url"
                 value={settings.socialLinks.instagram}
-                onChange={handleSocialLinksChange}
+                onChange={(e) => updateSettings('socialLinks', 'instagram', e.target.value)}
                 placeholder="https://instagram.com/seusite"
+                className="w-full"
               />
             </div>
           </CardContent>
         </Card>
 
-        <Button type="submit" disabled={loading} className="w-full">
-          {loading ? "Salvando..." : "Salvar Todas as Configurações"}
+        <Button 
+          type="submit" 
+          disabled={loading} 
+          className="w-full py-3 text-lg"
+          size="lg"
+        >
+          {loading ? "Salvando..." : "Salvar Configurações"}
         </Button>
       </form>
     </div>

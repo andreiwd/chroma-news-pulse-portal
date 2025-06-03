@@ -20,13 +20,13 @@ export default function NewsTicker() {
       try {
         const config = await getConfig('frontend_settings');
         if (config && typeof config === 'object') {
-          const settings = config as any;
-          if (settings.colors?.primary) {
-            setPrimaryColor(settings.colors.primary);
+          const configData = config as Record<string, any>;
+          if (configData.colors?.primary) {
+            setPrimaryColor(configData.colors.primary);
           }
         }
       } catch (error) {
-        console.error("Error loading colors for ticker:", error);
+        console.error("Erro ao carregar cores para o ticker:", error);
       }
     };
 
@@ -54,13 +54,15 @@ export default function NewsTicker() {
   if (isLoading) {
     return (
       <div 
-        className="py-2 text-white"
+        className="py-3 text-white"
         style={{
-          background: `linear-gradient(to right, ${primaryColor}90, ${primaryColor})`
+          background: `linear-gradient(to right, ${primaryColor}dd, ${primaryColor})`
         }}
       >
         <div className="container flex items-center space-x-4 overflow-hidden">
-          <span className="font-semibold whitespace-nowrap text-white">Últimas Notícias:</span>
+          <span className="font-semibold whitespace-nowrap text-white bg-black/20 px-3 py-1 rounded-full text-sm">
+            Últimas Notícias
+          </span>
           <p className="animate-pulse text-white">Carregando notícias...</p>
         </div>
       </div>
@@ -69,24 +71,26 @@ export default function NewsTicker() {
 
   return (
     <div 
-      className="py-2 text-white"
+      className="py-3 text-white border-b"
       style={{
-        background: `linear-gradient(to right, ${primaryColor}90, ${primaryColor})`
+        background: `linear-gradient(135deg, ${primaryColor}dd, ${primaryColor})`
       }}
     >
       <div className="container flex items-center space-x-4 overflow-hidden">
-        <span className="font-semibold whitespace-nowrap text-white">Últimas Notícias:</span>
-        <div className="overflow-hidden h-6">
+        <span className="font-semibold whitespace-nowrap text-white bg-black/20 px-3 py-1 rounded-full text-sm flex-shrink-0">
+          Últimas Notícias
+        </span>
+        <div className="overflow-hidden h-6 flex-1">
           {latestNews?.length > 0 && currentNewsIndex < latestNews.length && latestNews[currentNewsIndex] ? (
             <Link
               to={`/news/${latestNews[currentNewsIndex].slug}`}
               key={`ticker-${latestNews[currentNewsIndex].id}`}
-              className="block animate-[tickerFade_4s_ease-in-out_infinite] hover:underline text-white"
+              className="block animate-[tickerFade_4s_ease-in-out_infinite] hover:underline text-white transition-all duration-300 hover:text-white/90"
             >
               {latestNews[currentNewsIndex].title || "Notícia sem título"}
             </Link>
           ) : (
-            <p className="text-white">Nenhuma notícia encontrada</p>
+            <p className="text-white/80 text-sm">Nenhuma notícia encontrada</p>
           )}
         </div>
       </div>

@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -14,6 +14,7 @@ export function useSupabaseConfig() {
 
   const getConfig = async (key: string) => {
     try {
+      console.log(`Buscando configuração: ${key}`);
       const { data, error } = await supabase
         .from('site_config')
         .select('value')
@@ -21,12 +22,14 @@ export function useSupabaseConfig() {
         .single();
 
       if (error && error.code !== 'PGRST116') {
+        console.error('Erro ao buscar config:', error);
         throw error;
       }
 
+      console.log(`Config encontrada para ${key}:`, data?.value);
       return data?.value || null;
     } catch (error) {
-      console.error('Error fetching config:', error);
+      console.error('Erro ao buscar configuração:', error);
       return null;
     }
   };
@@ -34,23 +37,30 @@ export function useSupabaseConfig() {
   const setConfig = async (key: string, value: any) => {
     setLoading(true);
     try {
+      console.log(`Salvando configuração ${key}:`, value);
+      
       const { error } = await supabase
         .from('site_config')
-        .upsert({ key, value }, { onConflict: 'key' });
+        .upsert({ 
+          key, 
+          value,
+          updated_at: new Date().toISOString()
+        }, { 
+          onConflict: 'key' 
+        });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao salvar no Supabase:', error);
+        throw error;
+      }
 
-      toast({
-        title: "Configuração salva",
-        description: "As alterações foram salvas com sucesso.",
-      });
-
+      console.log(`Configuração ${key} salva com sucesso`);
       return true;
     } catch (error) {
-      console.error('Error saving config:', error);
+      console.error('Erro ao salvar configuração:', error);
       toast({
         title: "Erro",
-        description: "Erro ao salvar configuração.",
+        description: "Erro ao salvar configuração. Tente novamente.",
         variant: "destructive",
       });
       return false;
