@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { Youtube } from 'lucide-react';
 import { 
@@ -33,12 +32,14 @@ interface VideoConfig {
 interface VideoSettings {
   youtubeVideos: VideoConfig[];
   youtubeAccentColor: string;
+  backgroundOpacity?: number;
 }
 
 export default function FeaturedYouTubeVideo({ className = "" }: FeaturedVideoProps) {
   const { getConfig } = useSupabaseConfig();
   const [videos, setVideos] = useState<VideoConfig[]>([]);
   const [accentColor, setAccentColor] = useState("#ea384c");
+  const [backgroundOpacity, setBackgroundOpacity] = useState(0.3);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedVideo, setSelectedVideo] = useState<VideoConfig | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -57,6 +58,9 @@ export default function FeaturedYouTubeVideo({ className = "" }: FeaturedVideoPr
           }
           if (videoSettings.youtubeAccentColor) {
             setAccentColor(videoSettings.youtubeAccentColor);
+          }
+          if (videoSettings.backgroundOpacity !== undefined) {
+            setBackgroundOpacity(videoSettings.backgroundOpacity);
           }
         }
       } catch (error) {
@@ -106,6 +110,12 @@ export default function FeaturedYouTubeVideo({ className = "" }: FeaturedVideoPr
     return videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1` : '';
   };
 
+  // Converter opacidade para hex (0-1 para 00-FF)
+  const getOpacityHex = (opacity: number): string => {
+    const hex = Math.round(opacity * 255).toString(16).padStart(2, '0');
+    return hex.toUpperCase();
+  };
+
   // Abrir modal com o vídeo selecionado
   const openVideoModal = (video: VideoConfig) => {
     setSelectedVideo(video);
@@ -115,7 +125,9 @@ export default function FeaturedYouTubeVideo({ className = "" }: FeaturedVideoPr
   return (
     <section 
       className={`w-full py-10 relative ${className}`}
-      style={{ backgroundColor: `${accentColor}4D` }} // 30% opacity (4D in hex)
+      style={{ 
+        backgroundColor: `${accentColor}${getOpacityHex(backgroundOpacity)}`
+      }}
     >
       <div className="container mx-auto">
         <div className="relative">

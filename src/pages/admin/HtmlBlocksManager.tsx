@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,9 +6,11 @@ import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Eye, Edit, Plus, Trash } from "lucide-react";
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import CustomHtmlBlock from "@/components/CustomHtmlBlock";
+import HtmlTemplates, { HtmlTemplate } from "@/components/HtmlTemplates";
 import { useSupabaseConfig } from "@/hooks/useSupabaseConfig";
 
 interface HtmlBlock {
@@ -189,6 +190,15 @@ export default function HtmlBlocksManager() {
     }
   };
   
+  const handleSelectTemplate = (template: HtmlTemplate) => {
+    setFormData({
+      name: template.name,
+      position: template.position,
+      content: template.content,
+      active: true
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -206,82 +216,98 @@ export default function HtmlBlocksManager() {
               <span>Novo Bloco HTML</span>
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[600px]">
+          <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 {editingId ? "Editar Bloco HTML" : "Adicionar Novo Bloco HTML"}
               </DialogTitle>
               <DialogDescription>
-                Preencha os detalhes do bloco HTML abaixo
+                Use um template ou crie um bloco personalizado
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleFormSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="block-name">Nome do Bloco</Label>
-                <Input
-                  id="block-name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  placeholder="Ex: Aviso Importante"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="block-position">Posição</Label>
-                <select
-                  id="block-position"
-                  name="position"
-                  value={formData.position}
-                  onChange={handleSelectChange}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  required
-                >
-                  <option value="">Selecione uma posição</option>
-                  <option value="top-header">Topo do cabeçalho</option>
-                  <option value="header">Cabeçalho</option>
-                  <option value="after-header">Após cabeçalho</option>
-                  <option value="sidebar">Barra lateral</option>
-                  <option value="main-content">Conteúdo principal</option>
-                  <option value="footer">Rodapé</option>
-                  <option value="before-footer">Antes do rodapé</option>
-                </select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="block-content">Código HTML</Label>
-                <textarea
-                  id="block-content"
-                  name="content"
-                  value={formData.content}
-                  onChange={handleInputChange}
-                  placeholder="Digite ou cole o código HTML aqui"
-                  className="flex h-36 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                  required
-                />
-                <p className="text-xs text-muted-foreground">
-                  Dica: Use classes Tailwind CSS para estilos.
-                </p>
-              </div>
-              <div className="flex items-center space-x-2 pt-2">
-                <input
-                  id="block-active"
-                  name="active"
-                  type="checkbox"
-                  checked={formData.active}
-                  onChange={handleInputChange}
-                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                />
-                <Label htmlFor="block-active">Bloco ativo</Label>
-              </div>
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
-                  Cancelar
-                </Button>
-                <Button type="submit" disabled={loading}>
-                  {loading ? "Salvando..." : editingId ? "Salvar alterações" : "Adicionar bloco"}
-                </Button>
-              </DialogFooter>
-            </form>
+            
+            <Tabs defaultValue="custom" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="templates">Templates</TabsTrigger>
+                <TabsTrigger value="custom">Personalizado</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="templates" className="space-y-4">
+                <div className="max-h-60 overflow-y-auto">
+                  <HtmlTemplates onSelectTemplate={handleSelectTemplate} />
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="custom" className="space-y-4">
+                <form onSubmit={handleFormSubmit} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="block-name">Nome do Bloco</Label>
+                    <Input
+                      id="block-name"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      placeholder="Ex: Aviso Importante"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="block-position">Posição</Label>
+                    <select
+                      id="block-position"
+                      name="position"
+                      value={formData.position}
+                      onChange={handleSelectChange}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      required
+                    >
+                      <option value="">Selecione uma posição</option>
+                      <option value="top-header">Topo do cabeçalho</option>
+                      <option value="header">Cabeçalho</option>
+                      <option value="after-header">Após cabeçalho</option>
+                      <option value="sidebar">Barra lateral</option>
+                      <option value="main-content">Conteúdo principal</option>
+                      <option value="footer">Rodapé</option>
+                      <option value="before-footer">Antes do rodapé</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="block-content">Código HTML</Label>
+                    <textarea
+                      id="block-content"
+                      name="content"
+                      value={formData.content}
+                      onChange={handleInputChange}
+                      placeholder="Digite ou cole o código HTML aqui"
+                      className="flex h-36 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                      required
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Dica: Use classes Tailwind CSS para estilos.
+                    </p>
+                  </div>
+                  <div className="flex items-center space-x-2 pt-2">
+                    <input
+                      id="block-active"
+                      name="active"
+                      type="checkbox"
+                      checked={formData.active}
+                      onChange={handleInputChange}
+                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                    />
+                    <Label htmlFor="block-active">Bloco ativo</Label>
+                  </div>
+                  <DialogFooter>
+                    <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+                      Cancelar
+                    </Button>
+                    <Button type="submit" disabled={loading}>
+                      {loading ? "Salvando..." : editingId ? "Salvar alterações" : "Adicionar bloco"}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </TabsContent>
+            </Tabs>
           </DialogContent>
         </Dialog>
       </div>

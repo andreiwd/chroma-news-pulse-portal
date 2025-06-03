@@ -109,8 +109,8 @@ export default function Navigation() {
           </Sheet>
         </div>
         
-        {/* Desktop Menu - Simplificado */}
-        <div className="hidden lg:flex space-x-1 py-3 overflow-x-auto">
+        {/* Desktop Menu - Com fundo sutil */}
+        <div className="hidden lg:flex space-x-1 py-3 overflow-x-auto bg-gray-50/50 dark:bg-gray-800/30 rounded-md">
           {isLoading ? (
             // Skeleton loaders
             Array(6).fill(0).map((_, i) => (
