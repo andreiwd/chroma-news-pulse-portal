@@ -48,7 +48,7 @@ export default function FrontendSettings() {
       try {
         const config = await getConfig('frontend_settings');
         if (config) {
-          const typedConfig = config as SiteSettings;
+          const typedConfig = config as unknown as SiteSettings;
           setSettings({
             logo: {
               url: typedConfig.logo?.url || '',

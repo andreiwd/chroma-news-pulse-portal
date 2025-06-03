@@ -28,7 +28,7 @@ export default function WeatherConfig() {
       try {
         const weatherConfig = await getConfig('weather_config');
         if (weatherConfig) {
-          const typedConfig = weatherConfig as WeatherConfig;
+          const typedConfig = weatherConfig as unknown as WeatherConfig;
           setConfigState({
             apiKey: typedConfig.apiKey || '',
             city: typedConfig.city || '',
