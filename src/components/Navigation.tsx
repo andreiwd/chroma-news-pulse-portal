@@ -7,12 +7,63 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "./ui/button";
 import axios from "axios";
 import { Category } from "@/types/api";
+import { useSupabaseConfig } from "@/hooks/useSupabaseConfig";
+
+interface SiteSettings {
+  logo: {
+    url: string;
+    height: number;
+  };
+}
+
+const DEFAULT_SETTINGS: SiteSettings = {
+  logo: { url: "", height: 40 }
+};
 
 export default function Navigation() {
   const location = useLocation();
+  const { getConfig } = useSupabaseConfig();
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SETTINGS);
+  const [isScrolled, setIsScrolled] = useState(false);
+  
+  // Load logo settings
+  useEffect(() => {
+    const loadConfig = async () => {
+      try {
+        const config = await getConfig('frontend_settings');
+        
+        if (config && typeof config === 'object') {
+          const configData = config as Record<string, any>;
+          const newSettings: SiteSettings = {
+            logo: {
+              url: configData.logo?.url || "",
+              height: 40 // Smaller height for navigation
+            }
+          };
+          
+          setSettings(newSettings);
+        }
+      } catch (error) {
+        console.error("Erro ao carregar configurações do logo:", error);
+      }
+    };
+    
+    loadConfig();
+  }, [getConfig]);
+
+  // Handle scroll effect
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      setIsScrolled(scrollTop > 100);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
   
   // Buscar categorias diretamente
   useEffect(() => {
@@ -69,6 +120,38 @@ export default function Navigation() {
   return (
     <nav className="border-b sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 w-full dark:bg-gray-900 dark:border-gray-800">
       <div className="container">
+        {/* Logo - only shows when scrolled */}
+        {isScrolled && (
+          <div className="flex justify-center py-2 border-b border-gray-200 dark:border-gray-700">
+            <Link to="/" className="inline-block">
+              {settings.logo.url ? (
+                <img 
+                  src={settings.logo.url} 
+                  alt="Logo do Site" 
+                  style={{ height: `${settings.logo.height}px` }}
+                  className="w-auto max-h-10"
+                  onError={(e) => {
+                    console.error("Erro ao carregar logo:", e);
+                    const target = e.currentTarget as HTMLImageElement;
+                    target.style.display = "none";
+                    const fallback = target.parentElement?.querySelector('.fallback-logo') as HTMLElement;
+                    if (!fallback) {
+                      const span = document.createElement('span');
+                      span.className = "text-lg font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent fallback-logo";
+                      span.textContent = "ChromaNews";
+                      target.parentElement?.appendChild(span);
+                    }
+                  }}
+                />
+              ) : (
+                <span className="text-lg font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+                  ChromaNews
+                </span>
+              )}
+            </Link>
+          </div>
+        )}
+
         {/* Mobile Menu */}
         <div className="block lg:hidden py-2">
           <Sheet>
