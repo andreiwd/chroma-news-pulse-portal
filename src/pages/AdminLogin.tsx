@@ -7,40 +7,59 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function AdminLogin() {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulação de autenticação - em uma aplicação real, isso seria uma chamada à API
-    setTimeout(() => {
-      // Credenciais de teste: admin/admin123
-      if (username === "admin" && password === "admin123") {
-        localStorage.setItem("admin_token", "fake-jwt-token");
-        
-        toast({
-          title: "Login efetuado",
-          description: "Bem-vindo ao painel administrativo."
-        });
-        
-        navigate("/admin/dashboard");
-      } else {
-        toast({
-          title: "Erro de autenticação",
-          description: "Usuário ou senha incorretos.",
-          variant: "destructive"
-        });
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        throw error;
       }
+
+      // Verificar se o usuário é administrador
+      const { data: adminUser, error: adminError } = await supabase
+        .from('admin_users')
+        .select('*')
+        .eq('email', email)
+        .eq('active', true)
+        .single();
+
+      if (adminError || !adminUser) {
+        await supabase.auth.signOut();
+        throw new Error('Acesso negado. Usuário não autorizado.');
+      }
+
+      localStorage.setItem("admin_token", data.session?.access_token || "");
       
+      toast({
+        title: "Login efetuado",
+        description: "Bem-vindo ao painel administrativo."
+      });
+      
+      navigate("/admin/dashboard");
+    } catch (error: any) {
+      toast({
+        title: "Erro de autenticação",
+        description: error.message || "Erro ao fazer login.",
+        variant: "destructive"
+      });
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
   
   return (
@@ -61,14 +80,15 @@ export default function AdminLogin() {
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="username">Usuário</Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
-                  id="username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Digite seu nome de usuário"
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Digite seu email"
                   required
-                  autoComplete="username"
+                  autoComplete="email"
                 />
               </div>
               
@@ -100,10 +120,6 @@ export default function AdminLogin() {
               >
                 {isLoading ? "Entrando..." : "Entrar"}
               </Button>
-              
-              <div className="text-center text-sm text-muted-foreground mt-2">
-                Para testes, use: <code className="bg-muted p-1 rounded">admin / admin123</code>
-              </div>
             </form>
           </CardContent>
           <CardFooter className="flex justify-center border-t pt-4">

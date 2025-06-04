@@ -62,7 +62,6 @@ export default function WeatherWidget({ city: propCity, apiKey: propApiKey }: We
       const loadConfig = async () => {
         try {
           const weatherConfig = await getConfig('weather_config');
-          console.log('Weather config carregada:', weatherConfig);
           
           if (weatherConfig && typeof weatherConfig === 'object') {
             // Type guard to ensure we have the right structure
@@ -107,8 +106,6 @@ export default function WeatherWidget({ city: propCity, apiKey: propApiKey }: We
   const fetchWeather = async () => {
     const city = propCity || config?.city || "Taquaritinga,BR";
     const apiKey = propApiKey || config?.apiKey;
-
-    console.log('Fetching weather for city:', city, 'with API key:', apiKey ? 'PROVIDED' : 'NOT PROVIDED');
 
     if (!apiKey) {
       // Use mock data when API key is not provided
@@ -163,7 +160,6 @@ export default function WeatherWidget({ city: propCity, apiKey: propApiKey }: We
   useEffect(() => {
     // Carrega quando há props ou configuração habilitada
     const shouldLoad = (propCity && propApiKey) || (config && config.enabled);
-    console.log('Should load weather:', shouldLoad, 'Config:', config);
     
     if (shouldLoad) {
       fetchWeather();

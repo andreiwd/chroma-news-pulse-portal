@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,38 +8,28 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Edit, Plus, Shield, Trash, User } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AdminUser {
   id: string;
-  name: string;
   email: string;
   role: string;
-  lastLogin: string;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export default function UsersManager() {
   const { toast } = useToast();
-  const [users, setUsers] = useState<AdminUser[]>([
-    {
-      id: '1',
-      name: 'Administrador',
-      email: 'admin@exemplo.com',
-      role: 'admin',
-      lastLogin: '06/05/2025 10:32'
-    },
-    {
-      id: '2',
-      name: 'Editor',
-      email: 'editor@exemplo.com',
-      role: 'editor',
-      lastLogin: '05/05/2025 16:45'
-    }
-  ]);
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [loading, setLoading] = useState(true);
   
-  const [formData, setFormData] = useState<Omit<AdminUser, 'id' | 'lastLogin'>>({
-    name: '',
+  const [formData, setFormData] = useState<{
+    email: string;
+    role: string;
+  }>({
     email: '',
-    role: 'editor'
+    role: 'admin'
   });
   
   const [password, setPassword] = useState('');
@@ -47,6 +37,32 @@ export default function UsersManager() {
   
   const [editingId, setEditingId] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  const loadUsers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('admin_users')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      setUsers(data || []);
+    } catch (error) {
+      console.error('Erro ao carregar usuários:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao carregar lista de usuários.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -56,10 +72,10 @@ export default function UsersManager() {
     });
   };
   
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validar senha
+    // Validar senha para novos usuários
     if (!editingId && password !== confirmPassword) {
       toast({
         title: "Erro na validação",
@@ -69,41 +85,66 @@ export default function UsersManager() {
       return;
     }
     
-    if (editingId) {
-      // Editar usuário existente
-      setUsers(users.map(user => 
-        user.id === editingId ? 
-          { ...user, name: formData.name, email: formData.email, role: formData.role } : 
-          user
-      ));
+    try {
+      if (editingId) {
+        // Editar usuário existente
+        const { error } = await supabase
+          .from('admin_users')
+          .update({ 
+            email: formData.email, 
+            role: formData.role,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', editingId);
+
+        if (error) throw error;
+        
+        toast({
+          title: "Usuário atualizado",
+          description: `As informações do usuário "${formData.email}" foram atualizadas.`
+        });
+      } else {
+        // Criar usuário no Auth
+        const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+          email: formData.email,
+          password: password,
+          email_confirm: true
+        });
+
+        if (authError) throw authError;
+
+        // Adicionar à tabela admin_users
+        const { error: dbError } = await supabase
+          .from('admin_users')
+          .insert({
+            user_id: authData.user?.id,
+            email: formData.email,
+            role: formData.role,
+            active: true
+          });
+
+        if (dbError) throw dbError;
+        
+        toast({
+          title: "Usuário adicionado",
+          description: `O usuário "${formData.email}" foi adicionado com sucesso.`
+        });
+      }
       
+      await loadUsers();
+      resetForm();
+      setDialogOpen(false);
+    } catch (error: any) {
       toast({
-        title: "Usuário atualizado",
-        description: `As informações do usuário "${formData.name}" foram atualizadas.`
-      });
-    } else {
-      // Adicionar novo usuário
-      const newUser = {
-        ...formData,
-        id: Date.now().toString(),
-        lastLogin: 'Nunca'
-      };
-      
-      setUsers([...users, newUser]);
-      
-      toast({
-        title: "Usuário adicionado",
-        description: `O usuário "${formData.name}" foi adicionado com sucesso.`
+        title: "Erro",
+        description: error.message || "Erro ao processar solicitação.",
+        variant: "destructive"
       });
     }
-    
-    resetForm();
-    setDialogOpen(false);
   };
   
   const handleEdit = (user: AdminUser) => {
     setFormData({
-      name: user.name,
       email: user.email,
       role: user.role
     });
@@ -111,40 +152,34 @@ export default function UsersManager() {
     setDialogOpen(true);
   };
   
-  const handleDelete = (id: string) => {
-    const userToDelete = users.find(user => user.id === id);
-    
-    if (users.length === 1) {
+  const handleDelete = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('admin_users')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      await loadUsers();
+      
       toast({
-        title: "Operação negada",
-        description: "Não é possível remover o único usuário administrador.",
+        title: "Usuário removido",
+        description: "O usuário foi removido com sucesso."
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao remover usuário.",
         variant: "destructive"
       });
-      return;
     }
-    
-    if (userToDelete && userToDelete.email === 'admin@exemplo.com') {
-      toast({
-        title: "Operação negada",
-        description: "Não é possível remover o usuário administrador principal.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    setUsers(users.filter(user => user.id !== id));
-    
-    toast({
-      title: "Usuário removido",
-      description: `O usuário "${userToDelete?.name}" foi removido com sucesso.`
-    });
   };
   
   const resetForm = () => {
     setFormData({
-      name: '',
       email: '',
-      role: 'editor'
+      role: 'admin'
     });
     setPassword('');
     setConfirmPassword('');
@@ -155,6 +190,17 @@ export default function UsersManager() {
     setDialogOpen(open);
     if (!open) resetForm();
   };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Usuários</h1>
+          <p className="text-muted-foreground">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="space-y-6">
@@ -183,17 +229,6 @@ export default function UsersManager() {
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleFormSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="user-name">Nome completo</Label>
-                <Input
-                  id="user-name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  placeholder="Nome do usuário"
-                  required
-                />
-              </div>
               <div className="space-y-2">
                 <Label htmlFor="user-email">Email</Label>
                 <Input
@@ -272,18 +307,17 @@ export default function UsersManager() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Nome</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Função</TableHead>
-                <TableHead>Último acesso</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Data de criação</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {users.map((user) => (
                 <TableRow key={user.id}>
-                  <TableCell className="font-medium">{user.name}</TableCell>
-                  <TableCell>{user.email}</TableCell>
+                  <TableCell className="font-medium">{user.email}</TableCell>
                   <TableCell>
                     <div className="flex items-center">
                       {user.role === 'admin' ? (
@@ -299,7 +333,12 @@ export default function UsersManager() {
                       )}
                     </div>
                   </TableCell>
-                  <TableCell>{user.lastLogin}</TableCell>
+                  <TableCell>
+                    <span className={user.active ? "text-green-600" : "text-red-600"}>
+                      {user.active ? "Ativo" : "Inativo"}
+                    </span>
+                  </TableCell>
+                  <TableCell>{new Date(user.created_at).toLocaleDateString('pt-BR')}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button
@@ -314,7 +353,6 @@ export default function UsersManager() {
                         variant="ghost"
                         size="icon"
                         onClick={() => handleDelete(user.id)}
-                        disabled={user.email === 'admin@exemplo.com'}
                         title="Excluir"
                       >
                         <Trash size={18} />
@@ -357,12 +395,12 @@ export default function UsersManager() {
             </div>
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-medium">Alterar senha padrão</h3>
+                <h3 className="font-medium">Políticas de senha</h3>
                 <p className="text-sm text-muted-foreground">
-                  Altere a senha do administrador principal
+                  Definir critérios de segurança para senhas
                 </p>
               </div>
-              <Button variant="outline">Alterar</Button>
+              <Button variant="outline">Configurar</Button>
             </div>
           </div>
         </CardContent>
