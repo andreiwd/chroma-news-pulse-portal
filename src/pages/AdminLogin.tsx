@@ -21,29 +21,46 @@ export default function AdminLogin() {
     setIsLoading(true);
     
     try {
+      console.log('Tentando fazer login com:', email);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) {
+        console.error('Erro de autenticação:', error);
         throw error;
       }
+
+      console.log('Login realizado com sucesso. Verificando permissões de admin...');
+      console.log('Dados do usuário:', data.user);
 
       // Verificar se o usuário é administrador
       const { data: adminUser, error: adminError } = await supabase
         .from('admin_users')
         .select('*')
-        .eq('email', email)
-        .eq('active', true)
-        .single();
+        .eq('email', email.toLowerCase())
+        .eq('active', true);
 
-      if (adminError || !adminUser) {
+      console.log('Resultado da consulta admin_users:', { adminUser, adminError });
+
+      if (adminError) {
+        console.error('Erro ao consultar admin_users:', adminError);
         await supabase.auth.signOut();
-        throw new Error('Acesso negado. Usuário não autorizado.');
+        throw new Error(`Erro na verificação de permissões: ${adminError.message}`);
       }
 
+      if (!adminUser || adminUser.length === 0) {
+        console.log('Usuário não encontrado na tabela admin_users ou inativo');
+        await supabase.auth.signOut();
+        throw new Error('Acesso negado. Usuário não autorizado ou inativo.');
+      }
+
+      console.log('Usuário autorizado:', adminUser[0]);
+      
       localStorage.setItem("admin_token", data.session?.access_token || "");
+      localStorage.setItem("admin_user", JSON.stringify(adminUser[0]));
       
       toast({
         title: "Login efetuado",
@@ -52,6 +69,7 @@ export default function AdminLogin() {
       
       navigate("/admin/dashboard");
     } catch (error: any) {
+      console.error('Erro completo:', error);
       toast({
         title: "Erro de autenticação",
         description: error.message || "Erro ao fazer login.",
