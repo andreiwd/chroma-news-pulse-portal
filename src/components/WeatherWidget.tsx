@@ -26,7 +26,7 @@ interface WeatherWidgetProps {
 interface WeatherConfigData {
   city: string;
   apiKey: string;
-  isEnabled: boolean;
+  enabled: boolean;
 }
 
 export default function WeatherWidget({ city: propCity, apiKey: propApiKey }: WeatherWidgetProps) {
@@ -42,9 +42,15 @@ export default function WeatherWidget({ city: propCity, apiKey: propApiKey }: We
       const loadConfig = async () => {
         try {
           const weatherConfig = await getConfig('weather_config');
+          console.log('Weather config carregada:', weatherConfig);
+          
           if (weatherConfig) {
-            const configData = weatherConfig as unknown as WeatherConfigData;
-            setConfig(configData);
+            // A configuração já vem no formato correto do Supabase
+            setConfig({
+              city: weatherConfig.city || 'São Paulo, BR',
+              apiKey: weatherConfig.apiKey || '',
+              enabled: weatherConfig.enabled === true
+            });
           }
         } catch (error) {
           console.error("Error loading weather config:", error);
@@ -74,6 +80,8 @@ export default function WeatherWidget({ city: propCity, apiKey: propApiKey }: We
   const fetchWeather = async () => {
     const city = propCity || config?.city || "Taquaritinga,BR";
     const apiKey = propApiKey || config?.apiKey;
+
+    console.log('Fetching weather for city:', city, 'with API key:', apiKey ? 'PROVIDED' : 'NOT PROVIDED');
 
     if (!apiKey) {
       // Use mock data when API key is not provided
@@ -134,24 +142,39 @@ export default function WeatherWidget({ city: propCity, apiKey: propApiKey }: We
   };
 
   useEffect(() => {
-    // Só carrega se tem configuração ou props
-    if (propCity && propApiKey || config?.isEnabled) {
+    // Carrega quando há props ou configuração habilitada
+    const shouldLoad = (propCity && propApiKey) || (config && config.enabled);
+    console.log('Should load weather:', shouldLoad, 'Config:', config);
+    
+    if (shouldLoad) {
       fetchWeather();
       const interval = setInterval(fetchWeather, 1800000); // Update every 30 minutes
       
       return () => clearInterval(interval);
-    } else if (!propCity && !propApiKey && config && !config.isEnabled) {
+    } else {
       setLoading(false);
     }
   }, [propCity, propApiKey, config]);
 
-  // Se está carregando ou não há configuração habilitada, não renderizar
-  if (loading && !weather) {
+  // Se está carregando configuração inicial, não renderizar
+  if (!propCity && !propApiKey && !config) {
     return null;
   }
 
-  if (!propCity && !propApiKey && config && !config.isEnabled) {
+  // Se não está habilitado e não tem props, não renderizar
+  if (!propCity && !propApiKey && config && !config.enabled) {
     return null;
+  }
+
+  // Se está carregando e não tem dados, mostrar loading simples
+  if (loading && !weather) {
+    return (
+      <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white overflow-hidden">
+        <div className="flex justify-center items-center p-12">
+          <RefreshCw className="w-12 h-12 animate-spin" />
+        </div>
+      </Card>
+    );
   }
 
   if (error) {
