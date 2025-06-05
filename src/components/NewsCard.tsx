@@ -70,7 +70,7 @@ export default function NewsCard({ news, variant = "default" }: NewsCardProps) {
                 {news.published_at && new Date(news.published_at).toLocaleDateString('pt-BR')} • {viewCount} visualizações
               </div>
               <Button variant="ghost" size="sm" className="p-0 h-auto" style={{ color: categoryColor }} asChild>
-                <Link to={`/news/${news.slug}`}>
+                <Link to={`/noticia/${news.slug}`}>
                   <ArrowRight className="h-3 w-3" />
                 </Link>
               </Button>
@@ -101,7 +101,7 @@ export default function NewsCard({ news, variant = "default" }: NewsCardProps) {
               {news.published_at && new Date(news.published_at).toLocaleDateString('pt-BR')} • {viewCount} visualizações
             </span>
           </div>
-          <Link to={`/news/${news.slug}`} className="font-medium line-clamp-2 hover:underline">
+          <Link to={`/noticia/${news.slug}`} className="font-medium line-clamp-2 hover:underline">
             {typeof news.title === 'string' ? news.title : "Notícia sem título"}
           </Link>
         </CardContent>
@@ -140,7 +140,7 @@ export default function NewsCard({ news, variant = "default" }: NewsCardProps) {
         <CardTitle 
           className={`${variant === "compact" ? "text-lg" : "text-xl"} font-bold line-clamp-2`}
         >
-          <Link to={`/news/${news.slug}`} className="hover:underline">
+          <Link to={`/noticia/${news.slug}`} className="hover:underline">
             {typeof news.title === 'string' ? news.title : "Notícia sem título"}
           </Link>
         </CardTitle>
@@ -154,7 +154,7 @@ export default function NewsCard({ news, variant = "default" }: NewsCardProps) {
             {news.published_at && new Date(news.published_at).toLocaleDateString('pt-BR')} • {viewCount} visualizações
           </div>
           <Button variant="ghost" size="sm" className="p-0 h-auto" style={{ color: categoryColor }} asChild>
-            <Link to={`/news/${news.slug}`}>
+            <Link to={`/noticia/${news.slug}`}>
               Leia mais <ArrowRight className="h-3 w-3 ml-1" />
             </Link>
           </Button>

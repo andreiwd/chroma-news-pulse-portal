@@ -1,3 +1,4 @@
+
 import { useParams, Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
@@ -15,8 +16,8 @@ import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export default function NewsDetail() {
-  const { id } = useParams();
-  const { data: article, isLoading, error } = useNewsDetail(id || "");
+  const { slug } = useParams();
+  const { data: article, isLoading, error } = useNewsDetail(slug || "");
   const { data: relatedNewsData } = useNews(1, article?.category?.slug || "", "");
   
   const relatedArticles = relatedNewsData?.data?.filter(item => item.id !== article?.id)?.slice(0, 4) || [];

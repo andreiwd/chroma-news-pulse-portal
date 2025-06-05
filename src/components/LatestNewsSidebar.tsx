@@ -30,7 +30,7 @@ export default function LatestNewsSidebar({ latestNewsItems }: LatestNewsSidebar
               className="p-3 hover:bg-muted/20 transition-colors"
             >
               <Link 
-                to={`/news/${news.slug}`}
+                to={`/noticia/${news.slug}`}
                 className="text-sm font-medium hover:underline line-clamp-2 block"
                 style={{ color: categoryColor }}
               >

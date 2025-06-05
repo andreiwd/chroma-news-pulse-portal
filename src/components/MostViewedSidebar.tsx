@@ -35,7 +35,7 @@ export default function MostViewedSidebar({ mostViewedNews }: MostViewedSidebarP
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Link 
-                        to={`/news/${news.slug}`}
+                        to={`/noticia/${news.slug}`}
                         className="font-medium hover:underline line-clamp-2"
                         style={{ color: categoryColor }}
                       >

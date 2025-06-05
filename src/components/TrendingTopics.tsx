@@ -47,7 +47,7 @@ export default function TrendingTopics({ trendingNews }: TrendingTopicsProps) {
             return (
               <Link 
                 key={news.id || `trending-${index}`}
-                to={`/news/${news.slug || ''}`}
+                to={`/noticia/${news.slug || ''}`}
                 className={`text-sm font-medium whitespace-nowrap hover:underline block transition-opacity duration-500 ${index === currentNewsIndex ? 'opacity-100' : 'opacity-0 hidden'}`}
                 style={{ color: categoryColor }}
               >

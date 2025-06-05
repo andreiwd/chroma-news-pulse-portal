@@ -32,7 +32,7 @@ export default function RelatedNews({ articles }: RelatedNewsProps) {
             String(article.category.color || "#333") : "#333";
           
           return (
-            <Link key={article.id} to={`/news/${article.slug}`} className="block">
+            <Link key={article.id} to={`/noticia/${article.slug}`} className="block">
               <Card className="h-full flex flex-col hover:shadow-md transition-shadow">
                 <div className="relative h-48 overflow-hidden">
                   <img

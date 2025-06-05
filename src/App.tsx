@@ -49,7 +49,7 @@ function App() {
               }>
                 <Routes>
                   <Route path="/" element={<Index />} />
-                  <Route path="/news/:slug" element={<NewsDetail />} />
+                  <Route path="/noticia/:slug" element={<NewsDetail />} />
                   <Route path="/category/:slug" element={<CategoryPage />} />
                   <Route path="/categorias" element={<CategoriesPage />} />
                   <Route path="/destaques" element={<FeaturedArticlesPage />} />
