@@ -1,4 +1,3 @@
-
 import { useParams, Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
@@ -76,7 +75,7 @@ export default function NewsDetail() {
       <main className="container py-6">
         <Breadcrumbs 
           items={[
-            { label: article.category?.name || "Categorias", href: `/category/${article.category?.slug}` },
+            { label: article.category?.name || "Categorias", href: `/categoria/${article.category?.slug}` },
             { label: article.title }
           ]}
         />

@@ -109,7 +109,7 @@ export default function Navigation() {
   // Set active category based on URL
   useEffect(() => {
     const path = location.pathname;
-    if (path.startsWith('/category/')) {
+    if (path.startsWith('/categoria/')) {
       const categorySlug = path.split('/')[2];
       setActiveCategory(categorySlug);
     } else {
@@ -170,7 +170,7 @@ export default function Navigation() {
                   categories.map((category) => (
                     <Link 
                       key={`mobile-cat-${category.id}-${category.slug}`}
-                      to={`/category/${category.slug}`}
+                      to={`/categoria/${category.slug}`}
                       className="flex items-center justify-center p-3 rounded-md font-medium text-center transition-all"
                       style={{ 
                         backgroundColor: `${category.color}20`,
@@ -182,7 +182,7 @@ export default function Navigation() {
                   ))
                 )}
                 <Link 
-                  to="/categories"
+                  to="/categorias"
                   className="flex items-center justify-center p-3 rounded-md font-medium text-center col-span-2 bg-primary/10 text-primary dark:bg-primary/20"
                 >
                   Ver todas as categorias
@@ -218,7 +218,7 @@ export default function Navigation() {
                   }}
                   asChild
                 >
-                  <Link to={`/category/${category.slug}`}>
+                  <Link to={`/categoria/${category.slug}`}>
                     {category.name}
                   </Link>
                 </Button>
@@ -232,7 +232,7 @@ export default function Navigation() {
             className="font-medium text-primary"
             asChild
           >
-            <Link to="/categories">
+            <Link to="/categorias">
               Ver Todas
             </Link>
           </Button>

@@ -45,7 +45,7 @@ export default function LatestNewsSidebar({ latestNewsItems }: LatestNewsSidebar
       </div>
       
       <div className="p-3 bg-muted/10 text-center">
-        <Link to="/news" className="text-sm text-primary font-medium hover:underline">
+        <Link to="/busca" className="text-sm text-primary font-medium hover:underline">
           Ver todas as notícias
         </Link>
       </div>

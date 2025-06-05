@@ -207,7 +207,7 @@ export default function CategoryPage() {
   
   // Acessar diretamente uma categoria existente
   const goToCategory = (slug: string) => {
-    navigate(`/category/${slug}`);
+    navigate(`/categoria/${slug}`);
   };
   
   // Verifica se estamos carregando algo
@@ -320,7 +320,7 @@ export default function CategoryPage() {
               {articles.map((article) => (
                 <Link 
                   key={article.id}
-                  to={`/news/${article.slug}`}
+                  to={`/noticia/${article.slug}`}
                   className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
                 >
                   {article.featured_image && (

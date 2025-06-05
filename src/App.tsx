@@ -50,7 +50,7 @@ function App() {
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/noticia/:slug" element={<NewsDetail />} />
-                  <Route path="/category/:slug" element={<CategoryPage />} />
+                  <Route path="/categoria/:slug" element={<CategoryPage />} />
                   <Route path="/categorias" element={<CategoriesPage />} />
                   <Route path="/destaques" element={<FeaturedArticlesPage />} />
                   <Route path="/busca" element={<SearchPage />} />
