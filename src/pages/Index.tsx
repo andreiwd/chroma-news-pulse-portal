@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useMemo } from "react";
 import NewsTicker from "@/components/NewsTicker";
 import Header from "@/components/Header";
@@ -31,11 +30,7 @@ export default function Index() {
   const [isLoadingCategories, setIsLoadingCategories] = useState(false);
   
   const allNews: Article[] = Array.isArray(newsData?.data) ? newsData?.data : [];
-  console.log("Index - Total articles:", allNews.length);
-  
   const latestNewsItems: Article[] = Array.isArray(latestNewsData) ? latestNewsData.filter(Boolean) : [];
-  
-  console.log("Featured articles from new endpoint:", featuredArticles);
 
   // Fetch news for each category in the layout blocks
   useEffect(() => {
@@ -220,7 +215,10 @@ export default function Index() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-background" lang="pt-BR">
+      <meta name="language" content="pt-BR" />
+      <meta httpEquiv="Content-Language" content="pt-BR" />
+      
       {/* HTML Blocks - Topo do cabeçalho */}
       <HtmlBlockRenderer position="top-header" />
       

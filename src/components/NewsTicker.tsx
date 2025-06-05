@@ -11,13 +11,14 @@ export default function NewsTicker() {
   const [currentNewsIndex, setCurrentNewsIndex] = useState(0);
   const [primaryColor, setPrimaryColor] = useState('#1a73e8');
   const [isConfigLoaded, setIsConfigLoaded] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
   
   // Ensure latestNews is always a valid array
   const latestNews: Article[] = Array.isArray(latestNewsData) ? latestNewsData.filter(Boolean) : [];
   
   // Load primary color from config
   const loadColors = useCallback(async () => {
-    if (isConfigLoaded) return; // Evita recarregamentos desnecessários
+    if (isConfigLoaded) return;
     
     try {
       const config = await getConfig('frontend_settings');
@@ -29,7 +30,6 @@ export default function NewsTicker() {
       }
       setIsConfigLoaded(true);
     } catch (error) {
-      console.error("Erro ao carregar cores para o ticker:", error);
       setIsConfigLoaded(true);
     }
   }, [getConfig, isConfigLoaded]);
@@ -49,8 +49,12 @@ export default function NewsTicker() {
     if (!latestNews?.length) return;
     
     const timer = setInterval(() => {
-      setCurrentNewsIndex((prev) => (prev + 1) % latestNews.length);
-    }, 4000);
+      setIsVisible(false);
+      setTimeout(() => {
+        setCurrentNewsIndex((prev) => (prev + 1) % latestNews.length);
+        setIsVisible(true);
+      }, 200);
+    }, 5000);
 
     return () => clearInterval(timer);
   }, [latestNews?.length]);
@@ -61,14 +65,18 @@ export default function NewsTicker() {
       <div 
         className="py-3 text-white"
         style={{
-          background: `linear-gradient(to right, ${primaryColor}dd, ${primaryColor})`
+          background: `linear-gradient(135deg, ${primaryColor}dd, ${primaryColor})`
         }}
+        lang="pt-BR"
       >
         <div className="container flex items-center space-x-4 overflow-hidden">
           <span className="font-semibold whitespace-nowrap text-white bg-black/20 px-3 py-1 rounded-full text-sm">
             Últimas Notícias
           </span>
-          <p className="animate-pulse text-white">Carregando notícias...</p>
+          <div className="flex items-center space-x-2">
+            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+            <p className="text-white">Carregando notícias...</p>
+          </div>
         </div>
       </div>
     );
@@ -80,6 +88,7 @@ export default function NewsTicker() {
       style={{
         background: `linear-gradient(135deg, ${primaryColor}dd, ${primaryColor})`
       }}
+      lang="pt-BR"
     >
       <div className="container flex items-center space-x-4 overflow-hidden">
         <span className="font-semibold whitespace-nowrap text-white bg-black/20 px-3 py-1 rounded-full text-sm flex-shrink-0">
@@ -90,7 +99,10 @@ export default function NewsTicker() {
             <Link
               to={`/news/${latestNews[currentNewsIndex].slug}`}
               key={`ticker-${latestNews[currentNewsIndex].id}`}
-              className="block animate-[tickerFade_4s_ease-in-out_infinite] hover:underline text-white transition-all duration-300 hover:text-white/90"
+              className={`block hover:underline text-white transition-all duration-300 hover:text-white/90 transform ${
+                isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
+              }`}
+              style={{ transition: 'opacity 0.3s ease-in-out, transform 0.3s ease-in-out' }}
             >
               {latestNews[currentNewsIndex].title || "Notícia sem título"}
             </Link>

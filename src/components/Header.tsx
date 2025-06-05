@@ -1,10 +1,10 @@
-
 import { Facebook, Instagram, Search } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useEffect, useState, useCallback } from "react";
 import { useSupabaseConfig } from "@/hooks/useSupabaseConfig";
+import { useNavigate } from "react-router-dom";
 
 interface SiteSettings {
   logo: {
@@ -39,6 +39,8 @@ export default function Header() {
   const { getConfig } = useSupabaseConfig();
   const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SETTINGS);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
 
   // Load settings from Supabase
   const loadConfig = useCallback(async () => {
@@ -86,8 +88,16 @@ export default function Header() {
     loadConfig();
   }, [loadConfig]);
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/busca?q=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery("");
+    }
+  };
+
   return (
-    <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60" lang="pt-BR">
       <div className="container py-4">
         <div className="flex items-center justify-between gap-6">
           <div className="flex-1">
@@ -99,7 +109,6 @@ export default function Header() {
                   style={{ height: `${settings.logo.height}px` }}
                   className="w-auto max-h-20"
                   onError={(e) => {
-                    console.error("Erro ao carregar logo:", e);
                     const target = e.currentTarget as HTMLImageElement;
                     target.style.display = "none";
                     const fallback = target.parentElement?.querySelector('.fallback-logo') as HTMLElement;
@@ -120,29 +129,32 @@ export default function Header() {
           </div>
           
           <div className="flex-1 max-w-md">
-            <div className="relative">
+            <form onSubmit={handleSearch} className="relative">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
+                type="search"
                 placeholder="Buscar notícias..."
                 className="pl-8 rounded-full"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
-            </div>
+            </form>
           </div>
 
           <div className="flex items-center gap-4">
             <div className="flex gap-2">
               <Button variant="ghost" size="icon" asChild>
-                <a href={settings.socialLinks.facebook} target="_blank" rel="noopener noreferrer">
+                <a href={settings.socialLinks.facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook">
                   <Facebook className="h-5 w-5" />
                 </a>
               </Button>
               <Button variant="ghost" size="icon" asChild>
-                <a href={settings.socialLinks.instagram} target="_blank" rel="noopener noreferrer">
+                <a href={settings.socialLinks.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram">
                   <Instagram className="h-5 w-5" />
                 </a>
               </Button>
               <Button variant="ghost" size="icon" asChild>
-                <a href={settings.socialLinks.twitter} target="_blank" rel="noopener noreferrer">
+                <a href={settings.socialLinks.twitter} target="_blank" rel="noopener noreferrer" aria-label="Twitter">
                   <svg 
                     xmlns="http://www.w3.org/2000/svg" 
                     width="20" 
