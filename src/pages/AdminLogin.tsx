@@ -15,6 +15,8 @@ export default function AdminLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
   
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,6 +81,45 @@ export default function AdminLogin() {
       setIsLoading(false);
     }
   };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) {
+      toast({
+        title: "Email necessário",
+        description: "Digite seu email para recuperar a senha.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setResetLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/painel`
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Email enviado",
+        description: "Verifique seu email para redefinir sua senha."
+      });
+      
+      setShowForgotPassword(false);
+    } catch (error: any) {
+      console.error('Erro ao enviar email de recuperação:', error);
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao enviar email de recuperação.",
+        variant: "destructive"
+      });
+    } finally {
+      setResetLoading(false);
+    }
+  };
   
   return (
     <div className="min-h-screen bg-muted/30 flex items-center justify-center p-4">
@@ -90,55 +131,96 @@ export default function AdminLogin() {
         
         <Card>
           <CardHeader>
-            <CardTitle>Acesso Restrito</CardTitle>
+            <CardTitle>
+              {showForgotPassword ? "Recuperar Senha" : "Acesso Restrito"}
+            </CardTitle>
             <CardDescription>
-              Entre com suas credenciais para acessar o painel
+              {showForgotPassword 
+                ? "Digite seu email para receber as instruções de recuperação"
+                : "Entre com suas credenciais para acessar o painel"
+              }
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Digite seu email"
-                  required
-                  autoComplete="email"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Senha</Label>
-                  <Link 
-                    to="/admin/forgot-password"
-                    className="text-xs text-primary hover:underline"
-                  >
-                    Esqueceu a senha?
-                  </Link>
+            {showForgotPassword ? (
+              <form onSubmit={handleForgotPassword} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="reset-email">Email</Label>
+                  <Input
+                    id="reset-email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Digite seu email"
+                    required
+                    autoComplete="email"
+                  />
                 </div>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Digite sua senha"
-                  required
-                  autoComplete="current-password"
-                />
-              </div>
-              
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={isLoading}
-              >
-                {isLoading ? "Entrando..." : "Entrar"}
-              </Button>
-            </form>
+                
+                <div className="flex gap-2">
+                  <Button
+                    type="submit"
+                    className="flex-1"
+                    disabled={resetLoading}
+                  >
+                    {resetLoading ? "Enviando..." : "Enviar Email"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowForgotPassword(false)}
+                    disabled={resetLoading}
+                  >
+                    Cancelar
+                  </Button>
+                </div>
+              </form>
+            ) : (
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Digite seu email"
+                    required
+                    autoComplete="email"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="password">Senha</Label>
+                    <button 
+                      type="button"
+                      onClick={() => setShowForgotPassword(true)}
+                      className="text-xs text-primary hover:underline"
+                    >
+                      Esqueceu a senha?
+                    </button>
+                  </div>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Digite sua senha"
+                    required
+                    autoComplete="current-password"
+                  />
+                </div>
+                
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Entrando..." : "Entrar"}
+                </Button>
+              </form>
+            )}
           </CardContent>
           <CardFooter className="flex justify-center border-t pt-4">
             <Link to="/" className="text-sm text-primary hover:underline">
