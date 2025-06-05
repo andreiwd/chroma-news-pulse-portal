@@ -42,7 +42,7 @@ export default function SearchPage() {
       <main className="flex-1">
         <div className="container py-8">
           <div className="max-w-4xl mx-auto">
-            <h1 className="text-3xl font-bold mb-6">
+            <h1 className="text-3xl font-bold mb-6 text-foreground">
               {query ? `Resultados para: "${query}"` : "Buscar Notícias"}
             </h1>
             
@@ -67,7 +67,7 @@ export default function SearchPage() {
             {isLoading && (
               <div className="text-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                <p>Buscando notícias...</p>
+                <p className="text-foreground">Buscando notícias...</p>
               </div>
             )}
 
@@ -89,15 +89,15 @@ export default function SearchPage() {
                     {articles.map((article) => (
                       <NewsCard 
                         key={article.id} 
-                        article={article} 
-                        className="flex-row"
+                        news={article} 
+                        variant="horizontal"
                       />
                     ))}
                   </div>
                 ) : query && !isLoading ? (
                   <div className="text-center py-12">
                     <Search className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold mb-2">Nenhum resultado encontrado</h3>
+                    <h3 className="text-xl font-semibold mb-2 text-foreground">Nenhum resultado encontrado</h3>
                     <p className="text-muted-foreground mb-6">
                       Tente usar palavras-chave diferentes ou verifique a ortografia.
                     </p>
@@ -129,8 +129,8 @@ export default function SearchPage() {
 
               <div className="space-y-6">
                 <AdPlaceholder size="rectangle" id="search-ad-1" />
-                <div className="bg-card rounded-lg p-6">
-                  <h3 className="font-semibold mb-4">Dicas de Busca</h3>
+                <div className="bg-card rounded-lg p-6 border">
+                  <h3 className="font-semibold mb-4 text-card-foreground">Dicas de Busca</h3>
                   <ul className="text-sm space-y-2 text-muted-foreground">
                     <li>• Use palavras-chave específicas</li>
                     <li>• Tente sinônimos</li>
